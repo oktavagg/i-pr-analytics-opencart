@@ -12,6 +12,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 
+import cro_module
+
 from parser import ALLOWED_STATUSES, parse_xml, top_products
 
 
@@ -854,6 +856,20 @@ def main() -> None:
     )
 
     apply_theme()
+
+    with st.sidebar:
+        st.header("Разделы")
+        active_section = st.radio(
+            "Раздел приложения",
+            options=["Аналитика", "CRO"],
+            label_visibility="collapsed",
+        )
+        st.divider()
+
+    if active_section == "CRO":
+        cro_module.render_cro_page(LOGO_PATH)
+        return
+
     render_header()
 
     with st.sidebar:
