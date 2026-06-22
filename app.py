@@ -409,29 +409,27 @@ def apply_theme() -> None:
             border-radius: 0 !important;
         }
 
-        .sidebar-nav-title {
-            margin: 0 0 10px 0;
-            color: #111111 !important;
-            font-size: 0.72rem;
-            font-weight: 800;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-        }
+        @media (min-width: 801px) {
+            [data-testid="stSidebar"] {
+                display: block !important;
+                min-width: 310px !important;
+                width: 310px !important;
+                transform: none !important;
+            }
 
-        .sidebar-nav-caption {
-            margin: -4px 0 14px 0;
-            color: #646464 !important;
-            font-size: 0.82rem;
-            line-height: 1.4;
+            [data-testid="stSidebarCollapsedControl"] {
+                display: none !important;
+            }
         }
 
         [data-testid="stSidebar"] [data-testid="stRadio"] {
-            margin-bottom: 4px;
+            margin-top: 4px;
+            margin-bottom: 8px;
         }
 
         [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] {
             display: grid !important;
-            gap: 9px;
+            gap: 10px;
         }
 
         [data-testid="stSidebar"] [data-testid="stRadio"] label {
@@ -440,7 +438,7 @@ def apply_theme() -> None:
             align-items: center;
             min-height: 66px;
             margin: 0 !important;
-            padding: 12px 14px 12px 18px !important;
+            padding: 12px 14px 12px 20px !important;
             background: #FFFFFF;
             border: 1px solid #111111;
             cursor: pointer;
@@ -452,9 +450,9 @@ def apply_theme() -> None:
             position: absolute;
             left: 0;
             top: 0;
-            width: 6px;
+            width: 7px;
             height: 100%;
-            background: #D9D267;
+            background: #FBF560;
         }
 
         [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
@@ -478,46 +476,37 @@ def apply_theme() -> None:
 
         [data-testid="stSidebar"] [data-testid="stRadio"] label p {
             color: #111111 !important;
-            font-size: 0.93rem !important;
-            font-weight: 800 !important;
-            letter-spacing: 0.02em;
+            font-size: 0.92rem !important;
+            font-weight: 850 !important;
+            line-height: 1.25 !important;
+            letter-spacing: 0.015em;
         }
 
-        .upload-gate {
+        .upload-start {
             position: relative;
             max-width: 900px;
-            min-height: 430px;
-            margin: 6vh auto 0 auto;
-            padding: 48px 54px 120px 54px;
+            min-height: 420px;
+            margin: 5vh auto 0 auto;
+            padding: 44px 50px 116px 50px;
             background: #FFFFFF;
             border: 1px solid #111111;
             box-shadow: 12px 12px 0 #FBF560;
             overflow: hidden;
         }
 
-        .upload-gate::before {
+        .upload-start::before {
             content: "";
             position: absolute;
-            right: -74px;
-            top: -90px;
-            width: 280px;
-            height: 280px;
+            right: -90px;
+            top: -105px;
+            width: 330px;
+            height: 330px;
             background: #FBF560;
-            transform: rotate(18deg);
-            animation: uploadShape 5.5s ease-in-out infinite;
+            transform: rotate(16deg);
+            animation: iprFloat 5s ease-in-out infinite;
         }
 
-        .upload-gate::after {
-            content: "";
-            position: absolute;
-            left: 0;
-            bottom: 0;
-            width: 100%;
-            height: 8px;
-            background: #111111;
-        }
-
-        .upload-gate__top {
+        .upload-start__top {
             position: relative;
             z-index: 2;
             display: flex;
@@ -526,113 +515,155 @@ def apply_theme() -> None:
             gap: 24px;
         }
 
-        .upload-gate__brand {
+        .upload-start__logo {
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 178px;
-            min-width: 178px;
+            width: 180px;
             height: 72px;
             background: #FFFFFF;
             border: 1px solid #D9D267;
         }
 
-        .upload-gate__brand img {
-            width: 150px;
+        .upload-start__logo img {
+            width: 152px;
             max-height: 56px;
             object-fit: contain;
         }
 
-        .upload-gate__brand span {
+        .upload-start__logo span {
             color: #111111 !important;
-            font-size: 1rem;
-            font-weight: 800;
+            font-weight: 850;
         }
 
-        .upload-gate__status {
-            position: relative;
-            z-index: 2;
+        .upload-start__badge {
             display: inline-flex;
             align-items: center;
             gap: 9px;
-            padding: 8px 11px;
+            padding: 9px 12px;
             background: #111111;
             color: #FFFFFF !important;
-            font-size: 0.74rem;
-            font-weight: 800;
-            letter-spacing: 0.08em;
+            font-size: 0.72rem;
+            font-weight: 850;
+            letter-spacing: 0.09em;
             text-transform: uppercase;
         }
 
-        .upload-gate__status::before {
+        .upload-start__badge::before {
             content: "";
             width: 9px;
             height: 9px;
             background: #FBF560;
-            animation: uploadBlink 1.35s ease-in-out infinite;
+            animation: iprPulse 1.25s ease-in-out infinite;
         }
 
-        .upload-gate h1 {
+        .upload-start h1 {
             position: relative;
             z-index: 2;
-            max-width: 650px;
-            margin: 54px 0 12px 0;
+            max-width: 680px;
+            margin: 50px 0 14px 0;
             color: #111111 !important;
-            font-size: clamp(2.15rem, 5vw, 4.1rem);
+            font-size: clamp(2.3rem, 5vw, 4.2rem);
             line-height: 0.98;
             letter-spacing: -0.045em;
         }
 
-        .upload-gate p {
+        .upload-start p {
             position: relative;
             z-index: 2;
-            max-width: 630px;
+            max-width: 650px;
             margin: 0;
             color: #4B4B4B !important;
             font-size: 1rem;
             line-height: 1.6;
         }
 
-        .upload-gate__steps {
+        .upload-start__steps {
             position: relative;
             z-index: 2;
             display: grid;
             grid-template-columns: repeat(3, minmax(0, 1fr));
             gap: 1px;
-            max-width: 690px;
-            margin-top: 34px;
+            max-width: 720px;
+            margin-top: 32px;
             background: #111111;
             border: 1px solid #111111;
         }
 
-        .upload-gate__step {
-            min-height: 78px;
+        .upload-start__step {
+            min-height: 82px;
             padding: 14px 16px;
             background: #FFFFFF;
         }
 
-        .upload-gate__step strong {
+        .upload-start__step strong {
             display: block;
-            margin-bottom: 5px;
+            margin-bottom: 6px;
             color: #111111 !important;
             font-size: 0.78rem;
+            font-weight: 850;
             letter-spacing: 0.08em;
         }
 
-        .upload-gate__step span {
-            color: #646464 !important;
+        .upload-start__step span {
+            color: #626262 !important;
             font-size: 0.82rem;
-            line-height: 1.35;
+            line-height: 1.4;
         }
 
-        @keyframes uploadBlink {
-            0%, 100% { opacity: 0.35; transform: scale(0.8); }
-            50% { opacity: 1; transform: scale(1.18); }
+        [data-testid="stMain"] [data-testid="stFileUploader"] {
+            position: relative;
+            z-index: 5;
+            max-width: 720px;
+            margin: -91px auto 0 auto;
         }
 
-        @keyframes uploadShape {
-            0%, 100% { transform: rotate(18deg) translate(0, 0); }
-            50% { transform: rotate(13deg) translate(-12px, 12px); }
+        [data-testid="stMain"] [data-testid="stFileUploader"] > label {
+            display: none !important;
+        }
+
+        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] {
+            min-height: 72px !important;
+            padding: 14px 18px !important;
+            background: #FBF560 !important;
+            border: 2px solid #111111 !important;
+            box-shadow: 6px 6px 0 #111111 !important;
+        }
+
+        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] button {
+            background: #111111 !important;
+            color: #FFFFFF !important;
+            border: 1px solid #111111 !important;
+        }
+
+        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] button * {
+            color: #FFFFFF !important;
+            fill: #FFFFFF !important;
+        }
+
+        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] small,
+        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] span {
+            color: #111111 !important;
+        }
+
+        @keyframes iprPulse {
+            0%, 100% {
+                opacity: 0.35;
+                transform: scale(0.8);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        @keyframes iprFloat {
+            0%, 100% {
+                transform: rotate(16deg) translate(0, 0);
+            }
+            50% {
+                transform: rotate(12deg) translate(-12px, 12px);
+            }
         }
 
         @media (max-width: 800px) {
@@ -651,24 +682,24 @@ def apply_theme() -> None:
                 font-size: 1.55rem;
             }
 
-            .upload-gate {
+            .upload-start {
                 min-height: 0;
                 margin-top: 22px;
-                padding: 28px 24px 108px 24px;
+                padding: 28px 24px 112px 24px;
                 box-shadow: 7px 7px 0 #FBF560;
             }
 
-            .upload-gate__top {
+            .upload-start__top {
                 align-items: flex-start;
                 flex-direction: column;
             }
 
-            .upload-gate h1 {
+            .upload-start h1 {
                 margin-top: 38px;
-                font-size: 2.35rem;
+                font-size: 2.4rem;
             }
 
-            .upload-gate__steps {
+            .upload-start__steps {
                 grid-template-columns: 1fr;
             }
         }
@@ -734,9 +765,12 @@ def configure_plot(fig: go.Figure, height: int | None = None) -> go.Figure:
     return fig
 
 
-def render_upload_gate() -> None:
+
+def render_upload_start() -> None:
     if LOGO_PATH.exists():
-        logo_base64 = base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
+        logo_base64 = base64.b64encode(
+            LOGO_PATH.read_bytes()
+        ).decode("ascii")
         logo_html = (
             f'<img src="data:image/jpeg;base64,{logo_base64}" '
             'alt="IPR ecommerce agency">'
@@ -744,74 +778,20 @@ def render_upload_gate() -> None:
     else:
         logo_html = "<span>IPR ECOMMERCE</span>"
 
-    st.markdown(
-        f"""
-        <div class="upload-gate">
-            <div class="upload-gate__top">
-                <div class="upload-gate__brand">{logo_html}</div>
-                <div class="upload-gate__status">Система готова</div>
-            </div>
-
-            <h1>Загрузите XML.<br>Получите аналитику.</h1>
-
-            <p>
-                Выберите файл с заказами интернет-магазина.
-                После загрузки система проверит структуру, отфильтрует нужные
-                статусы и откроет полный дашборд.
-            </p>
-
-            <div class="upload-gate__steps">
-                <div class="upload-gate__step">
-                    <strong>01 · XML</strong>
-                    <span>Загрузите экспорт заказов магазина.</span>
-                </div>
-                <div class="upload-gate__step">
-                    <strong>02 · ПРОВЕРКА</strong>
-                    <span>Система обработает файл в памяти.</span>
-                </div>
-                <div class="upload-gate__step">
-                    <strong>03 · ДАШБОРД</strong>
-                    <span>Откроются показатели и рекомендации.</span>
-                </div>
-            </div>
-        </div>
-
-        <style>
-        div[data-testid="stFileUploader"] {{
-            position: relative;
-            z-index: 5;
-            max-width: 690px;
-            margin: -92px auto 0 auto;
-        }}
-
-        div[data-testid="stFileUploader"] > label {{
-            display: none !important;
-        }}
-
-        div[data-testid="stFileUploaderDropzone"] {{
-            min-height: 72px !important;
-            padding: 14px 18px !important;
-            background: #FBF560 !important;
-            border: 2px solid #111111 !important;
-            box-shadow: 6px 6px 0 #111111 !important;
-        }}
-
-        div[data-testid="stFileUploaderDropzone"] button {{
-            background: #111111 !important;
-            color: #FFFFFF !important;
-            border: 1px solid #111111 !important;
-        }}
-
-        div[data-testid="stFileUploaderDropzone"] button * {{
-            color: #FFFFFF !important;
-        }}
-
-        div[data-testid="stFileUploaderDropzone"] small {{
-            color: #111111 !important;
-        }}
-        </style>
-        """,
-        unsafe_allow_html=True,
+    st.html(
+        f"""<div class="upload-start">
+<div class="upload-start__top">
+<div class="upload-start__logo">{logo_html}</div>
+<div class="upload-start__badge">Система готова</div>
+</div>
+<h1>Загрузите XML.<br>Получите аналитику.</h1>
+<p>Выберите экспорт заказов интернет-магазина. После загрузки система проверит структуру файла, отфильтрует разрешенные статусы и откроет полный дашборд.</p>
+<div class="upload-start__steps">
+<div class="upload-start__step"><strong>01 · XML</strong><span>Загрузите файл с заказами магазина.</span></div>
+<div class="upload-start__step"><strong>02 · ПРОВЕРКА</strong><span>Система обработает данные в памяти.</span></div>
+<div class="upload-start__step"><strong>03 · ДАШБОРД</strong><span>Откроются показатели и рекомендации.</span></div>
+</div>
+</div>"""
     )
 
 
@@ -1186,15 +1166,8 @@ def main() -> None:
     apply_theme()
 
     with st.sidebar:
-        st.markdown(
-            """
-            <div class="sidebar-nav-title">Разделы платформы</div>
-            <div class="sidebar-nav-caption">Выберите рабочий модуль.</div>
-            """,
-            unsafe_allow_html=True,
-        )
         active_section = st.radio(
-            "Раздел приложения",
+            "",
             options=[
                 "01  АНАЛИТИКА ПРОДАЖ",
                 "02  CRO-АУДИТ",
@@ -1202,7 +1175,6 @@ def main() -> None:
             label_visibility="collapsed",
             key="platform_section",
         )
-        st.divider()
 
     if active_section == "02  CRO-АУДИТ":
         cro_module.render_cro_page(LOGO_PATH)
@@ -1211,12 +1183,12 @@ def main() -> None:
     uploaded_file = st.session_state.get("orders_xml")
 
     if uploaded_file is None:
-        render_upload_gate()
+        render_upload_start()
         uploaded_file = st.file_uploader(
-            "XML с заказами",
+            "",
             type=["xml"],
             key="orders_xml",
-            help="Поддерживается XML-экспорт заказов магазина.",
+            help="Загрузите XML-экспорт заказов.",
         )
 
         if uploaded_file is None:
@@ -1227,6 +1199,7 @@ def main() -> None:
     render_header()
 
     with st.sidebar:
+        st.divider()
         st.header("Данные магазина")
         uploaded_file = st.file_uploader(
             "Текущий XML",
