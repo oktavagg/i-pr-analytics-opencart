@@ -409,273 +409,6 @@ def apply_theme() -> None:
             border-radius: 0 !important;
         }
 
-        @media (min-width: 801px) {
-            [data-testid="stSidebar"] {
-                display: block !important;
-                min-width: 310px !important;
-                width: 310px !important;
-                transform: none !important;
-            }
-
-            [data-testid="stSidebarCollapsedControl"] {
-                display: none !important;
-            }
-        }
-
-
-        [data-testid="stSidebar"] [data-testid="stRadio"] > label {
-            display: none !important;
-            height: 0 !important;
-            min-height: 0 !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            border: 0 !important;
-        }
-
-        [data-testid="stSidebar"] [data-testid="stRadio"] {
-            margin-top: 4px;
-            margin-bottom: 8px;
-        }
-
-        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] {
-            display: grid !important;
-            gap: 10px;
-        }
-
-        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label {
-            position: relative;
-            display: flex !important;
-            align-items: center;
-            min-height: 66px;
-            margin: 0 !important;
-            padding: 12px 14px 12px 20px !important;
-            background: #FFFFFF;
-            border: 1px solid #111111;
-            cursor: pointer;
-            overflow: hidden;
-        }
-
-        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label::before {
-            content: "";
-            position: absolute;
-            left: 0;
-            top: 0;
-            width: 7px;
-            height: 100%;
-            background: #FBF560;
-        }
-
-        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label:hover {
-            background: #FFFCD0;
-        }
-
-        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label:has(input:checked) {
-            background: #FBF560 !important;
-            border-color: #111111 !important;
-            box-shadow: 5px 5px 0 #111111;
-            transform: translate(-2px, -2px);
-        }
-
-        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label:has(input:checked)::before {
-            background: #111111;
-        }
-
-        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label > div:first-child {
-            display: none !important;
-        }
-
-        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label p {
-            color: #111111 !important;
-            font-size: 0.92rem !important;
-            font-weight: 850 !important;
-            line-height: 1.25 !important;
-            letter-spacing: 0.015em;
-        }
-
-        .upload-start {
-            position: relative;
-            max-width: 900px;
-            min-height: 420px;
-            margin: 5vh auto 0 auto;
-            padding: 44px 50px 116px 50px;
-            background: #FFFFFF;
-            border: 1px solid #111111;
-            box-shadow: 12px 12px 0 #FBF560;
-            overflow: hidden;
-        }
-
-        .upload-start::before {
-            content: "";
-            position: absolute;
-            right: -90px;
-            top: -105px;
-            width: 330px;
-            height: 330px;
-            background: #FBF560;
-            transform: rotate(16deg);
-            animation: iprFloat 5s ease-in-out infinite;
-        }
-
-        .upload-start__top {
-            position: relative;
-            z-index: 2;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 24px;
-        }
-
-        .upload-start__logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 180px;
-            height: 72px;
-            background: #FFFFFF;
-            border: 1px solid #D9D267;
-        }
-
-        .upload-start__logo img {
-            width: 152px;
-            max-height: 56px;
-            object-fit: contain;
-        }
-
-        .upload-start__logo span {
-            color: #111111 !important;
-            font-weight: 850;
-        }
-
-        .upload-start__badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 9px;
-            padding: 9px 12px;
-            background: #111111;
-            color: #FFFFFF !important;
-            font-size: 0.72rem;
-            font-weight: 850;
-            letter-spacing: 0.09em;
-            text-transform: uppercase;
-        }
-
-        .upload-start__badge::before {
-            content: "";
-            width: 9px;
-            height: 9px;
-            background: #FBF560;
-            animation: iprPulse 1.25s ease-in-out infinite;
-        }
-
-        .upload-start h1 {
-            position: relative;
-            z-index: 2;
-            max-width: 680px;
-            margin: 50px 0 14px 0;
-            color: #111111 !important;
-            font-size: clamp(2.3rem, 5vw, 4.2rem);
-            line-height: 0.98;
-            letter-spacing: -0.045em;
-        }
-
-        .upload-start p {
-            position: relative;
-            z-index: 2;
-            max-width: 650px;
-            margin: 0;
-            color: #4B4B4B !important;
-            font-size: 1rem;
-            line-height: 1.6;
-        }
-
-        .upload-start__steps {
-            position: relative;
-            z-index: 2;
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 1px;
-            max-width: 720px;
-            margin-top: 32px;
-            background: #111111;
-            border: 1px solid #111111;
-        }
-
-        .upload-start__step {
-            min-height: 82px;
-            padding: 14px 16px;
-            background: #FFFFFF;
-        }
-
-        .upload-start__step strong {
-            display: block;
-            margin-bottom: 6px;
-            color: #111111 !important;
-            font-size: 0.78rem;
-            font-weight: 850;
-            letter-spacing: 0.08em;
-        }
-
-        .upload-start__step span {
-            color: #626262 !important;
-            font-size: 0.82rem;
-            line-height: 1.4;
-        }
-
-        [data-testid="stMain"] [data-testid="stFileUploader"] {
-            position: relative;
-            z-index: 5;
-            max-width: 720px;
-            margin: -91px auto 0 auto;
-        }
-
-        [data-testid="stMain"] [data-testid="stFileUploader"] > label {
-            display: none !important;
-        }
-
-        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] {
-            min-height: 72px !important;
-            padding: 14px 18px !important;
-            background: #FBF560 !important;
-            border: 2px solid #111111 !important;
-            box-shadow: 6px 6px 0 #111111 !important;
-        }
-
-        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] button {
-            background: #111111 !important;
-            color: #FFFFFF !important;
-            border: 1px solid #111111 !important;
-        }
-
-        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] button * {
-            color: #FFFFFF !important;
-            fill: #FFFFFF !important;
-        }
-
-        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] small,
-        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] span {
-            color: #111111 !important;
-        }
-
-        @keyframes iprPulse {
-            0%, 100% {
-                opacity: 0.35;
-                transform: scale(0.8);
-            }
-            50% {
-                opacity: 1;
-                transform: scale(1.2);
-            }
-        }
-
-        @keyframes iprFloat {
-            0%, 100% {
-                transform: rotate(16deg) translate(0, 0);
-            }
-            50% {
-                transform: rotate(12deg) translate(-12px, 12px);
-            }
-        }
-
         @media (max-width: 800px) {
             .brand-header {
                 flex-direction: column;
@@ -691,98 +424,7 @@ def apply_theme() -> None:
             .brand-copy h1 {
                 font-size: 1.55rem;
             }
-
-            .upload-start {
-                min-height: 0;
-                margin-top: 22px;
-                padding: 28px 24px 112px 24px;
-                box-shadow: 7px 7px 0 #FBF560;
-            }
-
-            .upload-start__top {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .upload-start h1 {
-                margin-top: 38px;
-                font-size: 2.4rem;
-            }
-
-            .upload-start__steps {
-                grid-template-columns: 1fr;
-            }
         }
-
-        /* Minimal XML upload screen */
-        .upload-start {
-            max-width: 650px !important;
-            min-height: 0 !important;
-            margin: 18vh auto 0 auto !important;
-            padding: 34px 38px 28px 38px !important;
-            background: #FFFFFF !important;
-            border: 1px solid #111111 !important;
-            border-bottom: 0 !important;
-            box-shadow: none !important;
-            overflow: visible !important;
-        }
-
-        .upload-start::before,
-        .upload-start::after,
-        .upload-start__top,
-        .upload-start__logo,
-        .upload-start__badge,
-        .upload-start__steps {
-            display: none !important;
-        }
-
-        .upload-start h1 {
-            margin: 0 0 10px 0 !important;
-            max-width: none !important;
-            color: #111111 !important;
-            font-size: clamp(2rem, 4vw, 3rem) !important;
-            line-height: 1.05 !important;
-            letter-spacing: -0.035em !important;
-        }
-
-        .upload-start p {
-            margin: 0 !important;
-            max-width: 520px !important;
-            color: #555555 !important;
-            font-size: 0.95rem !important;
-            line-height: 1.5 !important;
-        }
-
-        [data-testid="stMain"] [data-testid="stFileUploader"] {
-            max-width: 650px !important;
-            margin: 0 auto !important;
-        }
-
-        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] {
-            min-height: 78px !important;
-            padding: 14px 18px !important;
-            background: #FBF560 !important;
-            border: 1px solid #111111 !important;
-            box-shadow: 8px 8px 0 #111111 !important;
-        }
-
-        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] button {
-            background: #111111 !important;
-            color: #FFFFFF !important;
-            border: 1px solid #111111 !important;
-        }
-
-        @media (max-width: 800px) {
-            .upload-start {
-                margin-top: 70px !important;
-                padding: 28px 24px 24px 24px !important;
-            }
-
-            .upload-start h1 {
-                font-size: 2rem !important;
-            }
-        }
-
         </style>
         """
 ,
@@ -843,16 +485,6 @@ def configure_plot(fig: go.Figure, height: int | None = None) -> go.Figure:
     if height:
         fig.update_layout(height=height)
     return fig
-
-
-
-def render_upload_start() -> None:
-    st.html(
-        """<div class="upload-start">
-<h1>Загрузите XML-файл</h1>
-<p>После загрузки система сразу откроет аналитику магазина.</p>
-</div>"""
-    )
 
 
 def render_header() -> None:
@@ -1226,53 +858,31 @@ def main() -> None:
     apply_theme()
 
     with st.sidebar:
+        st.header("Разделы")
         active_section = st.radio(
-            "",
-            options=[
-                "01  АНАЛИТИКА ПРОДАЖ",
-                "02  CRO-АУДИТ",
-            ],
+            "Раздел приложения",
+            options=["Аналитика", "CRO"],
             label_visibility="collapsed",
-            key="platform_section",
         )
+        st.divider()
 
-    if active_section == "02  CRO-АУДИТ":
+    if active_section == "CRO":
         cro_module.render_cro_page(LOGO_PATH)
         return
-
-    uploaded_file = st.session_state.get("orders_xml")
-
-    if uploaded_file is None:
-        render_upload_start()
-        uploaded_file = st.file_uploader(
-            "",
-            type=["xml"],
-            key="orders_xml",
-            help="Загрузите XML-экспорт заказов.",
-        )
-
-        if uploaded_file is None:
-            st.stop()
-
-        st.rerun()
 
     render_header()
 
     with st.sidebar:
-        st.divider()
-        st.header("Данные магазина")
-        uploaded_file = st.file_uploader(
-            "Текущий XML",
-            type=["xml"],
-            key="orders_xml",
-        )
-        st.caption(
-            "Файл обрабатывается в памяти и не сохраняется приложением."
-        )
+        st.header("Загрузка данных")
+        uploaded_file = st.file_uploader("XML с заказами", type=["xml"])
+        st.caption("Файл обрабатывается в памяти и не сохраняется приложением.")
+
+    if uploaded_file is None:
+        st.info("Загрузите XML-файл с заказами, чтобы построить дашборд.")
+        st.stop()
 
     try:
-        with st.spinner("Проверяем XML и строим аналитику..."):
-            parsed = parse_xml_cached(uploaded_file.getvalue())
+        parsed = parse_xml_cached(uploaded_file.getvalue())
     except ValueError as exc:
         st.error(str(exc))
         st.stop()
