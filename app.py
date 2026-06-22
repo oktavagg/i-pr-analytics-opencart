@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 from collections import Counter
 from datetime import date, timedelta
 from html import escape
@@ -15,6 +16,23 @@ from parser import ALLOWED_STATUSES, parse_xml, top_products
 
 
 LOGO_PATH = Path(__file__).with_name("ipr.jpeg")
+
+BRAND_BLACK = "#111111"
+BRAND_YELLOW = "#E7B416"
+BRAND_GOLD = "#C99200"
+BRAND_DARK_GOLD = "#8C6800"
+BRAND_PALE = "#FFF8D8"
+BRAND_CREAM = "#FFFCF2"
+BRAND_BORDER = "#E8D99B"
+BRAND_MUTED = "#5B5545"
+CHART_COLORS = [
+    "#E7B416",
+    "#C99200",
+    "#111111",
+    "#F2D768",
+    "#9F7A00",
+    "#FFE99B",
+]
 WEEKDAY_NAMES = {
     0: "Понедельник",
     1: "Вторник",
@@ -56,25 +74,39 @@ def apply_theme() -> None:
         <style>
         :root {
             color-scheme: light;
+            --ipr-black: #111111;
+            --ipr-yellow: #E7B416;
+            --ipr-gold: #C99200;
+            --ipr-pale: #FFF8D8;
+            --ipr-cream: #FFFCF2;
+            --ipr-border: #E8D99B;
         }
 
         html, body, [data-testid="stAppViewContainer"],
         [data-testid="stMain"], .stApp {
             background: #ffffff !important;
-            color: #172033 !important;
+            color: #111111 !important;
+        }
+
+        body, p, span, label, div, h1, h2, h3, h4, h5, h6 {
+            color: #111111;
         }
 
         [data-testid="stHeader"] {
-            background: rgba(255, 255, 255, 0.96) !important;
+            background: rgba(255, 255, 255, 0.97) !important;
         }
 
         [data-testid="stSidebar"] {
-            background: #f8fafc !important;
-            border-right: 1px solid #e8edf4;
+            background: #FFFCF2 !important;
+            border-right: 1px solid #E8D99B;
         }
 
         [data-testid="stSidebar"] * {
-            color: #172033;
+            color: #111111 !important;
+        }
+
+        [data-testid="stSidebar"] hr {
+            border-color: #E8D99B !important;
         }
 
         .block-container {
@@ -84,121 +116,251 @@ def apply_theme() -> None:
         }
 
         .brand-header {
+            position: relative;
             display: flex;
             align-items: center;
-            min-height: 94px;
-            padding: 18px 22px;
-            border: 1px solid #e8edf4;
+            gap: 30px;
+            min-height: 112px;
+            padding: 24px 30px;
+            border: 1px solid #E8D99B;
+            border-top: 5px solid #E7B416;
             border-radius: 20px;
-            background: #ffffff;
-            box-shadow: 0 12px 36px rgba(31, 49, 79, 0.06);
-            margin-bottom: 20px;
+            background: linear-gradient(120deg, #FFFFFF 0%, #FFFCF2 58%, #FFF6C9 100%);
+            box-shadow: 0 12px 34px rgba(126, 92, 0, 0.09);
+            margin-bottom: 22px;
+            overflow: hidden;
+        }
+
+        .brand-header::after {
+            content: "";
+            position: absolute;
+            right: -55px;
+            top: -95px;
+            width: 260px;
+            height: 260px;
+            border-radius: 50%;
+            background: rgba(231, 180, 22, 0.12);
+        }
+
+        .brand-logo {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 205px;
+            min-height: 72px;
+            padding: 8px 14px;
+            border-radius: 14px;
+            background: #FFFFFF;
+            border: 1px solid #EFE4B7;
+        }
+
+        .brand-logo img {
+            display: block;
+            width: 178px;
+            max-height: 68px;
+            object-fit: contain;
+        }
+
+        .brand-logo-missing {
+            color: #67541B;
+            font-size: 0.86rem;
+            text-align: center;
+        }
+
+        .brand-copy {
+            position: relative;
+            z-index: 1;
         }
 
         .brand-copy h1 {
-            margin: 0 0 5px 0;
-            color: #172033;
+            margin: 0 0 7px 0;
+            color: #111111 !important;
             font-size: 2rem;
             line-height: 1.12;
+            font-weight: 750;
         }
 
         .brand-copy p {
             margin: 0;
-            color: #6b768a;
+            color: #4D4739 !important;
             font-size: 0.98rem;
         }
 
         [data-testid="stMetric"] {
-            background: #ffffff;
-            border: 1px solid #e8edf4;
+            position: relative;
+            overflow: hidden;
+            background: #FFFFFF;
+            border: 1px solid #E8D99B;
             padding: 18px;
             border-radius: 16px;
-            box-shadow: 0 8px 26px rgba(31, 49, 79, 0.05);
+            box-shadow: 0 8px 24px rgba(126, 92, 0, 0.06);
+        }
+
+        [data-testid="stMetric"]::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 4px;
+            background: #E7B416;
         }
 
         [data-testid="stMetricLabel"] {
-            color: #687386;
+            color: #5B5545 !important;
             font-size: 0.86rem;
         }
 
         [data-testid="stMetricValue"] {
-            color: #172033;
+            color: #111111 !important;
             font-size: 1.55rem;
+            font-weight: 720;
+        }
+
+        [data-testid="stMetricDelta"] svg {
+            fill: currentColor;
         }
 
         div[data-testid="stPlotlyChart"],
         div[data-testid="stDataFrame"] {
-            background: #ffffff;
-            border: 1px solid #e8edf4;
+            background: #FFFFFF;
+            border: 1px solid #E8D99B;
             border-radius: 16px;
             padding: 8px;
-            box-shadow: 0 8px 26px rgba(31, 49, 79, 0.04);
+            box-shadow: 0 8px 24px rgba(126, 92, 0, 0.05);
         }
 
         .summary-box {
-            background: #f8fbff;
-            border: 1px solid #dfeaf8;
+            background: linear-gradient(120deg, #FFFDF5 0%, #FFF7D4 100%);
+            border: 1px solid #E8D99B;
+            border-left: 5px solid #E7B416;
             border-radius: 16px;
             padding: 18px 20px;
             margin: 12px 0 18px 0;
-            color: #24324a;
+            color: #111111 !important;
             line-height: 1.55;
+        }
+
+        .summary-box * {
+            color: #111111 !important;
         }
 
         .recommendation-card {
             height: 100%;
-            background: #ffffff;
-            border: 1px solid #e6ebf2;
-            border-left: 5px solid #2f6fed;
+            background: #FFFFFF;
+            border: 1px solid #E8D99B;
+            border-left: 5px solid #E7B416;
             border-radius: 15px;
             padding: 17px 18px;
-            box-shadow: 0 8px 24px rgba(31, 49, 79, 0.05);
+            box-shadow: 0 8px 22px rgba(126, 92, 0, 0.05);
         }
 
         .recommendation-card.high {
-            border-left-color: #d9485f;
+            border-left-color: #111111;
+            background: #FFFDF5;
         }
 
         .recommendation-card.medium {
-            border-left-color: #e49a24;
+            border-left-color: #C99200;
+            background: #FFFCF2;
         }
 
         .recommendation-card.positive {
-            border-left-color: #2c9b69;
+            border-left-color: #E7B416;
+            background: #FFF9DE;
         }
 
         .recommendation-card h4 {
             margin: 0 0 7px 0;
-            color: #172033;
+            color: #111111 !important;
             font-size: 1rem;
         }
 
         .recommendation-card p {
             margin: 0;
-            color: #667287;
+            color: #4D4739 !important;
             line-height: 1.45;
             font-size: 0.91rem;
         }
 
-        .small-muted {
-            color: #748096;
+        .small-muted,
+        [data-testid="stCaptionContainer"] {
+            color: #6A624F !important;
             font-size: 0.9rem;
         }
 
         .stTabs [data-baseweb="tab-list"] {
             gap: 8px;
-            border-bottom: 1px solid #e7ecf3;
+            border-bottom: 1px solid #E8D99B;
         }
 
         .stTabs [data-baseweb="tab"] {
-            background: #f7f9fc;
+            background: #FFFCF2;
+            border: 1px solid #EFE4B7;
+            border-bottom: 0;
             border-radius: 10px 10px 0 0;
             padding: 8px 14px;
+            color: #111111 !important;
         }
 
         .stTabs [aria-selected="true"] {
-            background: #edf4ff !important;
-            color: #245fd1 !important;
+            background: #FFF3B6 !important;
+            color: #111111 !important;
+            font-weight: 700;
+        }
+
+        .stButton > button,
+        .stDownloadButton > button {
+            background: #E7B416 !important;
+            color: #111111 !important;
+            border: 1px solid #C99200 !important;
+            border-radius: 10px !important;
+            font-weight: 700 !important;
+        }
+
+        .stButton > button:hover,
+        .stDownloadButton > button:hover {
+            background: #F0C83E !important;
+            border-color: #8C6800 !important;
+        }
+
+        [data-baseweb="select"] > div,
+        [data-testid="stFileUploaderDropzone"],
+        [data-testid="stDateInput"] input {
+            background: #FFFFFF !important;
+            color: #111111 !important;
+            border-color: #DCCB82 !important;
+        }
+
+        [data-testid="stFileUploaderDropzone"] button {
+            background: #FFF3B6 !important;
+            color: #111111 !important;
+            border-color: #C99200 !important;
+        }
+
+        .stAlert {
+            background: #FFF9DE !important;
+            color: #111111 !important;
+            border-color: #E8D99B !important;
+        }
+
+        @media (max-width: 800px) {
+            .brand-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+                padding: 22px;
+            }
+
+            .brand-logo {
+                flex-basis: auto;
+            }
+
+            .brand-copy h1 {
+                font-size: 1.55rem;
+            }
         }
         </style>
         """,
@@ -209,41 +371,84 @@ def apply_theme() -> None:
 def configure_plot(fig: go.Figure, height: int | None = None) -> go.Figure:
     fig.update_layout(
         template="plotly_white",
-        paper_bgcolor="#ffffff",
-        plot_bgcolor="#ffffff",
-        font=dict(color="#26344d"),
-        margin=dict(l=20, r=20, t=58, b=24),
-        hoverlabel=dict(bgcolor="#ffffff"),
+        paper_bgcolor="#FFFFFF",
+        plot_bgcolor="#FFFFFF",
+        colorway=CHART_COLORS,
+        font=dict(
+            color=BRAND_BLACK,
+            family="Arial, sans-serif",
+            size=13,
+        ),
+        title=dict(
+            font=dict(color=BRAND_BLACK, size=17),
+            x=0.02,
+            xanchor="left",
+        ),
+        legend=dict(
+            font=dict(color=BRAND_BLACK),
+            title_font=dict(color=BRAND_BLACK),
+        ),
+        margin=dict(l=28, r=22, t=62, b=32),
+        hoverlabel=dict(
+            bgcolor="#FFFFFF",
+            bordercolor=BRAND_GOLD,
+            font=dict(color=BRAND_BLACK),
+        ),
     )
+
+    fig.update_xaxes(
+        tickfont=dict(color=BRAND_BLACK),
+        title_font=dict(color=BRAND_BLACK),
+        gridcolor="#F2E8BC",
+        linecolor="#CDBB70",
+        zerolinecolor="#CDBB70",
+        showline=True,
+    )
+    fig.update_yaxes(
+        tickfont=dict(color=BRAND_BLACK),
+        title_font=dict(color=BRAND_BLACK),
+        gridcolor="#F2E8BC",
+        linecolor="#CDBB70",
+        zerolinecolor="#CDBB70",
+        showline=True,
+    )
+
+    fig.update_traces(
+        textfont=dict(color=BRAND_BLACK),
+        selector=dict(type="bar"),
+    )
+
     if height:
         fig.update_layout(height=height)
     return fig
 
 
 def render_header() -> None:
-    logo_column, title_column = st.columns([1.15, 5.85], vertical_alignment="center")
-
-    with logo_column:
-        if LOGO_PATH.exists():
-            st.image(str(LOGO_PATH), width=185)
-        else:
-            st.markdown(
-                "<div class='small-muted'>Добавьте файл <b>ipr.jpeg</b> в корень проекта</div>",
-                unsafe_allow_html=True,
-            )
-
-    with title_column:
-        st.markdown(
-            """
-            <div class="brand-header">
-                <div class="brand-copy">
-                    <h1>Аналитика интернет-магазина</h1>
-                    <p>Продажи, товары, клиенты и автоматические бизнес-рекомендации</p>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
+    if LOGO_PATH.exists():
+        logo_base64 = base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
+        logo_html = (
+            f'<img src="data:image/jpeg;base64,{logo_base64}" '
+            'alt="IPR ecommerce agency">'
         )
+    else:
+        logo_html = (
+            '<div class="brand-logo-missing">'
+            'Добавьте файл <b>ipr.jpeg</b><br>в корень проекта'
+            '</div>'
+        )
+
+    st.markdown(
+        f"""
+        <div class="brand-header">
+            <div class="brand-logo">{logo_html}</div>
+            <div class="brand-copy">
+                <h1>Аналитика интернет-магазина</h1>
+                <p>Продажи, товары, клиенты и автоматические бизнес-рекомендации</p>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def product_analytics(items: pd.DataFrame, start_date: date, end_date: date) -> pd.DataFrame:
@@ -724,9 +929,17 @@ def main() -> None:
             markers=True,
             title="Динамика суммы заказов",
             labels={"day": "Дата", "revenue": "Сумма, грн"},
-            color_discrete_sequence=["#2f6fed"],
+            color_discrete_sequence=[BRAND_YELLOW],
         )
-        daily_chart.update_traces(line_width=3)
+        daily_chart.update_traces(
+            line_width=3,
+            line_color=BRAND_YELLOW,
+            marker=dict(
+                color=BRAND_YELLOW,
+                size=8,
+                line=dict(color=BRAND_BLACK, width=1),
+            ),
+        )
         daily_chart.update_layout(hovermode="x unified")
         st.plotly_chart(configure_plot(daily_chart, 390), use_container_width=True)
 
@@ -742,9 +955,10 @@ def main() -> None:
                     title="Топ товаров по количеству",
                     labels={"sold_units": "Продано, шт.", "product_name": "Товар"},
                     text="sold_units",
-                    color_discrete_sequence=["#4b82e8"],
+                    color_discrete_sequence=[BRAND_YELLOW],
                 )
                 units_chart.update_layout(yaxis_title=None)
+                units_chart.update_traces(marker_line_color=BRAND_DARK_GOLD, marker_line_width=0.7)
                 st.plotly_chart(configure_plot(units_chart, 430), use_container_width=True)
 
         with right:
@@ -758,9 +972,10 @@ def main() -> None:
                     title="Топ товаров по сумме",
                     labels={"revenue": "Сумма, грн", "product_name": "Товар"},
                     text_auto=".2s",
-                    color_discrete_sequence=["#22a06b"],
+                    color_discrete_sequence=[BRAND_GOLD],
                 )
                 revenue_chart.update_layout(yaxis_title=None)
+                revenue_chart.update_traces(marker_line_color=BRAND_DARK_GOLD, marker_line_width=0.7)
                 st.plotly_chart(configure_plot(revenue_chart, 430), use_container_width=True)
 
         status_column, payment_column, region_column = st.columns(3)
@@ -772,9 +987,13 @@ def main() -> None:
                 values="order_total",
                 hole=0.6,
                 title="Сумма по статусам",
-                color_discrete_sequence=["#2f6fed", "#22a06b", "#e6a438"],
+                color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK, BRAND_GOLD],
             )
             status_chart.update_layout(legend_orientation="h")
+            status_chart.update_traces(
+                textfont=dict(color=BRAND_BLACK, size=12),
+                marker=dict(line=dict(color="#FFFFFF", width=2)),
+            )
             st.plotly_chart(configure_plot(status_chart, 390), use_container_width=True)
 
         with payment_column:
@@ -792,9 +1011,10 @@ def main() -> None:
                 orientation="h",
                 title="Способы оплаты",
                 labels={"orders": "Заказы", "payment_method": "Оплата"},
-                color_discrete_sequence=["#7c6ee6"],
+                color_discrete_sequence=[BRAND_GOLD],
             )
             payment_chart.update_layout(yaxis_title=None)
+            payment_chart.update_traces(marker_line_color=BRAND_DARK_GOLD, marker_line_width=0.7)
             st.plotly_chart(configure_plot(payment_chart, 390), use_container_width=True)
 
         with region_column:
@@ -811,9 +1031,10 @@ def main() -> None:
                 orientation="h",
                 title="Топ регионов",
                 labels={"order_total": "Сумма, грн", "region": "Регион"},
-                color_discrete_sequence=["#e17948"],
+                color_discrete_sequence=[BRAND_DARK_GOLD],
             )
             region_chart.update_layout(yaxis_title=None)
+            region_chart.update_traces(marker_line_color=BRAND_DARK_GOLD, marker_line_width=0.7)
             st.plotly_chart(configure_plot(region_chart, 390), use_container_width=True)
 
         weekday_daily = daily.copy()
@@ -833,7 +1054,7 @@ def main() -> None:
             y="Средняя дневная сумма",
             title="Средняя дневная сумма по дням недели",
             text_auto=".2s",
-            color_discrete_sequence=["#2f6fed"],
+            color_discrete_sequence=[BRAND_YELLOW],
         )
         st.plotly_chart(configure_plot(weekday_chart, 390), use_container_width=True)
 
@@ -942,9 +1163,13 @@ def main() -> None:
                 values="Покупатели",
                 hole=0.62,
                 title="Структура клиентской базы",
-                color_discrete_sequence=["#2f6fed", "#d9e4f7"],
+                color_discrete_sequence=[BRAND_YELLOW, "#F4E7A5"],
             )
             customer_chart.update_layout(legend_orientation="h")
+            customer_chart.update_traces(
+                textfont=dict(color=BRAND_BLACK, size=12),
+                marker=dict(line=dict(color="#FFFFFF", width=2)),
+            )
             st.plotly_chart(configure_plot(customer_chart, 390), use_container_width=True)
 
         with customer_right:
@@ -955,7 +1180,7 @@ def main() -> None:
                 title="Сумма по клиентским сегментам",
                 text_auto=".2s",
                 color="Сегмент",
-                color_discrete_sequence=["#22a06b", "#8bbfa8"],
+                color_discrete_sequence=[BRAND_GOLD, "#F0D66C"],
             )
             revenue_segment_chart.update_layout(showlegend=False)
             st.plotly_chart(configure_plot(revenue_segment_chart, 390), use_container_width=True)
@@ -972,7 +1197,7 @@ def main() -> None:
             y="Покупатели",
             title="Распределение покупателей по количеству заказов",
             text="Покупатели",
-            color_discrete_sequence=["#7c6ee6"],
+            color_discrete_sequence=[BRAND_GOLD],
         )
         st.plotly_chart(configure_plot(frequency_chart, 390), use_container_width=True)
 
