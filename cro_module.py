@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import base64
-from html import escape
 import re
 from pathlib import Path
 from urllib.error import HTTPError, URLError
@@ -202,110 +201,36 @@ def load_cro_summary() -> tuple[pd.DataFrame, int, bool]:
         return pd.DataFrame(FALLBACK_SECTIONS), FALLBACK_SCORE, False
 
 
-
 def _render_header(logo_path: Path | None) -> None:
+    if logo_path and logo_path.exists():
+        logo_base64 = base64.b64encode(
+            logo_path.read_bytes()
+        ).decode("ascii")
+        logo_html = (
+            f'<img src="data:image/jpeg;base64,{logo_base64}" '
+            'alt="IPR ecommerce agency">'
+        )
+    else:
+        logo_html = "<strong>IPR</strong>"
+
     st.markdown(
-        """
-        <div class="page-heading">
-            <span class="page-heading__label">Conversion rate optimization</span>
-            <h1>CRO-аудит магазина</h1>
-            <p>Чек-лист конверсии, приоритетный бэклог и контроль выполнения задач</p>
+        f"""
+        <div class="brand-header">
+            <div class="brand-logo">{logo_html}</div>
+            <div class="brand-copy">
+                <h1>CRO-аудит магазина</h1>
+                <p>Чек-лист конверсии, приоритеты и контроль выполнения задач</p>
+            </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
 
-def _score_status(score: int) -> tuple[str, str]:
-    if score >= 85:
-        return (
-            "Сильный уровень",
-            "Основная задача сейчас, точечные A/B-тесты и контроль просадок.",
-        )
-    if score >= 70:
-        return (
-            "Хорошая база",
-            "Критических провалов немного. Рост даст системная работа с приоритетным бэклогом.",
-        )
-    if score >= 50:
-        return (
-            "Есть заметные потери",
-            "Начните с карточки товара, оформления заказа и мобильной версии.",
-        )
-    return (
-        "Нужна базовая оптимизация",
-        "Сначала закройте критические проблемы, которые мешают пользователю завершить заказ.",
-    )
-
-
-def _render_score_overview(
-    sections: pd.DataFrame,
-    score: int,
-    loaded_live: bool,
-) -> None:
-    total_tasks = int(sections["all_tasks"].sum())
-    relevant_tasks = int(sections["relevant"].sum())
-    todo_tasks = int(sections["todo"].sum())
-    backlog_share = (
-        todo_tasks / relevant_tasks * 100
-        if relevant_tasks
-        else 0
-    )
-    status, description = _score_status(score)
-
-    left, right = st.columns([1.05, 2.15], gap="medium")
-
-    with left:
-        st.markdown(
-            f"""
-            <div class="cro-score-panel">
-                <div class="cro-score-panel__label">CRO score</div>
-                <div class="cro-score-panel__value">{score}<span>/100</span></div>
-                <div class="cro-score-panel__status">{escape(status)}</div>
-                <div class="cro-score-panel__text">{escape(description)}</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-    with right:
-        source_hint = (
-            "Живые данные"
-            if loaded_live
-            else "Резервная сводка"
-        )
-        st.markdown(
-            f"""
-            <div class="cro-kpi-grid">
-                <div class="cro-kpi">
-                    <div class="cro-kpi__label">Всего проверок</div>
-                    <div class="cro-kpi__value">{total_tasks}</div>
-                    <div class="cro-kpi__hint">Полный объем аудита</div>
-                </div>
-                <div class="cro-kpi">
-                    <div class="cro-kpi__label">Релевантных</div>
-                    <div class="cro-kpi__value">{relevant_tasks}</div>
-                    <div class="cro-kpi__hint">Применимо к магазину</div>
-                </div>
-                <div class="cro-kpi">
-                    <div class="cro-kpi__label">К выполнению</div>
-                    <div class="cro-kpi__value">{todo_tasks}</div>
-                    <div class="cro-kpi__hint">{backlog_share:.1f}% релевантных пунктов</div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        st.progress(
-            min(max(score / 100, 0.0), 1.0),
-            text=f"Уровень CRO-оптимизации: {score} из 100",
-        )
-        st.caption(f"{source_hint}. Обновление доступно во вкладке с чек-листом.")
-
-
-def _prepare_priority(sections: pd.DataFrame) -> pd.DataFrame:
+def _render_priority_backlog(sections: pd.DataFrame) -> None:
     priority = sections.copy()
     priority = priority[priority["section"] != "Загалом"]
+
     priority["backlog_share"] = priority.apply(
         lambda row: (
             row["todo"] / row["relevant"] * 100
@@ -314,181 +239,145 @@ def _prepare_priority(sections: pd.DataFrame) -> pd.DataFrame:
         ),
         axis=1,
     )
-    return priority.sort_values(
+
+    priority = priority.sort_values(
         ["todo", "backlog_share"],
         ascending=False,
-    ).reset_index(drop=True)
+    )
 
+    display = priority.rename(
+        columns={
+            "section": "Раздел",
+            "all_tasks": "Всего проверок",
+            "relevant": "Релевантно",
+            "todo": "К выполнению",
+            "done": "Выполнено",
+            "backlog_share": "Доля бэклога, %",
+        }
+    )
 
-def _render_priority_backlog(sections: pd.DataFrame) -> None:
-    priority = _prepare_priority(sections)
-
-    rows: list[str] = []
-    for index, row in priority.iterrows():
-        share = float(row["backlog_share"])
-        rows.append(
-            f"""
-            <div class="cro-backlog__row">
-                <div class="cro-backlog__rank">{index + 1:02d}</div>
-                <div class="cro-backlog__section">{escape(str(row['section']))}</div>
-                <div class="cro-backlog__number">{int(row['relevant'])}</div>
-                <div class="cro-backlog__number">{int(row['todo'])}</div>
-                <div class="cro-backlog__progress">
-                    <div class="cro-backlog__track">
-                        <div class="cro-backlog__fill" style="width:{min(share, 100):.1f}%"></div>
-                    </div>
-                    <div class="cro-backlog__percent">{share:.1f}%</div>
-                </div>
-            </div>
-            """
-        )
-
-    st.markdown(
-        f"""
-        <div class="cro-backlog">
-            <div class="cro-backlog__head">
-                <span>№</span>
-                <span>Раздел</span>
-                <span>Релевантно</span>
-                <span>К выполнению</span>
-                <span>Доля бэклога</span>
-            </div>
-            {''.join(rows)}
-        </div>
-        """,
-        unsafe_allow_html=True,
+    st.dataframe(
+        display[
+            [
+                "Раздел",
+                "Всего проверок",
+                "Релевантно",
+                "К выполнению",
+                "Доля бэклога, %",
+            ]
+        ],
+        use_container_width=True,
+        hide_index=True,
+        column_config={
+            "Доля бэклога, %": st.column_config.ProgressColumn(
+                min_value=0,
+                max_value=100,
+                format="%.1f%%",
+            ),
+        },
     )
 
 
 def _render_focus(sections: pd.DataFrame) -> None:
-    focus = _prepare_priority(sections).head(3)
-    columns = st.columns(3, gap="medium")
+    focus = (
+        sections[sections["section"] != "Загалом"]
+        .sort_values("todo", ascending=False)
+        .head(3)
+    )
 
-    for rank, (column, (_, row)) in enumerate(
-        zip(columns, focus.iterrows()),
-        start=1,
-    ):
+    columns = st.columns(3)
+
+    for column, (_, row) in zip(columns, focus.iterrows()):
         with column:
             st.markdown(
                 f"""
-                <div class="cro-focus-card">
-                    <div class="cro-focus-card__rank">{rank:02d}</div>
-                    <div class="cro-focus-card__section">{escape(str(row['section']))}</div>
-                    <div class="cro-focus-card__todo">
-                        {int(row['todo'])}
-                        <span>задач к выполнению</span>
-                    </div>
-                    <div class="cro-focus-card__text">
-                        Проверено {int(row['relevant'])} релевантных пунктов.
-                    </div>
+                <div class="recommendation-card medium">
+                    <h4>{row['section']}</h4>
+                    <p>
+                        К выполнению: <b>{int(row['todo'])}</b> из
+                        <b>{int(row['relevant'])}</b> релевантных пунктов.
+                    </p>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
 
-def _render_action_panel(
-    sections: pd.DataFrame,
-    loaded_live: bool,
-) -> None:
-    top = _prepare_priority(sections).iloc[0]
-    source = (
-        "Google Sheets подключен и данные получены."
+def render_cro_page(logo_path: Path | None = None) -> None:
+    _render_header(logo_path)
+
+    sections, score, loaded_live = load_cro_summary()
+
+    total_row = {
+        "all_tasks": int(sections["all_tasks"].sum()),
+        "relevant": int(sections["relevant"].sum()),
+        "todo": int(sections["todo"].sum()),
+    }
+
+    first, second, third, fourth = st.columns(4)
+    first.metric("CRO-оценка", f"{score}/100")
+    second.metric("Всего проверок", total_row["all_tasks"])
+    third.metric("Релевантных", total_row["relevant"])
+    fourth.metric("К выполнению", total_row["todo"])
+
+    st.progress(
+        min(max(score / 100, 0.0), 1.0),
+        text=f"Уровень CRO-оптимизации: {score} из 100",
+    )
+
+    source_text = (
+        "Данные обновлены из Google Sheets."
         if loaded_live
-        else "Сводка недоступна, показаны сохраненные значения."
+        else "Показана резервная сводка. Живая таблица доступна ниже."
     )
+    st.caption(source_text)
 
-    st.markdown(
-        f"""
-        <div class="cro-action-panel">
-            <div class="cro-action-panel__eyebrow">Следующий шаг</div>
-            <h3>Начать с раздела «{escape(str(top['section']))}»</h3>
-            <p>
-                В нем {int(top['todo'])} задач к выполнению.
-                Это самый крупный текущий блок работ по чек-листу.
-            </p>
-        </div>
-        <div class="summary-box">{escape(source)}</div>
-        """,
-        unsafe_allow_html=True,
-    )
+    left, right = st.columns([3, 1])
 
+    with left:
+        st.subheader("Приоритетный бэклог")
+        st.caption(
+            "Разделы отсортированы по количеству пунктов, "
+            "которые требуют выполнения."
+        )
+        _render_priority_backlog(sections)
 
-def _render_checklist_tab(loaded_live: bool) -> None:
-    st.markdown(
-        """
-        <div class="cro-sheet-toolbar">
-            <div>
-                <h3>Исходный CRO-чек-лист</h3>
-                <p>Работайте в Google Sheets, дашборд использует таблицу как источник данных.</p>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    with right:
+        st.subheader("Управление")
 
-    first, second = st.columns(2, gap="small")
-
-    with first:
         if st.button(
-            "Обновить данные из Google Sheets",
+            "Обновить из Google Sheets",
             use_container_width=True,
-            type="primary",
         ):
             load_cro_summary.clear()
             st.rerun()
 
-    with second:
         st.link_button(
-            "Открыть чек-лист в новой вкладке",
+            "Открыть исходный чек-лист",
             SHEET_URL,
             use_container_width=True,
         )
 
-    st.caption(
-        "Статус подключения: "
-        + (
-            "данные Google Sheets получены."
-            if loaded_live
-            else "используется резервная сводка."
+        st.markdown(
+            """
+            <div class="summary-box">
+                Google-таблица остается источником правды.
+                Изменения в чек-листе появятся в модуле после обновления.
+            </div>
+            """,
+            unsafe_allow_html=True,
         )
+
+    st.subheader("Фокус работ")
+    _render_focus(sections)
+
+    st.subheader("Живой CRO-чек-лист")
+    st.caption(
+        "Встроена исходная Google-таблица со всеми разделами и вкладками."
     )
 
     components.iframe(
         SHEET_PREVIEW_URL,
-        height=980,
+        height=920,
         scrolling=True,
     )
-
-
-def render_cro_page(logo_path: Path | None = None) -> None:
-    _render_header(logo_path)
-    sections, score, loaded_live = load_cro_summary()
-
-    overview_tab, checklist_tab = st.tabs(
-        ["ОБЗОР АУДИТА", "ЖИВОЙ ЧЕК-ЛИСТ"]
-    )
-
-    with overview_tab:
-        _render_score_overview(sections, score, loaded_live)
-
-        st.markdown("<br>", unsafe_allow_html=True)
-        left, right = st.columns([2.25, 1], gap="medium")
-
-        with left:
-            st.subheader("Приоритетный бэклог")
-            st.caption(
-                "Разделы отсортированы по количеству задач, "
-                "которые требуют выполнения."
-            )
-            _render_priority_backlog(sections)
-
-        with right:
-            st.subheader("План действий")
-            _render_action_panel(sections, loaded_live)
-
-        st.subheader("Фокус работ")
-        _render_focus(sections)
-
-    with checklist_tab:
-        _render_checklist_tab(loaded_live)

@@ -409,437 +409,6 @@ def apply_theme() -> None:
             border-radius: 0 !important;
         }
 
-        .app-brandbar {
-            display: flex;
-            align-items: center;
-            gap: 18px;
-            padding: 16px 20px;
-            background: #111111;
-            border-bottom: 4px solid #FBF560;
-        }
-
-        .app-brandbar__logo {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 170px;
-            min-width: 170px;
-            height: 62px;
-            background: #FFFFFF;
-            border: 1px solid #FBF560;
-        }
-
-        .app-brandbar__logo img {
-            width: 145px;
-            max-height: 50px;
-            object-fit: contain;
-        }
-
-        .app-brandbar__copy strong {
-            display: block;
-            color: #FFFFFF !important;
-            font-size: 1.12rem;
-            letter-spacing: 0.01em;
-        }
-
-        .app-brandbar__copy span {
-            display: block;
-            margin-top: 4px;
-            color: #D8D8D8 !important;
-            font-size: 0.86rem;
-        }
-
-        [data-testid="stRadio"] {
-            margin: 0 0 22px 0;
-        }
-
-        [data-testid="stRadio"] [role="radiogroup"] {
-            display: grid !important;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
-            gap: 10px;
-            padding: 10px;
-            background: #FFFEEE;
-            border: 1px solid #D9D267;
-            border-top: 0;
-        }
-
-        [data-testid="stRadio"] label {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            min-height: 58px;
-            margin: 0 !important;
-            padding: 10px 18px !important;
-            background: #FFFFFF;
-            border: 1px solid #111111;
-            cursor: pointer;
-            transition: background 0.15s ease, transform 0.15s ease;
-        }
-
-        [data-testid="stRadio"] label:hover {
-            background: #FFFCD0;
-        }
-
-        [data-testid="stRadio"] label:has(input:checked) {
-            background: #FBF560 !important;
-            box-shadow: inset 0 -4px 0 #111111;
-        }
-
-        [data-testid="stRadio"] label p {
-            color: #111111 !important;
-            font-size: 1rem !important;
-            font-weight: 750 !important;
-            letter-spacing: 0.01em;
-        }
-
-        [data-testid="stRadio"] label > div:first-child {
-            display: none !important;
-        }
-
-        .page-heading {
-            position: relative;
-            padding: 28px 30px;
-            margin-bottom: 22px;
-            background: #FFFFFF;
-            border: 1px solid #D9D267;
-            border-left: 8px solid #FBF560;
-            overflow: hidden;
-        }
-
-        .page-heading::after {
-            content: "";
-            position: absolute;
-            right: -45px;
-            top: -82px;
-            width: 220px;
-            height: 220px;
-            background: #FBF560;
-            opacity: 0.28;
-            transform: rotate(17deg);
-        }
-
-        .page-heading__label {
-            position: relative;
-            z-index: 1;
-            display: inline-block;
-            margin-bottom: 8px;
-            padding: 4px 8px;
-            background: #111111;
-            color: #FFFFFF !important;
-            font-size: 0.72rem;
-            font-weight: 800;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-        }
-
-        .page-heading h1 {
-            position: relative;
-            z-index: 1;
-            margin: 0 0 7px 0;
-            color: #111111 !important;
-            font-size: 2rem;
-            line-height: 1.12;
-        }
-
-        .page-heading p {
-            position: relative;
-            z-index: 1;
-            margin: 0;
-            color: #4B4B4B !important;
-        }
-
-        .stButton > button *,
-        .stDownloadButton > button *,
-        .stLinkButton > a * {
-            color: #111111 !important;
-        }
-
-        .stLinkButton > a {
-            display: flex !important;
-            align-items: center;
-            justify-content: center;
-            min-height: 42px;
-            background: #FFFFFF !important;
-            color: #111111 !important;
-            border: 1px solid #111111 !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
-            font-weight: 750 !important;
-            text-decoration: none !important;
-        }
-
-        .stLinkButton > a:hover {
-            background: #FFFCD0 !important;
-            color: #111111 !important;
-        }
-
-        [data-testid="stProgressBar"] [role="progressbar"] > div,
-        [data-testid="stProgressBar"] div[style*="width"] {
-            background-color: #FBF560 !important;
-        }
-
-        .cro-score-panel {
-            min-height: 220px;
-            padding: 24px;
-            background: #111111;
-            border-bottom: 8px solid #FBF560;
-        }
-
-        .cro-score-panel__label {
-            color: #FBF560 !important;
-            font-size: 0.76rem;
-            font-weight: 800;
-            letter-spacing: 0.12em;
-            text-transform: uppercase;
-        }
-
-        .cro-score-panel__value {
-            margin-top: 15px;
-            color: #FFFFFF !important;
-            font-size: 4.3rem;
-            line-height: 0.92;
-            font-weight: 800;
-        }
-
-        .cro-score-panel__value span {
-            color: #AFAFAF !important;
-            font-size: 1.35rem;
-        }
-
-        .cro-score-panel__status {
-            margin-top: 20px;
-            color: #FFFFFF !important;
-            font-size: 1.05rem;
-            font-weight: 750;
-        }
-
-        .cro-score-panel__text {
-            margin-top: 7px;
-            color: #CFCFCF !important;
-            line-height: 1.5;
-            font-size: 0.9rem;
-        }
-
-        .cro-kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-
-        .cro-kpi {
-            min-height: 128px;
-            padding: 18px;
-            background: #FFFFFF;
-            border: 1px solid #D9D267;
-            border-top: 4px solid #FBF560;
-        }
-
-        .cro-kpi__label {
-            color: #4B4B4B !important;
-            font-size: 0.78rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-        }
-
-        .cro-kpi__value {
-            margin-top: 13px;
-            color: #111111 !important;
-            font-size: 2rem;
-            font-weight: 800;
-        }
-
-        .cro-kpi__hint {
-            margin-top: 5px;
-            color: #676767 !important;
-            font-size: 0.82rem;
-        }
-
-        .cro-backlog {
-            border: 1px solid #D9D267;
-            background: #FFFFFF;
-        }
-
-        .cro-backlog__head,
-        .cro-backlog__row {
-            display: grid;
-            grid-template-columns: 56px minmax(190px, 1.5fr) 120px 120px minmax(180px, 1fr);
-            align-items: center;
-            gap: 12px;
-        }
-
-        .cro-backlog__head {
-            padding: 12px 16px;
-            background: #111111;
-        }
-
-        .cro-backlog__head span {
-            color: #FFFFFF !important;
-            font-size: 0.76rem;
-            font-weight: 750;
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-
-        .cro-backlog__row {
-            padding: 14px 16px;
-            border-top: 1px solid #ECE7B5;
-        }
-
-        .cro-backlog__row:hover {
-            background: #FFFEEE;
-        }
-
-        .cro-backlog__rank {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 34px;
-            height: 34px;
-            background: #FBF560;
-            color: #111111 !important;
-            font-weight: 800;
-        }
-
-        .cro-backlog__section {
-            color: #111111 !important;
-            font-weight: 750;
-        }
-
-        .cro-backlog__number {
-            color: #111111 !important;
-            font-weight: 700;
-        }
-
-        .cro-backlog__progress {
-            display: grid;
-            grid-template-columns: 1fr 52px;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .cro-backlog__track {
-            height: 9px;
-            background: #E8E8E8;
-            overflow: hidden;
-        }
-
-        .cro-backlog__fill {
-            height: 100%;
-            background: #FBF560;
-            border-right: 2px solid #111111;
-        }
-
-        .cro-backlog__percent {
-            color: #111111 !important;
-            font-size: 0.82rem;
-            font-weight: 750;
-            text-align: right;
-        }
-
-        .cro-action-panel {
-            padding: 20px;
-            background: #FFFEEE;
-            border: 1px solid #D9D267;
-            border-top: 5px solid #FBF560;
-            margin-bottom: 12px;
-        }
-
-        .cro-action-panel__eyebrow {
-            color: #6A651F !important;
-            font-size: 0.74rem;
-            font-weight: 800;
-            letter-spacing: 0.1em;
-            text-transform: uppercase;
-        }
-
-        .cro-action-panel h3 {
-            margin: 9px 0 8px 0;
-            color: #111111 !important;
-            font-size: 1.25rem;
-        }
-
-        .cro-action-panel p {
-            margin: 0;
-            color: #4B4B4B !important;
-            line-height: 1.5;
-        }
-
-        .cro-focus-card {
-            position: relative;
-            min-height: 160px;
-            padding: 20px;
-            background: #FFFFFF;
-            border: 1px solid #D9D267;
-            border-bottom: 5px solid #FBF560;
-            overflow: hidden;
-        }
-
-        .cro-focus-card__rank {
-            position: absolute;
-            right: 13px;
-            top: 7px;
-            color: #EEE9A7 !important;
-            font-size: 3.8rem;
-            line-height: 1;
-            font-weight: 900;
-        }
-
-        .cro-focus-card__section {
-            position: relative;
-            z-index: 1;
-            color: #111111 !important;
-            font-size: 1.06rem;
-            font-weight: 800;
-        }
-
-        .cro-focus-card__todo {
-            position: relative;
-            z-index: 1;
-            margin-top: 24px;
-            color: #111111 !important;
-            font-size: 1.8rem;
-            font-weight: 800;
-        }
-
-        .cro-focus-card__todo span {
-            color: #686868 !important;
-            font-size: 0.9rem;
-            font-weight: 600;
-        }
-
-        .cro-focus-card__text {
-            position: relative;
-            z-index: 1;
-            margin-top: 7px;
-            color: #4B4B4B !important;
-            font-size: 0.86rem;
-        }
-
-        .cro-sheet-toolbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 18px;
-            padding: 18px 20px;
-            margin-bottom: 16px;
-            background: #111111;
-            border-bottom: 5px solid #FBF560;
-        }
-
-        .cro-sheet-toolbar h3 {
-            margin: 0 0 4px 0;
-            color: #FFFFFF !important;
-        }
-
-        .cro-sheet-toolbar p {
-            margin: 0;
-            color: #CFCFCF !important;
-            font-size: 0.88rem;
-        }
-
-
         @media (max-width: 800px) {
             .brand-header {
                 flex-direction: column;
@@ -854,41 +423,6 @@ def apply_theme() -> None:
 
             .brand-copy h1 {
                 font-size: 1.55rem;
-            }
-
-            .app-brandbar {
-                align-items: flex-start;
-                flex-direction: column;
-            }
-
-            .app-brandbar__logo {
-                width: 150px;
-                min-width: 150px;
-            }
-
-            [data-testid="stRadio"] [role="radiogroup"] {
-                grid-template-columns: 1fr;
-            }
-
-            .cro-kpi-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .cro-backlog__head {
-                display: none;
-            }
-
-            .cro-backlog__row {
-                grid-template-columns: 42px 1fr;
-            }
-
-            .cro-backlog__row > :nth-child(3),
-            .cro-backlog__row > :nth-child(4) {
-                display: none;
-            }
-
-            .cro-backlog__progress {
-                grid-column: 2;
             }
         }
         </style>
@@ -953,8 +487,7 @@ def configure_plot(fig: go.Figure, height: int | None = None) -> go.Figure:
     return fig
 
 
-
-def render_global_navigation() -> str:
+def render_header() -> None:
     if LOGO_PATH.exists():
         logo_base64 = base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
         logo_html = (
@@ -962,39 +495,20 @@ def render_global_navigation() -> str:
             'alt="IPR ecommerce agency">'
         )
     else:
-        logo_html = "<strong style='color:#111111'>IPR</strong>"
+        logo_html = (
+            '<div class="brand-logo-missing">'
+            'Добавьте файл <b>ipr.jpeg</b><br>в корень проекта'
+            '</div>'
+        )
 
     st.markdown(
         f"""
-        <div class="app-brandbar">
-            <div class="app-brandbar__logo">{logo_html}</div>
-            <div class="app-brandbar__copy">
-                <strong>I-PR Business Dashboard</strong>
-                <span>Аналитика продаж и контроль конверсии интернет-магазина</span>
+        <div class="brand-header">
+            <div class="brand-logo">{logo_html}</div>
+            <div class="brand-copy">
+                <h1>Аналитика интернет-магазина</h1>
+                <p>Продажи, товары, клиенты и автоматические бизнес-рекомендации</p>
             </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    selected = st.radio(
-        "Основной раздел",
-        options=["АНАЛИТИКА ПРОДАЖ", "CRO-АУДИТ"],
-        horizontal=True,
-        label_visibility="collapsed",
-        key="main_navigation",
-    )
-
-    return "CRO" if selected == "CRO-АУДИТ" else "Аналитика"
-
-
-def render_header() -> None:
-    st.markdown(
-        """
-        <div class="page-heading">
-            <span class="page-heading__label">Sales intelligence</span>
-            <h1>Аналитика интернет-магазина</h1>
-            <p>Продажи, товары, клиенты и автоматические бизнес-рекомендации</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1342,20 +856,17 @@ def main() -> None:
     )
 
     apply_theme()
-    active_section = render_global_navigation()
+
+    with st.sidebar:
+        st.header("Разделы")
+        active_section = st.radio(
+            "Раздел приложения",
+            options=["Аналитика", "CRO"],
+            label_visibility="collapsed",
+        )
+        st.divider()
 
     if active_section == "CRO":
-        st.markdown(
-            """
-            <style>
-            [data-testid="stSidebar"],
-            [data-testid="stSidebarCollapsedControl"] {
-                display: none !important;
-            }
-            </style>
-            """,
-            unsafe_allow_html=True,
-        )
         cro_module.render_cro_page(LOGO_PATH)
         return
 
