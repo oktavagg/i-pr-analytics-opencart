@@ -409,6 +409,232 @@ def apply_theme() -> None:
             border-radius: 0 !important;
         }
 
+        .sidebar-nav-title {
+            margin: 0 0 10px 0;
+            color: #111111 !important;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .sidebar-nav-caption {
+            margin: -4px 0 14px 0;
+            color: #646464 !important;
+            font-size: 0.82rem;
+            line-height: 1.4;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] {
+            margin-bottom: 4px;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] {
+            display: grid !important;
+            gap: 9px;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] label {
+            position: relative;
+            display: flex !important;
+            align-items: center;
+            min-height: 66px;
+            margin: 0 !important;
+            padding: 12px 14px 12px 18px !important;
+            background: #FFFFFF;
+            border: 1px solid #111111;
+            cursor: pointer;
+            overflow: hidden;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] label::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 6px;
+            height: 100%;
+            background: #D9D267;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
+            background: #FFFCD0;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) {
+            background: #FBF560 !important;
+            border-color: #111111 !important;
+            box-shadow: 5px 5px 0 #111111;
+            transform: translate(-2px, -2px);
+        }
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked)::before {
+            background: #111111;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] label > div:first-child {
+            display: none !important;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] label p {
+            color: #111111 !important;
+            font-size: 0.93rem !important;
+            font-weight: 800 !important;
+            letter-spacing: 0.02em;
+        }
+
+        .upload-gate {
+            position: relative;
+            max-width: 900px;
+            min-height: 430px;
+            margin: 6vh auto 0 auto;
+            padding: 48px 54px 120px 54px;
+            background: #FFFFFF;
+            border: 1px solid #111111;
+            box-shadow: 12px 12px 0 #FBF560;
+            overflow: hidden;
+        }
+
+        .upload-gate::before {
+            content: "";
+            position: absolute;
+            right: -74px;
+            top: -90px;
+            width: 280px;
+            height: 280px;
+            background: #FBF560;
+            transform: rotate(18deg);
+            animation: uploadShape 5.5s ease-in-out infinite;
+        }
+
+        .upload-gate::after {
+            content: "";
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            height: 8px;
+            background: #111111;
+        }
+
+        .upload-gate__top {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .upload-gate__brand {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 178px;
+            min-width: 178px;
+            height: 72px;
+            background: #FFFFFF;
+            border: 1px solid #D9D267;
+        }
+
+        .upload-gate__brand img {
+            width: 150px;
+            max-height: 56px;
+            object-fit: contain;
+        }
+
+        .upload-gate__brand span {
+            color: #111111 !important;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .upload-gate__status {
+            position: relative;
+            z-index: 2;
+            display: inline-flex;
+            align-items: center;
+            gap: 9px;
+            padding: 8px 11px;
+            background: #111111;
+            color: #FFFFFF !important;
+            font-size: 0.74rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .upload-gate__status::before {
+            content: "";
+            width: 9px;
+            height: 9px;
+            background: #FBF560;
+            animation: uploadBlink 1.35s ease-in-out infinite;
+        }
+
+        .upload-gate h1 {
+            position: relative;
+            z-index: 2;
+            max-width: 650px;
+            margin: 54px 0 12px 0;
+            color: #111111 !important;
+            font-size: clamp(2.15rem, 5vw, 4.1rem);
+            line-height: 0.98;
+            letter-spacing: -0.045em;
+        }
+
+        .upload-gate p {
+            position: relative;
+            z-index: 2;
+            max-width: 630px;
+            margin: 0;
+            color: #4B4B4B !important;
+            font-size: 1rem;
+            line-height: 1.6;
+        }
+
+        .upload-gate__steps {
+            position: relative;
+            z-index: 2;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1px;
+            max-width: 690px;
+            margin-top: 34px;
+            background: #111111;
+            border: 1px solid #111111;
+        }
+
+        .upload-gate__step {
+            min-height: 78px;
+            padding: 14px 16px;
+            background: #FFFFFF;
+        }
+
+        .upload-gate__step strong {
+            display: block;
+            margin-bottom: 5px;
+            color: #111111 !important;
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+        }
+
+        .upload-gate__step span {
+            color: #646464 !important;
+            font-size: 0.82rem;
+            line-height: 1.35;
+        }
+
+        @keyframes uploadBlink {
+            0%, 100% { opacity: 0.35; transform: scale(0.8); }
+            50% { opacity: 1; transform: scale(1.18); }
+        }
+
+        @keyframes uploadShape {
+            0%, 100% { transform: rotate(18deg) translate(0, 0); }
+            50% { transform: rotate(13deg) translate(-12px, 12px); }
+        }
+
         @media (max-width: 800px) {
             .brand-header {
                 flex-direction: column;
@@ -423,6 +649,27 @@ def apply_theme() -> None:
 
             .brand-copy h1 {
                 font-size: 1.55rem;
+            }
+
+            .upload-gate {
+                min-height: 0;
+                margin-top: 22px;
+                padding: 28px 24px 108px 24px;
+                box-shadow: 7px 7px 0 #FBF560;
+            }
+
+            .upload-gate__top {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .upload-gate h1 {
+                margin-top: 38px;
+                font-size: 2.35rem;
+            }
+
+            .upload-gate__steps {
+                grid-template-columns: 1fr;
             }
         }
         </style>
@@ -485,6 +732,87 @@ def configure_plot(fig: go.Figure, height: int | None = None) -> go.Figure:
     if height:
         fig.update_layout(height=height)
     return fig
+
+
+def render_upload_gate() -> None:
+    if LOGO_PATH.exists():
+        logo_base64 = base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
+        logo_html = (
+            f'<img src="data:image/jpeg;base64,{logo_base64}" '
+            'alt="IPR ecommerce agency">'
+        )
+    else:
+        logo_html = "<span>IPR ECOMMERCE</span>"
+
+    st.markdown(
+        f"""
+        <div class="upload-gate">
+            <div class="upload-gate__top">
+                <div class="upload-gate__brand">{logo_html}</div>
+                <div class="upload-gate__status">Система готова</div>
+            </div>
+
+            <h1>Загрузите XML.<br>Получите аналитику.</h1>
+
+            <p>
+                Выберите файл с заказами интернет-магазина.
+                После загрузки система проверит структуру, отфильтрует нужные
+                статусы и откроет полный дашборд.
+            </p>
+
+            <div class="upload-gate__steps">
+                <div class="upload-gate__step">
+                    <strong>01 · XML</strong>
+                    <span>Загрузите экспорт заказов магазина.</span>
+                </div>
+                <div class="upload-gate__step">
+                    <strong>02 · ПРОВЕРКА</strong>
+                    <span>Система обработает файл в памяти.</span>
+                </div>
+                <div class="upload-gate__step">
+                    <strong>03 · ДАШБОРД</strong>
+                    <span>Откроются показатели и рекомендации.</span>
+                </div>
+            </div>
+        </div>
+
+        <style>
+        div[data-testid="stFileUploader"] {{
+            position: relative;
+            z-index: 5;
+            max-width: 690px;
+            margin: -92px auto 0 auto;
+        }}
+
+        div[data-testid="stFileUploader"] > label {{
+            display: none !important;
+        }}
+
+        div[data-testid="stFileUploaderDropzone"] {{
+            min-height: 72px !important;
+            padding: 14px 18px !important;
+            background: #FBF560 !important;
+            border: 2px solid #111111 !important;
+            box-shadow: 6px 6px 0 #111111 !important;
+        }}
+
+        div[data-testid="stFileUploaderDropzone"] button {{
+            background: #111111 !important;
+            color: #FFFFFF !important;
+            border: 1px solid #111111 !important;
+        }}
+
+        div[data-testid="stFileUploaderDropzone"] button * {{
+            color: #FFFFFF !important;
+        }}
+
+        div[data-testid="stFileUploaderDropzone"] small {{
+            color: #111111 !important;
+        }}
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_header() -> None:
@@ -858,31 +1186,60 @@ def main() -> None:
     apply_theme()
 
     with st.sidebar:
-        st.header("Разделы")
+        st.markdown(
+            """
+            <div class="sidebar-nav-title">Разделы платформы</div>
+            <div class="sidebar-nav-caption">Выберите рабочий модуль.</div>
+            """,
+            unsafe_allow_html=True,
+        )
         active_section = st.radio(
             "Раздел приложения",
-            options=["Аналитика", "CRO"],
+            options=[
+                "01  АНАЛИТИКА ПРОДАЖ",
+                "02  CRO-АУДИТ",
+            ],
             label_visibility="collapsed",
+            key="platform_section",
         )
         st.divider()
 
-    if active_section == "CRO":
+    if active_section == "02  CRO-АУДИТ":
         cro_module.render_cro_page(LOGO_PATH)
         return
+
+    uploaded_file = st.session_state.get("orders_xml")
+
+    if uploaded_file is None:
+        render_upload_gate()
+        uploaded_file = st.file_uploader(
+            "XML с заказами",
+            type=["xml"],
+            key="orders_xml",
+            help="Поддерживается XML-экспорт заказов магазина.",
+        )
+
+        if uploaded_file is None:
+            st.stop()
+
+        st.rerun()
 
     render_header()
 
     with st.sidebar:
-        st.header("Загрузка данных")
-        uploaded_file = st.file_uploader("XML с заказами", type=["xml"])
-        st.caption("Файл обрабатывается в памяти и не сохраняется приложением.")
-
-    if uploaded_file is None:
-        st.info("Загрузите XML-файл с заказами, чтобы построить дашборд.")
-        st.stop()
+        st.header("Данные магазина")
+        uploaded_file = st.file_uploader(
+            "Текущий XML",
+            type=["xml"],
+            key="orders_xml",
+        )
+        st.caption(
+            "Файл обрабатывается в памяти и не сохраняется приложением."
+        )
 
     try:
-        parsed = parse_xml_cached(uploaded_file.getvalue())
+        with st.spinner("Проверяем XML и строим аналитику..."):
+            parsed = parse_xml_cached(uploaded_file.getvalue())
     except ValueError as exc:
         st.error(str(exc))
         st.stop()
