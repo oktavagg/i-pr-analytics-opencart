@@ -18,20 +18,20 @@ from parser import ALLOWED_STATUSES, parse_xml, top_products
 LOGO_PATH = Path(__file__).with_name("ipr.jpeg")
 
 BRAND_BLACK = "#111111"
-BRAND_YELLOW = "#E7B416"
-BRAND_GOLD = "#C99200"
-BRAND_DARK_GOLD = "#8C6800"
-BRAND_PALE = "#FFF8D8"
-BRAND_CREAM = "#FFFCF2"
-BRAND_BORDER = "#E8D99B"
-BRAND_MUTED = "#5B5545"
+BRAND_YELLOW = "#FBF560"
+BRAND_GOLD = "#D8D142"
+BRAND_DARK_GOLD = "#A49E23"
+BRAND_PALE = "#FFFCD0"
+BRAND_CREAM = "#FFFEEE"
+BRAND_BORDER = "#D9D267"
+BRAND_MUTED = "#4B4B4B"
 CHART_COLORS = [
-    "#E7B416",
-    "#C99200",
+    "#FBF560",
+    "#D8D142",
     "#111111",
-    "#F2D768",
-    "#9F7A00",
-    "#FFE99B",
+    "#F6F29E",
+    "#A49E23",
+    "#FFF9B5",
 ]
 WEEKDAY_NAMES = {
     0: "Понедельник",
@@ -70,16 +70,17 @@ def safe_percent(part: float, total: float) -> float:
 
 def apply_theme() -> None:
     st.markdown(
+
         """
         <style>
         :root {
             color-scheme: light;
             --ipr-black: #111111;
-            --ipr-yellow: #E7B416;
-            --ipr-gold: #C99200;
-            --ipr-pale: #FFF8D8;
-            --ipr-cream: #FFFCF2;
-            --ipr-border: #E8D99B;
+            --ipr-yellow: #FBF560;
+            --ipr-gold: #D8D142;
+            --ipr-pale: #FFFCD0;
+            --ipr-cream: #FFFEEE;
+            --ipr-border: #D9D267;
         }
 
         html, body, [data-testid="stAppViewContainer"],
@@ -93,12 +94,12 @@ def apply_theme() -> None:
         }
 
         [data-testid="stHeader"] {
-            background: rgba(255, 255, 255, 0.97) !important;
+            background: rgba(255, 255, 255, 0.98) !important;
         }
 
         [data-testid="stSidebar"] {
-            background: #FFFCF2 !important;
-            border-right: 1px solid #E8D99B;
+            background: #FFFEEE !important;
+            border-right: 1px solid #D9D267;
         }
 
         [data-testid="stSidebar"] * {
@@ -106,7 +107,7 @@ def apply_theme() -> None:
         }
 
         [data-testid="stSidebar"] hr {
-            border-color: #E8D99B !important;
+            border-color: #D9D267 !important;
         }
 
         .block-container {
@@ -119,14 +120,14 @@ def apply_theme() -> None:
             position: relative;
             display: flex;
             align-items: center;
-            gap: 30px;
-            min-height: 112px;
-            padding: 24px 30px;
-            border: 1px solid #E8D99B;
-            border-top: 5px solid #E7B416;
-            border-radius: 20px;
-            background: linear-gradient(120deg, #FFFFFF 0%, #FFFCF2 58%, #FFF6C9 100%);
-            box-shadow: 0 12px 34px rgba(126, 92, 0, 0.09);
+            gap: 28px;
+            min-height: 104px;
+            padding: 22px 28px;
+            border: 1px solid #D9D267;
+            border-top: 4px solid #FBF560;
+            border-radius: 0;
+            background: linear-gradient(120deg, #FFFFFF 0%, #FFFEEE 60%, #FFFCD0 100%);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
             margin-bottom: 22px;
             overflow: hidden;
         }
@@ -134,12 +135,13 @@ def apply_theme() -> None:
         .brand-header::after {
             content: "";
             position: absolute;
-            right: -55px;
-            top: -95px;
-            width: 260px;
-            height: 260px;
-            border-radius: 50%;
-            background: rgba(231, 180, 22, 0.12);
+            right: -44px;
+            top: -80px;
+            width: 230px;
+            height: 230px;
+            border-radius: 0;
+            background: rgba(251, 245, 96, 0.18);
+            transform: rotate(12deg);
         }
 
         .brand-logo {
@@ -151,9 +153,9 @@ def apply_theme() -> None:
             flex: 0 0 205px;
             min-height: 72px;
             padding: 8px 14px;
-            border-radius: 14px;
+            border-radius: 0;
             background: #FFFFFF;
-            border: 1px solid #EFE4B7;
+            border: 1px solid #D9D267;
         }
 
         .brand-logo img {
@@ -164,7 +166,7 @@ def apply_theme() -> None:
         }
 
         .brand-logo-missing {
-            color: #67541B;
+            color: #111111;
             font-size: 0.86rem;
             text-align: center;
         }
@@ -184,7 +186,7 @@ def apply_theme() -> None:
 
         .brand-copy p {
             margin: 0;
-            color: #4D4739 !important;
+            color: #4B4B4B !important;
             font-size: 0.98rem;
         }
 
@@ -192,10 +194,10 @@ def apply_theme() -> None:
             position: relative;
             overflow: hidden;
             background: #FFFFFF;
-            border: 1px solid #E8D99B;
+            border: 1px solid #D9D267;
             padding: 18px;
-            border-radius: 16px;
-            box-shadow: 0 8px 24px rgba(126, 92, 0, 0.06);
+            border-radius: 0;
+            box-shadow: none;
         }
 
         [data-testid="stMetric"]::before {
@@ -204,12 +206,12 @@ def apply_theme() -> None:
             left: 0;
             top: 0;
             width: 100%;
-            height: 4px;
-            background: #E7B416;
+            height: 3px;
+            background: #FBF560;
         }
 
         [data-testid="stMetricLabel"] {
-            color: #5B5545 !important;
+            color: #4B4B4B !important;
             font-size: 0.86rem;
         }
 
@@ -226,17 +228,17 @@ def apply_theme() -> None:
         div[data-testid="stPlotlyChart"],
         div[data-testid="stDataFrame"] {
             background: #FFFFFF;
-            border: 1px solid #E8D99B;
-            border-radius: 16px;
+            border: 1px solid #D9D267;
+            border-radius: 0;
             padding: 8px;
-            box-shadow: 0 8px 24px rgba(126, 92, 0, 0.05);
+            box-shadow: none;
         }
 
         .summary-box {
-            background: linear-gradient(120deg, #FFFDF5 0%, #FFF7D4 100%);
-            border: 1px solid #E8D99B;
-            border-left: 5px solid #E7B416;
-            border-radius: 16px;
+            background: linear-gradient(120deg, #FFFEEE 0%, #FFFCD0 100%);
+            border: 1px solid #D9D267;
+            border-left: 4px solid #FBF560;
+            border-radius: 0;
             padding: 18px 20px;
             margin: 12px 0 18px 0;
             color: #111111 !important;
@@ -250,26 +252,26 @@ def apply_theme() -> None:
         .recommendation-card {
             height: 100%;
             background: #FFFFFF;
-            border: 1px solid #E8D99B;
-            border-left: 5px solid #E7B416;
-            border-radius: 15px;
+            border: 1px solid #D9D267;
+            border-left: 4px solid #FBF560;
+            border-radius: 0;
             padding: 17px 18px;
-            box-shadow: 0 8px 22px rgba(126, 92, 0, 0.05);
+            box-shadow: none;
         }
 
         .recommendation-card.high {
             border-left-color: #111111;
-            background: #FFFDF5;
+            background: #FFFEEE;
         }
 
         .recommendation-card.medium {
-            border-left-color: #C99200;
-            background: #FFFCF2;
+            border-left-color: #D8D142;
+            background: #FFFEEE;
         }
 
         .recommendation-card.positive {
-            border-left-color: #E7B416;
-            background: #FFF9DE;
+            border-left-color: #FBF560;
+            background: #FFFCD0;
         }
 
         .recommendation-card h4 {
@@ -280,70 +282,129 @@ def apply_theme() -> None:
 
         .recommendation-card p {
             margin: 0;
-            color: #4D4739 !important;
+            color: #4B4B4B !important;
             line-height: 1.45;
             font-size: 0.91rem;
         }
 
         .small-muted,
         [data-testid="stCaptionContainer"] {
-            color: #6A624F !important;
+            color: #4B4B4B !important;
             font-size: 0.9rem;
         }
 
         .stTabs [data-baseweb="tab-list"] {
             gap: 8px;
-            border-bottom: 1px solid #E8D99B;
+            border-bottom: 1px solid #D9D267;
         }
 
         .stTabs [data-baseweb="tab"] {
-            background: #FFFCF2;
-            border: 1px solid #EFE4B7;
+            background: #FFFEEE;
+            border: 1px solid #D9D267;
             border-bottom: 0;
-            border-radius: 10px 10px 0 0;
+            border-radius: 0;
             padding: 8px 14px;
             color: #111111 !important;
         }
 
         .stTabs [aria-selected="true"] {
-            background: #FFF3B6 !important;
+            background: #FBF560 !important;
             color: #111111 !important;
             font-weight: 700;
         }
 
         .stButton > button,
         .stDownloadButton > button {
-            background: #E7B416 !important;
+            background: #FBF560 !important;
             color: #111111 !important;
-            border: 1px solid #C99200 !important;
-            border-radius: 10px !important;
+            border: 1px solid #111111 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
             font-weight: 700 !important;
         }
 
         .stButton > button:hover,
         .stDownloadButton > button:hover {
-            background: #F0C83E !important;
-            border-color: #8C6800 !important;
+            background: #FFF89A !important;
+            border-color: #111111 !important;
         }
 
         [data-baseweb="select"] > div,
-        [data-testid="stFileUploaderDropzone"],
-        [data-testid="stDateInput"] input {
+        [data-testid="stDateInput"] input,
+        [data-testid="stDateInput"] > div,
+        [data-baseweb="tag"] {
             background: #FFFFFF !important;
             color: #111111 !important;
-            border-color: #DCCB82 !important;
+            border-color: #D9D267 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+
+        [data-baseweb="tag"] {
+            background: #FBF560 !important;
+            color: #111111 !important;
+            border: 1px solid #111111 !important;
+        }
+
+        [data-baseweb="tag"] span,
+        [data-baseweb="tag"] svg {
+            color: #111111 !important;
+            fill: #111111 !important;
+        }
+
+        [data-testid="stFileUploaderDropzone"] {
+            background: #FFFFFF !important;
+            color: #111111 !important;
+            border: 1px solid #D9D267 !important;
+            border-radius: 0 !important;
         }
 
         [data-testid="stFileUploaderDropzone"] button {
-            background: #FFF3B6 !important;
+            background: #FBF560 !important;
             color: #111111 !important;
-            border-color: #C99200 !important;
+            border: 1px solid #111111 !important;
+            border-radius: 0 !important;
+        }
+
+        [data-testid="stFileUploader"] section {
+            background: #FFFFFF !important;
+            border-radius: 0 !important;
+        }
+
+        [data-testid="stFileUploaderFile"] {
+            background: #FFFFFF !important;
+            color: #111111 !important;
+            border: 1px solid #111111 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+
+        [data-testid="stFileUploaderFile"] * {
+            color: #111111 !important;
+            fill: #111111 !important;
+        }
+
+        [data-testid="stFileUploaderFileName"] {
+            color: #111111 !important;
+        }
+
+        [data-testid="stFileUploaderFileDeleteBtn"] {
+            background: #FBF560 !important;
+            color: #111111 !important;
+            border: 1px solid #111111 !important;
+            border-radius: 0 !important;
+        }
+
+        [data-testid="stFileUploaderFileDeleteBtn"] * {
+            color: #111111 !important;
+            fill: #111111 !important;
         }
 
         .stAlert {
-            background: #FFF9DE !important;
+            background: #FFFCD0 !important;
             color: #111111 !important;
-            border-color: #E8D99B !important;
+            border: 1px solid #D9D267 !important;
+            border-radius: 0 !important;
         }
 
         @media (max-width: 800px) {
@@ -363,7 +424,8 @@ def apply_theme() -> None:
             }
         }
         </style>
-        """,
+        """
+,
         unsafe_allow_html=True,
     )
 
