@@ -422,6 +422,16 @@ def apply_theme() -> None:
             }
         }
 
+
+        [data-testid="stSidebar"] [data-testid="stRadio"] > label {
+            display: none !important;
+            height: 0 !important;
+            min-height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            border: 0 !important;
+        }
+
         [data-testid="stSidebar"] [data-testid="stRadio"] {
             margin-top: 4px;
             margin-bottom: 8px;
@@ -432,7 +442,7 @@ def apply_theme() -> None:
             gap: 10px;
         }
 
-        [data-testid="stSidebar"] [data-testid="stRadio"] label {
+        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label {
             position: relative;
             display: flex !important;
             align-items: center;
@@ -445,7 +455,7 @@ def apply_theme() -> None:
             overflow: hidden;
         }
 
-        [data-testid="stSidebar"] [data-testid="stRadio"] label::before {
+        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label::before {
             content: "";
             position: absolute;
             left: 0;
@@ -455,26 +465,26 @@ def apply_theme() -> None:
             background: #FBF560;
         }
 
-        [data-testid="stSidebar"] [data-testid="stRadio"] label:hover {
+        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label:hover {
             background: #FFFCD0;
         }
 
-        [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked) {
+        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label:has(input:checked) {
             background: #FBF560 !important;
             border-color: #111111 !important;
             box-shadow: 5px 5px 0 #111111;
             transform: translate(-2px, -2px);
         }
 
-        [data-testid="stSidebar"] [data-testid="stRadio"] label:has(input:checked)::before {
+        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label:has(input:checked)::before {
             background: #111111;
         }
 
-        [data-testid="stSidebar"] [data-testid="stRadio"] label > div:first-child {
+        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label > div:first-child {
             display: none !important;
         }
 
-        [data-testid="stSidebar"] [data-testid="stRadio"] label p {
+        [data-testid="stSidebar"] [data-testid="stRadio"] [role="radiogroup"] label p {
             color: #111111 !important;
             font-size: 0.92rem !important;
             font-weight: 850 !important;
@@ -703,6 +713,76 @@ def apply_theme() -> None:
                 grid-template-columns: 1fr;
             }
         }
+
+        /* Minimal XML upload screen */
+        .upload-start {
+            max-width: 650px !important;
+            min-height: 0 !important;
+            margin: 18vh auto 0 auto !important;
+            padding: 34px 38px 28px 38px !important;
+            background: #FFFFFF !important;
+            border: 1px solid #111111 !important;
+            border-bottom: 0 !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+        }
+
+        .upload-start::before,
+        .upload-start::after,
+        .upload-start__top,
+        .upload-start__logo,
+        .upload-start__badge,
+        .upload-start__steps {
+            display: none !important;
+        }
+
+        .upload-start h1 {
+            margin: 0 0 10px 0 !important;
+            max-width: none !important;
+            color: #111111 !important;
+            font-size: clamp(2rem, 4vw, 3rem) !important;
+            line-height: 1.05 !important;
+            letter-spacing: -0.035em !important;
+        }
+
+        .upload-start p {
+            margin: 0 !important;
+            max-width: 520px !important;
+            color: #555555 !important;
+            font-size: 0.95rem !important;
+            line-height: 1.5 !important;
+        }
+
+        [data-testid="stMain"] [data-testid="stFileUploader"] {
+            max-width: 650px !important;
+            margin: 0 auto !important;
+        }
+
+        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] {
+            min-height: 78px !important;
+            padding: 14px 18px !important;
+            background: #FBF560 !important;
+            border: 1px solid #111111 !important;
+            box-shadow: 8px 8px 0 #111111 !important;
+        }
+
+        [data-testid="stMain"] [data-testid="stFileUploaderDropzone"] button {
+            background: #111111 !important;
+            color: #FFFFFF !important;
+            border: 1px solid #111111 !important;
+        }
+
+        @media (max-width: 800px) {
+            .upload-start {
+                margin-top: 70px !important;
+                padding: 28px 24px 24px 24px !important;
+            }
+
+            .upload-start h1 {
+                font-size: 2rem !important;
+            }
+        }
+
         </style>
         """
 ,
@@ -767,30 +847,10 @@ def configure_plot(fig: go.Figure, height: int | None = None) -> go.Figure:
 
 
 def render_upload_start() -> None:
-    if LOGO_PATH.exists():
-        logo_base64 = base64.b64encode(
-            LOGO_PATH.read_bytes()
-        ).decode("ascii")
-        logo_html = (
-            f'<img src="data:image/jpeg;base64,{logo_base64}" '
-            'alt="IPR ecommerce agency">'
-        )
-    else:
-        logo_html = "<span>IPR ECOMMERCE</span>"
-
     st.html(
-        f"""<div class="upload-start">
-<div class="upload-start__top">
-<div class="upload-start__logo">{logo_html}</div>
-<div class="upload-start__badge">Система готова</div>
-</div>
-<h1>Загрузите XML.<br>Получите аналитику.</h1>
-<p>Выберите экспорт заказов интернет-магазина. После загрузки система проверит структуру файла, отфильтрует разрешенные статусы и откроет полный дашборд.</p>
-<div class="upload-start__steps">
-<div class="upload-start__step"><strong>01 · XML</strong><span>Загрузите файл с заказами магазина.</span></div>
-<div class="upload-start__step"><strong>02 · ПРОВЕРКА</strong><span>Система обработает данные в памяти.</span></div>
-<div class="upload-start__step"><strong>03 · ДАШБОРД</strong><span>Откроются показатели и рекомендации.</span></div>
-</div>
+        """<div class="upload-start">
+<h1>Загрузите XML-файл</h1>
+<p>После загрузки система сразу откроет аналитику магазина.</p>
 </div>"""
     )
 
