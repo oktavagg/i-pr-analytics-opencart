@@ -202,25 +202,11 @@ def load_cro_summary() -> tuple[pd.DataFrame, int, bool]:
 
 
 def _render_header(logo_path: Path | None) -> None:
-    if logo_path and logo_path.exists():
-        logo_base64 = base64.b64encode(
-            logo_path.read_bytes()
-        ).decode("ascii")
-        logo_html = (
-            f'<img src="data:image/jpeg;base64,{logo_base64}" '
-            'alt="IPR ecommerce agency">'
-        )
-    else:
-        logo_html = "<strong>IPR</strong>"
-
     st.markdown(
-        f"""
-        <div class="brand-header">
-            <div class="brand-logo">{logo_html}</div>
-            <div class="brand-copy">
-                <h1>CRO-аудит магазина</h1>
-                <p>Чек-лист конверсии, приоритеты и контроль выполнения задач</p>
-            </div>
+        """
+        <div class="page-heading">
+            <h2>CRO-аудит магазина</h2>
+            <p>Чек-лист конверсии, приоритеты и контроль выполнения задач</p>
         </div>
         """,
         unsafe_allow_html=True,

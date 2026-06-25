@@ -34,6 +34,9 @@ DATA_DIR = Path(__file__).with_name("uploaded_data")
 ORDERS_XML_PATH = DATA_DIR / "orders.xml"
 PRODUCTS_XML_PATH = DATA_DIR / "products.xml"
 UPLOAD_META_PATH = DATA_DIR / "metadata.json"
+DEMO_DATA_DIR = Path(__file__).with_name("files_test")
+DEMO_ORDERS_PATH = DEMO_DATA_DIR / "order (24).xml"
+DEMO_PRODUCTS_PATH = DEMO_DATA_DIR / "product (2).xml"
 
 BRAND_BLACK = "#111111"
 BRAND_YELLOW = "#FBF560"
@@ -115,10 +118,12 @@ def stored_import_exists() -> bool:
     return all(path.is_file() and path.stat().st_size > 0 for path in paths)
 
 
-def save_uploaded_files(orders_file, products_file) -> None:
-    orders_bytes = orders_file.getvalue()
-    products_bytes = products_file.getvalue()
-
+def save_xml_bytes(
+    orders_bytes: bytes,
+    products_bytes: bytes,
+    orders_name: str,
+    products_name: str,
+) -> None:
     # Validate both files again immediately before writing them to disk.
     validate_order_xml_cached(orders_bytes)
     validate_product_xml_cached(products_bytes)
@@ -141,8 +146,8 @@ def save_uploaded_files(orders_file, products_file) -> None:
             os.replace(temporary, destination)
 
         metadata = {
-            "orders_name": orders_file.name,
-            "products_name": products_file.name,
+            "orders_name": orders_name,
+            "products_name": products_name,
             "orders_size": len(orders_bytes),
             "products_size": len(products_bytes),
         }
@@ -157,6 +162,34 @@ def save_uploaded_files(orders_file, products_file) -> None:
             temporary.unlink(missing_ok=True)
         raise RuntimeError(f"Не удалось сохранить XML-файлы: {exc}") from exc
 
+
+def save_uploaded_files(orders_file, products_file) -> None:
+    save_xml_bytes(
+        orders_bytes=orders_file.getvalue(),
+        products_bytes=products_file.getvalue(),
+        orders_name=orders_file.name,
+        products_name=products_file.name,
+    )
+
+
+def load_demo_files() -> None:
+    missing = [
+        path.name
+        for path in (DEMO_ORDERS_PATH, DEMO_PRODUCTS_PATH)
+        if not path.is_file()
+    ]
+    if missing:
+        raise RuntimeError(
+            "В папке files_test отсутствуют демо-файлы: "
+            + ", ".join(missing)
+        )
+
+    save_xml_bytes(
+        orders_bytes=DEMO_ORDERS_PATH.read_bytes(),
+        products_bytes=DEMO_PRODUCTS_PATH.read_bytes(),
+        orders_name=DEMO_ORDERS_PATH.name,
+        products_name=DEMO_PRODUCTS_PATH.name,
+    )
 
 def delete_uploaded_files() -> None:
     for path in (ORDERS_XML_PATH, PRODUCTS_XML_PATH, UPLOAD_META_PATH):
@@ -196,6 +229,38 @@ def render_import_screen() -> None:
             <p>Для запуска системы нужны два XML-файла: заказы и полный каталог товаров.</p>
         </div>
         """,
+        unsafe_allow_html=True,
+    )
+
+    with st.container(key="demo_import_block"):
+        demo_copy, demo_action = st.columns([2.2, 1], vertical_alignment="center")
+        with demo_copy:
+            st.markdown(
+                """
+                <div class="demo-import-copy">
+                    <div class="demo-import-label">БЫСТРЫЙ СТАРТ</div>
+                    <h3>Посмотреть систему на демо-данных</h3>
+                    <p>Система загрузит тестовые заказы и каталог из папки <b>files_test</b>.</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with demo_action:
+            if st.button(
+                "Использовать демо-данные",
+                key="use_demo_data",
+                type="primary",
+                width="stretch",
+            ):
+                try:
+                    load_demo_files()
+                except (OSError, ValueError, RuntimeError) as exc:
+                    st.error(str(exc))
+                else:
+                    st.rerun()
+
+    st.markdown(
+        '<div class="import-divider"><span>или загрузите свои XML-файлы</span></div>',
         unsafe_allow_html=True,
     )
 
@@ -254,7 +319,6 @@ def render_import_screen() -> None:
             st.error(str(exc))
             return
         st.rerun()
-
 
 def render_loaded_files_sidebar() -> None:
     metadata = load_upload_metadata()
@@ -382,6 +446,51 @@ def apply_theme() -> None:
 
         .sidebar-product-title * {
             color: #FFFFFF !important;
+        }
+
+        .sidebar-brand {
+            margin: 0 0 14px;
+            padding: 14px 12px 16px;
+            background: #FFFFFF;
+            border: 1px solid #D9D267;
+            border-top: 4px solid #FBF560;
+        }
+
+        .sidebar-brand-logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 54px;
+            margin-bottom: 11px;
+            padding: 7px 9px;
+            background: #FFFFFF;
+            border: 1px solid #D9D267;
+        }
+
+        .sidebar-brand-logo img {
+            display: block;
+            width: 145px;
+            max-height: 54px;
+            object-fit: contain;
+        }
+
+        .sidebar-brand-fallback {
+            font-size: 1.25rem;
+            font-weight: 900;
+            letter-spacing: 0.04em;
+        }
+
+        .sidebar-brand h2 {
+            margin: 0 0 5px;
+            font-size: 1rem;
+            line-height: 1.25;
+        }
+
+        .sidebar-brand p {
+            margin: 0;
+            color: #4B4B4B !important;
+            font-size: 0.77rem;
+            line-height: 1.4;
         }
 
         .nav-group-heading {
@@ -1000,6 +1109,96 @@ def apply_theme() -> None:
             background: #FFFEEE;
             border: 1px solid #D9D267;
             border-left: 6px solid #FBF560;
+            transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+        }
+
+        .import-intro:hover {
+            transform: translateY(-2px);
+            border-color: #A49E23;
+            box-shadow: 0 10px 24px rgba(17, 17, 17, 0.06);
+        }
+
+        .st-key-demo_import_block {
+            margin: 0 0 24px;
+            padding: 20px 22px;
+            background: #FBF560;
+            border: 1px solid #111111;
+            transition: transform 160ms ease, box-shadow 160ms ease;
+        }
+
+        .st-key-demo_import_block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 26px rgba(17, 17, 17, 0.10);
+        }
+
+        .demo-import-copy h3 {
+            margin: 5px 0 6px;
+            font-size: 1.16rem;
+        }
+
+        .demo-import-copy p {
+            margin: 0;
+            color: #333333 !important;
+            font-size: 0.9rem;
+        }
+
+        .demo-import-label {
+            display: inline-block;
+            padding: 3px 7px;
+            background: #111111;
+            color: #FBF560 !important;
+            font-size: 0.68rem;
+            font-weight: 850;
+            letter-spacing: 0.07em;
+        }
+
+        .st-key-demo_import_block .stButton > button {
+            min-height: 3rem;
+            background: #111111 !important;
+            color: #FBF560 !important;
+            border-color: #111111 !important;
+            transition: transform 150ms ease, background 150ms ease, color 150ms ease;
+        }
+
+        .st-key-demo_import_block .stButton > button:hover {
+            transform: translateY(-1px);
+            background: #FFFFFF !important;
+            color: #111111 !important;
+        }
+
+        .import-divider {
+            position: relative;
+            margin: 2px 0 22px;
+            text-align: center;
+        }
+
+        .import-divider::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: #D9D267;
+        }
+
+        .import-divider span {
+            position: relative;
+            display: inline-block;
+            padding: 0 12px;
+            background: #FFFFFF;
+            color: #4B4B4B !important;
+            font-size: 0.84rem;
+        }
+
+        [data-testid="stFileUploaderDropzone"] {
+            transition: transform 150ms ease, border-color 150ms ease, background 150ms ease;
+        }
+
+        [data-testid="stFileUploaderDropzone"]:hover {
+            transform: translateY(-1px);
+            border-color: #111111 !important;
+            background: #FFFEEE !important;
         }
 
         .import-intro h2 {
@@ -1070,6 +1269,28 @@ def render_header() -> None:
                 <h1>Аналитика интернет-магазина</h1>
                 <p>Продажи, товары, клиенты и автоматические бизнес-рекомендации</p>
             </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_sidebar_brand() -> None:
+    if LOGO_PATH.exists():
+        logo_base64 = base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
+        logo_html = (
+            f'<img src="data:image/jpeg;base64,{logo_base64}" '
+            'alt="IPR ecommerce agency">'
+        )
+    else:
+        logo_html = '<div class="sidebar-brand-fallback">I-PR</div>'
+
+    st.markdown(
+        f"""
+        <div class="sidebar-brand">
+            <div class="sidebar-brand-logo">{logo_html}</div>
+            <h2>Аналитика магазина</h2>
+            <p>Продажи, товары, покупатели и бизнес-рекомендации</p>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1641,7 +1862,12 @@ def main() -> None:
     min_date = all_orders["order_date"].min().date()
     max_date = all_orders["order_date"].max().date()
 
+    selected_dates = (min_date, max_date)
+    selected_statuses = list(ALLOWED_STATUSES)
+
     with st.sidebar:
+        render_sidebar_brand()
+
         active_module = st.radio(
             "Основной раздел",
             options=["01 Аналитика продаж", "02 CRO аудит"],
@@ -1654,36 +1880,12 @@ def main() -> None:
         else:
             selected_page = "cro"
 
-        with st.expander("Фильтры", expanded=False):
-            if selected_page == "period_changes":
-                selected_dates = (min_date, max_date)
-                st.caption(
-                    "Диапазон для страницы «Изменения за период» "
-                    "выбирается в верхней части самой страницы."
-                )
-            else:
-                selected_dates = st.date_input(
-                    "Период",
-                    value=(min_date, max_date),
-                    min_value=min_date,
-                    max_value=max_date,
-                    key="analytics_period",
-                )
-            selected_statuses = st.multiselect(
-                "Статусы",
-                options=list(ALLOWED_STATUSES),
-                default=list(ALLOWED_STATUSES),
-                key="analytics_statuses",
-            )
-
         with st.expander("Загруженные файлы", expanded=False):
             render_loaded_files_sidebar()
 
     if active_module == "02 CRO аудит":
         cro_module.render_cro_page(LOGO_PATH)
         return
-
-    render_header()
 
     context = prepare_analytics_context(
         parsed,
@@ -1701,7 +1903,7 @@ def main() -> None:
     st.caption(
         f"В XML найдено {parsed.total_xml_orders} заказов. "
         f"Исключено по статусу: {parsed.skipped_by_status}. "
-        f"В текущем фильтре: {int(context['order_count'])}."
+        f"В аналитике учтено: {int(context['order_count'])}."
     )
 
 
