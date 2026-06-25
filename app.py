@@ -16,10 +16,11 @@ import streamlit as st
 
 import cro_module
 
-from parser import (
+from xml_parser import (
     ALLOWED_STATUSES,
     parse_xml,
     top_products,
+    validate_order_xml,
     validate_product_xml,
 )
 
@@ -63,40 +64,74 @@ def parse_xml_cached(xml_bytes: bytes):
     return parse_xml(xml_bytes)
 
 
+@st.cache_data(show_spinner=False)
+def validate_order_xml_cached(xml_bytes: bytes):
+    return validate_order_xml(xml_bytes)
+
+
+@st.cache_data(show_spinner=False)
+def validate_product_xml_cached(xml_bytes: bytes):
+    return validate_product_xml(xml_bytes)
 
 
 def stored_import_exists() -> bool:
-    return ORDERS_XML_PATH.exists() and PRODUCTS_XML_PATH.exists()
+    paths = (ORDERS_XML_PATH, PRODUCTS_XML_PATH)
+    return all(path.is_file() and path.stat().st_size > 0 for path in paths)
 
 
 def save_uploaded_files(orders_file, products_file) -> None:
+    orders_bytes = orders_file.getvalue()
+    products_bytes = products_file.getvalue()
+
+    # Validate both files again immediately before writing them to disk.
+    validate_order_xml_cached(orders_bytes)
+    validate_product_xml_cached(products_bytes)
+
     DATA_DIR.mkdir(parents=True, exist_ok=True)
 
     files = (
-        (ORDERS_XML_PATH, orders_file.getvalue()),
-        (PRODUCTS_XML_PATH, products_file.getvalue()),
+        (ORDERS_XML_PATH, orders_bytes),
+        (PRODUCTS_XML_PATH, products_bytes),
     )
-    for destination, content in files:
-        temporary = destination.with_suffix(destination.suffix + ".tmp")
-        temporary.write_bytes(content)
-        os.replace(temporary, destination)
+    temporary_paths: list[Path] = []
 
-    metadata = {
-        "orders_name": orders_file.name,
-        "products_name": products_file.name,
-        "orders_size": len(orders_file.getvalue()),
-        "products_size": len(products_file.getvalue()),
-    }
-    UPLOAD_META_PATH.write_text(
-        json.dumps(metadata, ensure_ascii=False, indent=2),
-        encoding="utf-8",
-    )
+    try:
+        for destination, content in files:
+            temporary = destination.with_suffix(destination.suffix + ".tmp")
+            temporary.write_bytes(content)
+            temporary_paths.append(temporary)
+
+        for temporary, (destination, _) in zip(temporary_paths, files):
+            os.replace(temporary, destination)
+
+        metadata = {
+            "orders_name": orders_file.name,
+            "products_name": products_file.name,
+            "orders_size": len(orders_bytes),
+            "products_size": len(products_bytes),
+        }
+        metadata_temporary = UPLOAD_META_PATH.with_suffix(".json.tmp")
+        metadata_temporary.write_text(
+            json.dumps(metadata, ensure_ascii=False, indent=2),
+            encoding="utf-8",
+        )
+        os.replace(metadata_temporary, UPLOAD_META_PATH)
+    except OSError as exc:
+        for temporary in temporary_paths:
+            temporary.unlink(missing_ok=True)
+        raise RuntimeError(f"Не удалось сохранить XML-файлы: {exc}") from exc
 
 
 def delete_uploaded_files() -> None:
     for path in (ORDERS_XML_PATH, PRODUCTS_XML_PATH, UPLOAD_META_PATH):
         path.unlink(missing_ok=True)
+
     parse_xml_cached.clear()
+    validate_order_xml_cached.clear()
+    validate_product_xml_cached.clear()
+
+    for key in ("initial_orders_xml", "initial_products_xml"):
+        st.session_state.pop(key, None)
 
 
 def load_upload_metadata() -> dict[str, object]:
@@ -154,23 +189,33 @@ def render_import_screen() -> None:
         return
 
     try:
-        parsed_orders = parse_xml_cached(orders_file.getvalue())
-        product_summary = validate_product_xml(products_file.getvalue())
+        orders_bytes = orders_file.getvalue()
+        products_bytes = products_file.getvalue()
+        order_summary = validate_order_xml_cached(orders_bytes)
+        product_summary = validate_product_xml_cached(products_bytes)
     except ValueError as exc:
         st.error(str(exc))
         return
 
-    if parsed_orders.total_xml_orders == 0:
-        st.error("В XML заказов не найдено ни одного заказа.")
+    if order_summary.supported_orders == 0:
+        st.error(
+            "В XML заказов нет заказов с поддерживаемыми статусами: "
+            + ", ".join(ALLOWED_STATUSES)
+            + "."
+        )
         return
 
     st.success(
-        f"Файлы проверены: {parsed_orders.total_xml_orders} заказов и "
+        f"Файлы проверены: {order_summary.total_orders} заказов и "
         f"{product_summary.total_products} товаров."
     )
 
-    if st.button("Сохранить файлы и открыть систему", use_container_width=True):
-        save_uploaded_files(orders_file, products_file)
+    if st.button("Сохранить файлы и открыть систему", width="stretch"):
+        try:
+            save_uploaded_files(orders_file, products_file)
+        except (ValueError, RuntimeError) as exc:
+            st.error(str(exc))
+            return
         st.rerun()
 
 
@@ -184,7 +229,7 @@ def render_loaded_files_sidebar() -> None:
     st.header("Загруженные данные")
     st.caption(f"Заказы: {orders_name}, {format_file_size(orders_size)}")
     st.caption(f"Товары: {products_name}, {format_file_size(products_size)}")
-    if st.button("Удалить загруженные файлы", use_container_width=True):
+    if st.button("Удалить загруженные файлы", width="stretch"):
         delete_uploaded_files()
         st.rerun()
 
@@ -1027,6 +1072,19 @@ def main() -> None:
         render_import_screen()
         st.stop()
 
+    try:
+        stored_orders_bytes = ORDERS_XML_PATH.read_bytes()
+        stored_products_bytes = PRODUCTS_XML_PATH.read_bytes()
+        validate_order_xml_cached(stored_orders_bytes)
+        validate_product_xml_cached(stored_products_bytes)
+    except (OSError, ValueError) as exc:
+        render_header()
+        st.error(f"Сохраненные данные повреждены: {exc}")
+        if st.button("Удалить поврежденные файлы и загрузить заново"):
+            delete_uploaded_files()
+            st.rerun()
+        st.stop()
+
     with st.sidebar:
         st.header("Разделы")
         active_section = st.radio(
@@ -1045,7 +1103,7 @@ def main() -> None:
     render_header()
 
     try:
-        parsed = parse_xml_cached(ORDERS_XML_PATH.read_bytes())
+        parsed = parse_xml_cached(stored_orders_bytes)
     except ValueError as exc:
         st.error(str(exc))
         st.stop()
@@ -1182,7 +1240,7 @@ def main() -> None:
             ),
         )
         daily_chart.update_layout(hovermode="x unified")
-        st.plotly_chart(configure_plot(daily_chart, 390), use_container_width=True)
+        st.plotly_chart(configure_plot(daily_chart, 390), width="stretch")
 
         left, right = st.columns(2)
         with left:
@@ -1200,7 +1258,7 @@ def main() -> None:
                 )
                 units_chart.update_layout(yaxis_title=None)
                 units_chart.update_traces(marker_line_color=BRAND_DARK_GOLD, marker_line_width=0.7)
-                st.plotly_chart(configure_plot(units_chart, 430), use_container_width=True)
+                st.plotly_chart(configure_plot(units_chart, 430), width="stretch")
 
         with right:
             if not products.empty:
@@ -1217,7 +1275,7 @@ def main() -> None:
                 )
                 revenue_chart.update_layout(yaxis_title=None)
                 revenue_chart.update_traces(marker_line_color=BRAND_DARK_GOLD, marker_line_width=0.7)
-                st.plotly_chart(configure_plot(revenue_chart, 430), use_container_width=True)
+                st.plotly_chart(configure_plot(revenue_chart, 430), width="stretch")
 
         status_column, payment_column, region_column = st.columns(3)
         with status_column:
@@ -1235,7 +1293,7 @@ def main() -> None:
                 textfont=dict(color=BRAND_BLACK, size=12),
                 marker=dict(line=dict(color="#FFFFFF", width=2)),
             )
-            st.plotly_chart(configure_plot(status_chart, 390), use_container_width=True)
+            st.plotly_chart(configure_plot(status_chart, 390), width="stretch")
 
         with payment_column:
             payment_stats = (
@@ -1256,7 +1314,7 @@ def main() -> None:
             )
             payment_chart.update_layout(yaxis_title=None)
             payment_chart.update_traces(marker_line_color=BRAND_DARK_GOLD, marker_line_width=0.7)
-            st.plotly_chart(configure_plot(payment_chart, 390), use_container_width=True)
+            st.plotly_chart(configure_plot(payment_chart, 390), width="stretch")
 
         with region_column:
             region_stats = (
@@ -1276,7 +1334,7 @@ def main() -> None:
             )
             region_chart.update_layout(yaxis_title=None)
             region_chart.update_traces(marker_line_color=BRAND_DARK_GOLD, marker_line_width=0.7)
-            st.plotly_chart(configure_plot(region_chart, 390), use_container_width=True)
+            st.plotly_chart(configure_plot(region_chart, 390), width="stretch")
 
         weekday_daily = daily.copy()
         weekday_daily["weekday_num"] = weekday_daily["day"].dt.weekday
@@ -1297,7 +1355,7 @@ def main() -> None:
             text_auto=".2s",
             color_discrete_sequence=[BRAND_YELLOW],
         )
-        st.plotly_chart(configure_plot(weekday_chart, 390), use_container_width=True)
+        st.plotly_chart(configure_plot(weekday_chart, 390), width="stretch")
 
     with products_tab:
         if products.empty:
@@ -1333,7 +1391,7 @@ def main() -> None:
             ]
             st.dataframe(
                 product_table[display_columns],
-                use_container_width=True,
+                width="stretch",
                 hide_index=True,
                 column_config={
                     "Сумма, грн": st.column_config.NumberColumn(format="%.2f"),
@@ -1354,7 +1412,7 @@ def main() -> None:
                     "revenue": "Сумма, грн",
                     "growth_percent": "Рост, %",
                 })
-                st.dataframe(growing, use_container_width=True, hide_index=True)
+                st.dataframe(growing, width="stretch", hide_index=True)
 
             with growth_right:
                 st.subheader("Товары со снижением")
@@ -1366,12 +1424,12 @@ def main() -> None:
                     "revenue": "Сумма, грн",
                     "growth_percent": "Изменение, %",
                 })
-                st.dataframe(declining, use_container_width=True, hide_index=True)
+                st.dataframe(declining, width="stretch", hide_index=True)
 
             st.subheader("Товары, которые покупают вместе")
             pairs = business["pairs"]
             if isinstance(pairs, pd.DataFrame) and not pairs.empty:
-                st.dataframe(pairs, use_container_width=True, hide_index=True)
+                st.dataframe(pairs, width="stretch", hide_index=True)
             else:
                 st.info("Недостаточно заказов с несколькими товарами для анализа пар.")
 
@@ -1411,7 +1469,7 @@ def main() -> None:
                 textfont=dict(color=BRAND_BLACK, size=12),
                 marker=dict(line=dict(color="#FFFFFF", width=2)),
             )
-            st.plotly_chart(configure_plot(customer_chart, 390), use_container_width=True)
+            st.plotly_chart(configure_plot(customer_chart, 390), width="stretch")
 
         with customer_right:
             revenue_segment_chart = px.bar(
@@ -1424,7 +1482,7 @@ def main() -> None:
                 color_discrete_sequence=[BRAND_GOLD, "#F0D66C"],
             )
             revenue_segment_chart.update_layout(showlegend=False)
-            st.plotly_chart(configure_plot(revenue_segment_chart, 390), use_container_width=True)
+            st.plotly_chart(configure_plot(revenue_segment_chart, 390), width="stretch")
 
         frequency = (
             customer_summary.groupby("orders", as_index=False)["customer_key"]
@@ -1440,7 +1498,7 @@ def main() -> None:
             text="Покупатели",
             color_discrete_sequence=[BRAND_GOLD],
         )
-        st.plotly_chart(configure_plot(frequency_chart, 390), use_container_width=True)
+        st.plotly_chart(configure_plot(frequency_chart, 390), width="stretch")
 
         st.caption(
             "Имена, телефоны и email покупателей не выводятся. Для аналитики используется обезличенный идентификатор."
@@ -1486,7 +1544,7 @@ def main() -> None:
                 "order_total": "Итог заказа",
                 "adjustment": "Расхождение",
             })
-            st.dataframe(quality_table, use_container_width=True, hide_index=True)
+            st.dataframe(quality_table, width="stretch", hide_index=True)
 
 
 if __name__ == "__main__":

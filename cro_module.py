@@ -266,7 +266,7 @@ def _render_priority_backlog(sections: pd.DataFrame) -> None:
                 "Доля бэклога, %",
             ]
         ],
-        use_container_width=True,
+        width="stretch",
         hide_index=True,
         column_config={
             "Доля бэклога, %": st.column_config.ProgressColumn(
@@ -347,7 +347,7 @@ def render_cro_page(logo_path: Path | None = None) -> None:
 
         if st.button(
             "Обновить из Google Sheets",
-            use_container_width=True,
+            width="stretch",
         ):
             load_cro_summary.clear()
             st.rerun()
@@ -355,7 +355,7 @@ def render_cro_page(logo_path: Path | None = None) -> None:
         st.link_button(
             "Открыть исходный чек-лист",
             SHEET_URL,
-            use_container_width=True,
+            width="stretch",
         )
 
         st.markdown(
