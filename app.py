@@ -741,29 +741,114 @@ def apply_theme() -> None:
             color: #111111 !important;
         }
 
+        .monthly-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid #D9D267;
+            background: #FFFFFF;
+        }
+
+        .monthly-report-table {
+            width: 100%;
+            min-width: 520px;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        .monthly-report-table th {
+            padding: 11px 10px;
+            background: #FBF560;
+            color: #111111 !important;
+            border-right: 1px solid #A49E23;
+            border-bottom: 1px solid #111111;
+            text-align: center;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .monthly-report-table td {
+            padding: 10px;
+            color: #111111 !important;
+            border-right: 1px solid #E1DDA7;
+            border-bottom: 1px solid #E1DDA7;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .monthly-report-table td:first-child,
+        .monthly-report-table th:first-child {
+            text-align: left;
+            font-weight: 750;
+        }
+
+        .monthly-report-table tbody tr:nth-child(even) td {
+            background: #FFFEEE;
+        }
+
+        .monthly-report-table tfoot td {
+            background: #FFF9B5;
+            border-top: 2px solid #111111;
+            font-weight: 850;
+        }
+
         .recommendation-card {
             height: 100%;
             background: #FFFFFF;
             border: 1px solid #D9D267;
-            border-left: 4px solid #FBF560;
+            border-left: 5px solid #A49E23;
             border-radius: 0;
             padding: 17px 18px;
             box-shadow: none;
         }
 
-        .recommendation-card.high {
-            border-left-color: #111111;
-            background: #FFFEEE;
+        .recommendation-card.critical {
+            border-left-color: #C40018;
+            background: #FFF1F1;
         }
 
-        .recommendation-card.medium {
-            border-left-color: #D8D142;
-            background: #FFFEEE;
+        .recommendation-card.important {
+            border-left-color: #D86A00;
+            background: #FFF7E9;
         }
 
-        .recommendation-card.positive {
-            border-left-color: #FBF560;
+        .recommendation-card.recommendation {
+            border-left-color: #A49E23;
             background: #FFFCD0;
+        }
+
+        .recommendation-card.idea {
+            border-left-color: #111111;
+            background: #F5F5F5;
+        }
+
+        .recommendation-priority {
+            display: inline-block;
+            margin: 0 0 10px;
+            padding: 4px 8px;
+            border: 1px solid #111111;
+            background: #FBF560;
+            color: #111111 !important;
+            font-size: 0.72rem;
+            font-weight: 850;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .recommendation-card.critical .recommendation-priority {
+            background: #C40018;
+            color: #FFFFFF !important;
+            border-color: #C40018;
+        }
+
+        .recommendation-card.important .recommendation-priority {
+            background: #D86A00;
+            color: #FFFFFF !important;
+            border-color: #D86A00;
+        }
+
+        .recommendation-card.idea .recommendation-priority {
+            background: #111111;
+            color: #FFFFFF !important;
         }
 
         .recommendation-card h4 {
@@ -1143,10 +1228,9 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
     waiting_count = int(metrics["waiting_count"])
     waiting_revenue = float(metrics["waiting_revenue"])
     if waiting_count > 0:
-        priority = "high" if waiting_share >= 8 else "medium"
         recommendations.append(
             {
-                "priority": priority,
+                "priority": "critical" if waiting_share >= 8 else "important",
                 "title": "Отработать заказы в ожидании",
                 "text": (
                     f"В статусе «Очікування» находится {waiting_count} заказов на "
@@ -1160,7 +1244,7 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
     if repeat_share < 25:
         recommendations.append(
             {
-                "priority": "high" if repeat_share < 15 else "medium",
+                "priority": "critical" if repeat_share < 15 else "important",
                 "title": "Увеличить повторные продажи",
                 "text": (
                     f"Повторные клиенты формируют {repeat_share:.1f}% суммы. "
@@ -1171,11 +1255,11 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
     else:
         recommendations.append(
             {
-                "priority": "positive",
-                "title": "Повторные клиенты дают заметную долю",
+                "priority": "recommendation",
+                "title": "Развивать сегмент повторных клиентов",
                 "text": (
                     f"На повторных клиентов приходится {repeat_share:.1f}% суммы. "
-                    "Сохраните этот сегмент и выделите для него отдельные предложения."
+                    "Сохраните этот сегмент и подготовьте для него отдельные предложения."
                 ),
             }
         )
@@ -1184,7 +1268,7 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
     if single_item_share >= 45:
         recommendations.append(
             {
-                "priority": "medium",
+                "priority": "important",
                 "title": "Добавить комплекты и допродажи",
                 "text": (
                     f"{single_item_share:.1f}% заказов содержат только один товар. "
@@ -1197,7 +1281,7 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
     if liqpay_share < 30:
         recommendations.append(
             {
-                "priority": "medium",
+                "priority": "recommendation",
                 "title": "Повысить долю онлайн-оплаты",
                 "text": (
                     f"LiqPay используется примерно в {liqpay_share:.1f}% заказов. "
@@ -1210,7 +1294,7 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
     if trend <= -12:
         recommendations.append(
             {
-                "priority": "high",
+                "priority": "critical",
                 "title": "Продажи во второй половине периода снизились",
                 "text": (
                     f"Средняя дневная сумма снизилась на {abs(trend):.1f}%. "
@@ -1221,11 +1305,11 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
     elif trend >= 12:
         recommendations.append(
             {
-                "priority": "positive",
-                "title": "Продажи ускоряются",
+                "priority": "recommendation",
+                "title": "Закрепить рост продаж",
                 "text": (
                     f"Средняя дневная сумма выросла на {trend:.1f}% во второй половине периода. "
-                    "Проверьте запас популярных товаров и масштабируйте источники, которые дали рост."
+                    "Проверьте запас популярных товаров и источники, которые дали рост."
                 ),
             }
         )
@@ -1234,7 +1318,7 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
     if top5_share >= 40:
         recommendations.append(
             {
-                "priority": "high" if top5_share >= 60 else "medium",
+                "priority": "critical" if top5_share >= 60 else "important",
                 "title": "Выручка зависит от нескольких товаров",
                 "text": (
                     f"Топ-5 товаров формируют {top5_share:.1f}% суммы. "
@@ -1246,7 +1330,7 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
         top_product = products.nlargest(1, "revenue").iloc[0]
         recommendations.append(
             {
-                "priority": "positive",
+                "priority": "recommendation",
                 "title": "Поддерживать главный товар периода",
                 "text": (
                     f"Лидер по сумме: «{top_product['product_name']}». "
@@ -1261,7 +1345,7 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
         if int(top_pair["Совместных заказов"]) >= 3:
             recommendations.append(
                 {
-                    "priority": "positive",
+                    "priority": "idea",
                     "title": "Создать готовый комплект",
                     "text": (
                         f"«{top_pair['Товар 1']}» и «{top_pair['Товар 2']}» покупали вместе "
@@ -1274,7 +1358,7 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
     if low_movers_count:
         recommendations.append(
             {
-                "priority": "medium",
+                "priority": "important",
                 "title": "Проверить слабые товары",
                 "text": (
                     f"Найдено {low_movers_count} товаров с низкими продажами и длительным перерывом. "
@@ -1285,8 +1369,8 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
 
     recommendations.append(
         {
-            "priority": "positive",
-            "title": f"Лучший день для активности: {metrics['best_weekday']}",
+            "priority": "idea",
+            "title": f"Планировать активность на {metrics['best_weekday']}",
             "text": (
                 "В этот день средняя дневная сумма выше остальных. "
                 "Планируйте рассылки, публикации и обновление рекламных кампаний перед этим днем."
@@ -1294,10 +1378,16 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
         }
     )
 
-    priority_order = {"high": 0, "medium": 1, "positive": 2}
-    return sorted(recommendations, key=lambda item: priority_order[item["priority"]])[:8]
-
-
+    priority_order = {
+        "critical": 0,
+        "important": 1,
+        "recommendation": 2,
+        "idea": 3,
+    }
+    return sorted(
+        recommendations,
+        key=lambda item: priority_order.get(item["priority"], 9),
+    )[:8]
 
 
 
