@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import base64
+import json
+import os
 from collections import Counter
 from datetime import date, timedelta
 from html import escape
@@ -14,10 +16,19 @@ import streamlit as st
 
 import cro_module
 
-from parser import ALLOWED_STATUSES, parse_xml, top_products
+from parser import (
+    ALLOWED_STATUSES,
+    parse_xml,
+    top_products,
+    validate_product_xml,
+)
 
 
 LOGO_PATH = Path(__file__).with_name("ipr.jpeg")
+DATA_DIR = Path(__file__).with_name("uploaded_data")
+ORDERS_XML_PATH = DATA_DIR / "orders.xml"
+PRODUCTS_XML_PATH = DATA_DIR / "products.xml"
+UPLOAD_META_PATH = DATA_DIR / "metadata.json"
 
 BRAND_BLACK = "#111111"
 BRAND_YELLOW = "#FBF560"
@@ -50,6 +61,132 @@ WEEKDAY_ORDER = list(WEEKDAY_NAMES.values())
 @st.cache_data(show_spinner=False)
 def parse_xml_cached(xml_bytes: bytes):
     return parse_xml(xml_bytes)
+
+
+
+
+def stored_import_exists() -> bool:
+    return ORDERS_XML_PATH.exists() and PRODUCTS_XML_PATH.exists()
+
+
+def save_uploaded_files(orders_file, products_file) -> None:
+    DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+    files = (
+        (ORDERS_XML_PATH, orders_file.getvalue()),
+        (PRODUCTS_XML_PATH, products_file.getvalue()),
+    )
+    for destination, content in files:
+        temporary = destination.with_suffix(destination.suffix + ".tmp")
+        temporary.write_bytes(content)
+        os.replace(temporary, destination)
+
+    metadata = {
+        "orders_name": orders_file.name,
+        "products_name": products_file.name,
+        "orders_size": len(orders_file.getvalue()),
+        "products_size": len(products_file.getvalue()),
+    }
+    UPLOAD_META_PATH.write_text(
+        json.dumps(metadata, ensure_ascii=False, indent=2),
+        encoding="utf-8",
+    )
+
+
+def delete_uploaded_files() -> None:
+    for path in (ORDERS_XML_PATH, PRODUCTS_XML_PATH, UPLOAD_META_PATH):
+        path.unlink(missing_ok=True)
+    parse_xml_cached.clear()
+
+
+def load_upload_metadata() -> dict[str, object]:
+    if not UPLOAD_META_PATH.exists():
+        return {}
+    try:
+        return json.loads(UPLOAD_META_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return {}
+
+
+def format_file_size(size: int) -> str:
+    if size >= 1024 * 1024:
+        return f"{size / (1024 * 1024):.1f} МБ"
+    return f"{size / 1024:.0f} КБ"
+
+
+def render_import_screen() -> None:
+    render_header()
+    st.markdown(
+        """
+        <div class="import-intro">
+            <div class="import-step">ПЕРВЫЙ ШАГ</div>
+            <h2>Загрузите данные магазина</h2>
+            <p>Для запуска системы нужны два XML-файла: заказы и полный каталог товаров.</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    orders_column, products_column = st.columns(2, gap="large")
+    with orders_column:
+        st.markdown("### 01. Заказы")
+        st.caption("XML с заказами и товарами внутри каждого заказа")
+        orders_file = st.file_uploader(
+            "Файл заказов",
+            type=["xml"],
+            key="initial_orders_xml",
+            label_visibility="collapsed",
+        )
+
+    with products_column:
+        st.markdown("### 02. Товары")
+        st.caption("XML со всеми товарами интернет-магазина")
+        products_file = st.file_uploader(
+            "Файл товаров",
+            type=["xml"],
+            key="initial_products_xml",
+            label_visibility="collapsed",
+        )
+
+    files_ready = orders_file is not None and products_file is not None
+    if not files_ready:
+        st.caption("Продолжение откроется после загрузки обоих файлов.")
+        return
+
+    try:
+        parsed_orders = parse_xml_cached(orders_file.getvalue())
+        product_summary = validate_product_xml(products_file.getvalue())
+    except ValueError as exc:
+        st.error(str(exc))
+        return
+
+    if parsed_orders.total_xml_orders == 0:
+        st.error("В XML заказов не найдено ни одного заказа.")
+        return
+
+    st.success(
+        f"Файлы проверены: {parsed_orders.total_xml_orders} заказов и "
+        f"{product_summary.total_products} товаров."
+    )
+
+    if st.button("Сохранить файлы и открыть систему", use_container_width=True):
+        save_uploaded_files(orders_file, products_file)
+        st.rerun()
+
+
+def render_loaded_files_sidebar() -> None:
+    metadata = load_upload_metadata()
+    orders_name = str(metadata.get("orders_name", "orders.xml"))
+    products_name = str(metadata.get("products_name", "products.xml"))
+    orders_size = int(metadata.get("orders_size", ORDERS_XML_PATH.stat().st_size))
+    products_size = int(metadata.get("products_size", PRODUCTS_XML_PATH.stat().st_size))
+
+    st.header("Загруженные данные")
+    st.caption(f"Заказы: {orders_name}, {format_file_size(orders_size)}")
+    st.caption(f"Товары: {products_name}, {format_file_size(products_size)}")
+    if st.button("Удалить загруженные файлы", use_container_width=True):
+        delete_uploaded_files()
+        st.rerun()
 
 
 def format_money(value: float) -> str:
@@ -407,6 +544,35 @@ def apply_theme() -> None:
             color: #111111 !important;
             border: 1px solid #D9D267 !important;
             border-radius: 0 !important;
+        }
+
+
+        .import-intro {
+            padding: 30px 32px;
+            margin: 8px 0 24px;
+            background: #FFFEEE;
+            border: 1px solid #D9D267;
+            border-left: 6px solid #FBF560;
+        }
+
+        .import-intro h2 {
+            margin: 7px 0 8px;
+            font-size: 1.75rem;
+        }
+
+        .import-intro p {
+            margin: 0;
+            color: #4B4B4B !important;
+        }
+
+        .import-step {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #FBF560;
+            border: 1px solid #111111;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
         }
 
         @media (max-width: 800px) {
@@ -857,6 +1023,10 @@ def main() -> None:
 
     apply_theme()
 
+    if not stored_import_exists():
+        render_import_screen()
+        st.stop()
+
     with st.sidebar:
         st.header("Разделы")
         active_section = st.radio(
@@ -865,6 +1035,8 @@ def main() -> None:
             label_visibility="collapsed",
         )
         st.divider()
+        render_loaded_files_sidebar()
+        st.divider()
 
     if active_section == "CRO":
         cro_module.render_cro_page(LOGO_PATH)
@@ -872,17 +1044,8 @@ def main() -> None:
 
     render_header()
 
-    with st.sidebar:
-        st.header("Загрузка данных")
-        uploaded_file = st.file_uploader("XML с заказами", type=["xml"])
-        st.caption("Файл обрабатывается в памяти и не сохраняется приложением.")
-
-    if uploaded_file is None:
-        st.info("Загрузите XML-файл с заказами, чтобы построить дашборд.")
-        st.stop()
-
     try:
-        parsed = parse_xml_cached(uploaded_file.getvalue())
+        parsed = parse_xml_cached(ORDERS_XML_PATH.read_bytes())
     except ValueError as exc:
         st.error(str(exc))
         st.stop()

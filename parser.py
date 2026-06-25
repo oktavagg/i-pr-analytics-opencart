@@ -231,3 +231,41 @@ def top_products(items: pd.DataFrame) -> pd.DataFrame:
             ascending=False,
         )
     )
+
+
+@dataclass(frozen=True)
+class ProductCatalogSummary:
+    total_products: int
+    active_products: int
+
+
+def validate_product_xml(xml_bytes: bytes) -> ProductCatalogSummary:
+    """Validate an OpenCart product export and return a lightweight summary."""
+    try:
+        root = SafeET.fromstring(xml_bytes)
+    except Exception as exc:
+        raise ValueError(f"Не удалось прочитать XML товаров: {exc}") from exc
+
+    product_nodes = root.findall(".//item")
+    if not product_nodes:
+        raise ValueError("В XML товаров не найдено ни одного товара.")
+
+    required_fields = ("product_id", "name")
+    valid_products = 0
+    active_products = 0
+
+    for product_node in product_nodes:
+        if all(text_of(product_node, field) for field in required_fields):
+            valid_products += 1
+            if text_of(product_node, "status", "1") == "1":
+                active_products += 1
+
+    if valid_products == 0:
+        raise ValueError(
+            "Файл не похож на XML каталога. Нужны поля product_id и name."
+        )
+
+    return ProductCatalogSummary(
+        total_products=valid_products,
+        active_products=active_products,
+    )
