@@ -1472,6 +1472,7 @@ def prepare_analytics_context(
 ) -> dict[str, object] | None:
     all_orders = parsed.orders.copy()
     all_items = parsed.items.copy()
+    all_status_history = getattr(parsed, "all_orders", all_orders).copy()
     min_date = all_orders["order_date"].min().date()
     max_date = all_orders["order_date"].max().date()
 
@@ -1487,6 +1488,9 @@ def prepare_analytics_context(
         & all_orders["status"].isin(selected_statuses)
     ].copy()
     items = all_items[all_items["order_id"].isin(orders["order_id"])].copy()
+    all_status_orders = all_status_history[
+        all_status_history["order_date"].dt.date.between(start_date, end_date)
+    ].copy()
 
     if orders.empty:
         return None
@@ -1543,6 +1547,8 @@ def prepare_analytics_context(
     return {
         "parsed": parsed,
         "all_orders": all_orders,
+        "all_status_history": all_status_history,
+        "all_status_orders": all_status_orders,
         "orders": orders,
         "items": items,
         "segmented_orders": segmented_orders,

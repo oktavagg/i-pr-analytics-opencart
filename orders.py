@@ -2,18 +2,20 @@ from __future__ import annotations
 
 from html import escape
 
+import numpy as np
 import pandas as pd
 import plotly.express as px
 import streamlit as st
 
 from analytics_ui import (
     BRAND_BLACK,
+    BRAND_DARK_GOLD,
     BRAND_GOLD,
+    BRAND_PALE,
     BRAND_YELLOW,
     configure_plot,
     format_money,
     format_number,
-    render_module_placeholder,
 )
 
 
@@ -35,12 +37,12 @@ PAGE_DESCRIPTIONS = {
     "revenue_segments": "Оборот новых и повторных покупателей по месяцам.",
     "orders_count": "Количество заказов по месяцам.",
     "orders_segments": "Количество заказов новых и повторных покупателей по месяцам.",
-    "average_check": "Средний чек и его изменение по дням.",
-    "check_segments": "Средний чек новых и повторных покупателей.",
-    "items_per_order": "Среднее количество товаров и распределение заказов по наполнению.",
-    "order_statuses": "Структура заказов по текущим статусам.",
-    "order_frequency": "Интервалы между повторными заказами покупателей.",
-    "shipping_rating": "Сравнение способов доставки по заказам и обороту.",
+    "average_check": "Средний чек по месяцам с оборотом и количеством заказов.",
+    "check_segments": "Средний чек новых и повторных покупателей по месяцам.",
+    "items_per_order": "Распределение заказов по количеству товаров и месяцам.",
+    "order_statuses": "Количество заказов, оборот и доли по всем статусам из XML.",
+    "order_frequency": "Интервалы между повторными заказами и CRO-окно для коммуникаций.",
+    "shipping_rating": "Рейтинг способов доставки по заказам, обороту и среднему чеку.",
 }
 
 MONTH_NAMES = {
@@ -59,8 +61,10 @@ MONTH_NAMES = {
 }
 
 
+
 def _month_label(value: pd.Timestamp) -> str:
     return f"{MONTH_NAMES[int(value.month)]} {int(value.year)}"
+
 
 
 def _add_month_columns(orders: pd.DataFrame) -> pd.DataFrame:
@@ -68,6 +72,12 @@ def _add_month_columns(orders: pd.DataFrame) -> pd.DataFrame:
     prepared["month_start"] = prepared["order_date"].dt.to_period("M").dt.to_timestamp()
     prepared["month_label"] = prepared["month_start"].map(_month_label)
     return prepared
+
+
+
+def _monthly_orders(context: dict[str, object]) -> pd.DataFrame:
+    return _add_month_columns(context["orders"])
+
 
 
 def _classify_orders(context: dict[str, object]) -> pd.DataFrame:
@@ -93,17 +103,33 @@ def _classify_orders(context: dict[str, object]) -> pd.DataFrame:
     return _add_month_columns(period_orders)
 
 
-def _monthly_orders(context: dict[str, object]) -> pd.DataFrame:
-    return _add_month_columns(context["orders"])
+
+def _all_status_period_orders(context: dict[str, object]) -> pd.DataFrame:
+    period_orders = context.get("all_status_orders")
+    if isinstance(period_orders, pd.DataFrame):
+        return period_orders.copy()
+
+    all_orders = context.get("all_status_history", context["all_orders"]).copy()
+    return all_orders[
+        all_orders["order_date"].dt.date.between(
+            context["start_date"],
+            context["end_date"],
+        )
+    ].copy()
 
 
-def _render_period_caption(context: dict[str, object]) -> None:
+
+def _render_period_caption(context: dict[str, object], extra: str = "") -> None:
     start_date = context["start_date"]
     end_date = context["end_date"]
-    st.caption(
+    text = (
         f"Период отчёта: {start_date:%d.%m.%Y}–{end_date:%d.%m.%Y}. "
         "Неполные месяцы считаются только по датам выбранного диапазона."
     )
+    if extra:
+        text += f" {extra}"
+    st.caption(text)
+
 
 
 def _render_html_table(headers: list[str], rows: list[list[str]], total_row: list[str]) -> None:
@@ -128,6 +154,20 @@ def _render_html_table(headers: list[str], rows: list[list[str]], total_row: lis
     )
 
 
+
+def _render_summary_box(title: str, text: str) -> None:
+    st.markdown(
+        f"""
+        <div class="summary-box">
+            <b>{escape(title)}</b><br>
+            {escape(text)}
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+
 def _render_revenue_chart(monthly: pd.DataFrame) -> None:
     chart = px.bar(
         monthly,
@@ -142,6 +182,7 @@ def _render_revenue_chart(monthly: pd.DataFrame) -> None:
     chart.update_traces(marker_line_color=BRAND_BLACK, marker_line_width=0.7)
     chart.update_layout(showlegend=False, bargap=0.28)
     st.plotly_chart(configure_plot(chart, 500), width="stretch")
+
 
 
 def _render_orders_chart(monthly: pd.DataFrame) -> None:
@@ -160,6 +201,7 @@ def _render_orders_chart(monthly: pd.DataFrame) -> None:
     st.plotly_chart(configure_plot(chart, 500), width="stretch")
 
 
+
 def _render_segment_chart(
     monthly: pd.DataFrame,
     value_columns: list[str],
@@ -172,11 +214,9 @@ def _render_segment_chart(
         var_name="segment",
         value_name="value",
     )
-    segment_labels = {
-        "new_value": "Новые",
-        "repeat_value": "Повторные",
-    }
-    plot_frame["segment"] = plot_frame["segment"].map(segment_labels)
+    plot_frame["segment"] = plot_frame["segment"].map(
+        {"new_value": "Новые", "repeat_value": "Повторные"}
+    )
 
     chart = px.bar(
         plot_frame,
@@ -201,14 +241,12 @@ def _render_segment_chart(
     st.plotly_chart(configure_plot(chart, 500), width="stretch")
 
 
+
 def render_revenue_page(context: dict[str, object]) -> None:
     orders = _monthly_orders(context)
     monthly = (
         orders.groupby(["month_start", "month_label"], as_index=False)
-        .agg(
-            revenue=("order_total", "sum"),
-            orders=("order_id", "nunique"),
-        )
+        .agg(revenue=("order_total", "sum"), orders=("order_id", "nunique"))
         .sort_values("month_start")
     )
     monthly["average_check"] = monthly.apply(
@@ -244,6 +282,7 @@ def render_revenue_page(context: dict[str, object]) -> None:
         )
     with chart_column:
         _render_revenue_chart(monthly)
+
 
 
 def render_revenue_segments_page(context: dict[str, object]) -> None:
@@ -313,6 +352,7 @@ def render_revenue_segments_page(context: dict[str, object]) -> None:
     )
 
 
+
 def render_orders_count_page(context: dict[str, object]) -> None:
     orders = _monthly_orders(context)
     monthly = (
@@ -347,6 +387,7 @@ def render_orders_count_page(context: dict[str, object]) -> None:
         _render_orders_chart(monthly)
 
 
+
 def render_orders_segments_page(context: dict[str, object]) -> None:
     segmented = _classify_orders(context)
     monthly_raw = (
@@ -364,12 +405,8 @@ def render_orders_segments_page(context: dict[str, object]) -> None:
         .reset_index()
         .sort_values("month_start")
     )
-    monthly["new_value"] = (
-        monthly["Новые"].astype(int) if "Новые" in monthly.columns else 0
-    )
-    monthly["repeat_value"] = (
-        monthly["Повторные"].astype(int) if "Повторные" in monthly.columns else 0
-    )
+    monthly["new_value"] = monthly["Новые"].astype(int) if "Новые" in monthly.columns else 0
+    monthly["repeat_value"] = monthly["Повторные"].astype(int) if "Повторные" in monthly.columns else 0
     monthly["total"] = monthly["new_value"] + monthly["repeat_value"]
     monthly["repeat_share"] = monthly.apply(
         lambda row: row["repeat_value"] / row["total"] * 100 if row["total"] else 0.0,
@@ -417,125 +454,478 @@ def render_orders_segments_page(context: dict[str, object]) -> None:
     )
 
 
+
 def render_average_check_page(context: dict[str, object]) -> None:
-    average_check = float(context["average_check"])
-    previous_average = float(context["previous_average"])
-    daily = context["daily"]
-
-    delta = None
-    if previous_average:
-        delta = f"{((average_check - previous_average) / previous_average) * 100:+.1f}%"
-    st.metric("Средний чек", format_money(average_check), delta)
-    chart = px.line(
-        daily,
-        x="day",
-        y="average_check",
-        markers=True,
-        title="Средний чек по дням",
-        labels={"day": "Дата", "average_check": "Средний чек, грн"},
-        color_discrete_sequence=[BRAND_YELLOW],
-    )
-    chart.update_traces(
-        line_width=3,
-        marker=dict(color=BRAND_YELLOW, size=8, line=dict(color=BRAND_BLACK, width=1)),
-    )
-    st.plotly_chart(configure_plot(chart, 440), width="stretch")
-
-
-def render_check_segments_page(context: dict[str, object]) -> None:
-    segmented = context["segmented_orders"]
-    stats = (
-        segmented.groupby("customer_segment", as_index=False)
+    orders = _monthly_orders(context)
+    monthly = (
+        orders.groupby(["month_start", "month_label"], as_index=False)
         .agg(revenue=("order_total", "sum"), orders=("order_id", "nunique"))
+        .sort_values("month_start")
     )
-    stats["average_check"] = stats.apply(
-        lambda row: row["revenue"] / row["orders"] if row["orders"] else 0,
+    monthly["average_check"] = monthly.apply(
+        lambda row: row["revenue"] / row["orders"] if row["orders"] else 0.0,
         axis=1,
     )
 
-    columns = st.columns(max(len(stats), 1))
-    for column, (_, row) in zip(columns, stats.iterrows()):
-        column.metric(str(row["customer_segment"]), format_money(float(row["average_check"])))
+    total_revenue = float(monthly["revenue"].sum())
+    total_orders = int(monthly["orders"].sum())
+    average_check = total_revenue / total_orders if total_orders else 0.0
 
-    chart = px.bar(
-        stats,
-        x="customer_segment",
-        y="average_check",
-        text_auto=".2s",
-        title="Средний чек новых и повторных покупателей",
-        labels={"customer_segment": "Покупатели", "average_check": "Средний чек, грн"},
-        color="customer_segment",
-        color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK],
+    metrics = st.columns(3)
+    metrics[0].metric("Средний чек", format_money(average_check))
+    metrics[1].metric("Заказов в расчёте", format_number(total_orders))
+    metrics[2].metric("Оборот", format_money(total_revenue))
+    _render_period_caption(context)
+
+    table_column, chart_column = st.columns([1.05, 1.95], gap="large")
+    with table_column:
+        rows = [
+            [
+                str(row.month_label),
+                format_money(float(row.average_check)),
+                format_number(int(row.orders)),
+                format_money(float(row.revenue)),
+            ]
+            for row in monthly.itertuples(index=False)
+        ]
+        _render_html_table(
+            ["Месяц", "Средний чек", "Заказы", "Оборот"],
+            rows,
+            ["СРЕДНЕЕ / ИТОГО", format_money(average_check), format_number(total_orders), format_money(total_revenue)],
+        )
+    with chart_column:
+        chart = px.bar(
+            monthly,
+            x="month_label",
+            y="average_check",
+            title="Средний чек по месяцам",
+            labels={"month_label": "Месяц", "average_check": "Средний чек, грн"},
+            text_auto=".2f",
+            color_discrete_sequence=[BRAND_YELLOW],
+            category_orders={"month_label": monthly["month_label"].tolist()},
+        )
+        chart.update_traces(marker_line_color=BRAND_BLACK, marker_line_width=0.7)
+        chart.update_layout(showlegend=False, bargap=0.28)
+        st.plotly_chart(configure_plot(chart, 500), width="stretch")
+
+
+
+def render_check_segments_page(context: dict[str, object]) -> None:
+    segmented = _classify_orders(context)
+    raw = (
+        segmented.groupby(["month_start", "month_label", "customer_segment"], as_index=False)
+        .agg(revenue=("order_total", "sum"), orders=("order_id", "nunique"))
     )
-    chart.update_layout(showlegend=False)
-    st.plotly_chart(configure_plot(chart, 420), width="stretch")
+
+    index_columns = ["month_start", "month_label"]
+    revenue_pivot = raw.pivot_table(
+        index=index_columns,
+        columns="customer_segment",
+        values="revenue",
+        aggfunc="sum",
+        fill_value=0,
+    )
+    orders_pivot = raw.pivot_table(
+        index=index_columns,
+        columns="customer_segment",
+        values="orders",
+        aggfunc="sum",
+        fill_value=0,
+    )
+    monthly = revenue_pivot.reset_index()[index_columns].copy()
+    monthly["new_revenue"] = revenue_pivot.get("Новые", pd.Series(0, index=revenue_pivot.index)).to_numpy()
+    monthly["repeat_revenue"] = revenue_pivot.get("Повторные", pd.Series(0, index=revenue_pivot.index)).to_numpy()
+    monthly["new_orders"] = orders_pivot.get("Новые", pd.Series(0, index=orders_pivot.index)).to_numpy()
+    monthly["repeat_orders"] = orders_pivot.get("Повторные", pd.Series(0, index=orders_pivot.index)).to_numpy()
+    monthly = monthly.sort_values("month_start")
+    monthly["new_value"] = np.where(
+        monthly["new_orders"] > 0,
+        monthly["new_revenue"] / monthly["new_orders"],
+        0.0,
+    )
+    monthly["repeat_value"] = np.where(
+        monthly["repeat_orders"] > 0,
+        monthly["repeat_revenue"] / monthly["repeat_orders"],
+        0.0,
+    )
+    monthly["total_revenue"] = monthly["new_revenue"] + monthly["repeat_revenue"]
+    monthly["total_orders"] = monthly["new_orders"] + monthly["repeat_orders"]
+    monthly["total_check"] = np.where(
+        monthly["total_orders"] > 0,
+        monthly["total_revenue"] / monthly["total_orders"],
+        0.0,
+    )
+
+    new_revenue = float(monthly["new_revenue"].sum())
+    repeat_revenue = float(monthly["repeat_revenue"].sum())
+    new_orders = int(monthly["new_orders"].sum())
+    repeat_orders = int(monthly["repeat_orders"].sum())
+    new_check = new_revenue / new_orders if new_orders else 0.0
+    repeat_check = repeat_revenue / repeat_orders if repeat_orders else 0.0
+    total_check = (new_revenue + repeat_revenue) / (new_orders + repeat_orders) if new_orders + repeat_orders else 0.0
+    difference = ((repeat_check - new_check) / new_check * 100) if new_check else 0.0
+
+    metrics = st.columns(4)
+    metrics[0].metric("Средний чек новых", format_money(new_check))
+    metrics[1].metric("Средний чек повторных", format_money(repeat_check))
+    metrics[2].metric("Разница повторных к новым", f"{difference:+.1f}%")
+    metrics[3].metric("Общий средний чек", format_money(total_check))
+    _render_period_caption(context)
+
+    table_column, chart_column = st.columns([1.2, 1.8], gap="large")
+    with table_column:
+        rows = [
+            [
+                str(row.month_label),
+                format_money(float(row.new_value)),
+                format_money(float(row.repeat_value)),
+                format_money(float(row.total_check)),
+                f"{int(row.new_orders)} / {int(row.repeat_orders)}",
+            ]
+            for row in monthly.itertuples(index=False)
+        ]
+        _render_html_table(
+            ["Месяц", "Новые", "Повторные", "Общий", "Заказы Н / П"],
+            rows,
+            ["СРЕДНЕЕ", format_money(new_check), format_money(repeat_check), format_money(total_check), f"{new_orders} / {repeat_orders}"],
+        )
+    with chart_column:
+        _render_segment_chart(
+            monthly,
+            ["new_value", "repeat_value"],
+            "Средний чек, грн",
+            "Средний чек новых и повторных покупателей",
+        )
+
+    st.caption(
+        "Новые и повторные заказы определяются по полной загруженной истории, а не только внутри выбранного периода."
+    )
+
+
+
+def _item_bucket(quantity: int) -> str:
+    if quantity <= 1:
+        return "1 товар"
+    if quantity == 2:
+        return "2 товара"
+    if quantity == 3:
+        return "3 товара"
+    return "4+ товаров"
+
 
 
 def render_items_per_order_page(context: dict[str, object]) -> None:
-    orders = context["orders"]
-    business = context["business"]
+    orders = _monthly_orders(context)
+    orders["item_bucket"] = orders["item_quantity"].fillna(0).astype(int).map(_item_bucket)
+    bucket_order = ["1 товар", "2 товара", "3 товара", "4+ товаров"]
 
-    metrics = st.columns(3)
-    metrics[0].metric("Среднее товаров в заказе", f"{float(business['average_items']):.2f}")
-    metrics[1].metric("Заказы с одним товаром", f"{float(business['single_item_share']):.1f}%")
-    metrics[2].metric("Максимум товаров", format_number(int(orders["item_quantity"].max())))
+    monthly_raw = (
+        orders.groupby(["month_start", "month_label", "item_bucket"], as_index=False)
+        .agg(orders=("order_id", "nunique"))
+    )
+    monthly = (
+        monthly_raw.pivot_table(
+            index=["month_start", "month_label"],
+            columns="item_bucket",
+            values="orders",
+            aggfunc="sum",
+            fill_value=0,
+        )
+        .reset_index()
+        .sort_values("month_start")
+    )
+    for bucket in bucket_order:
+        if bucket not in monthly.columns:
+            monthly[bucket] = 0
+    monthly["Итого"] = monthly[bucket_order].sum(axis=1)
 
-    distribution = (
-        orders.groupby("item_quantity", as_index=False)["order_id"]
-        .nunique()
-        .rename(columns={"item_quantity": "items", "order_id": "orders"})
-        .sort_values("items")
-    )
-    chart = px.bar(
-        distribution,
-        x="items",
-        y="orders",
-        text="orders",
-        title="Распределение заказов по количеству товаров",
-        labels={"items": "Товаров в заказе", "orders": "Заказы"},
-        color_discrete_sequence=[BRAND_YELLOW],
-    )
-    st.plotly_chart(configure_plot(chart, 430), width="stretch")
+    total_orders = int(orders["order_id"].nunique())
+    average_items = float(orders["item_quantity"].mean()) if total_orders else 0.0
+    one_item_orders = int((orders["item_quantity"] <= 1).sum())
+    three_plus_orders = int((orders["item_quantity"] >= 3).sum())
+    one_item_share = one_item_orders / total_orders * 100 if total_orders else 0.0
+    three_plus_share = three_plus_orders / total_orders * 100 if total_orders else 0.0
+
+    metrics = st.columns(4)
+    metrics[0].metric("Всего заказов", format_number(total_orders))
+    metrics[1].metric("Среднее товаров", f"{average_items:.2f}")
+    metrics[2].metric("Заказы с 1 товаром", f"{one_item_share:.1f}%")
+    metrics[3].metric("Заказы с 3+ товарами", f"{three_plus_share:.1f}%")
+    _render_period_caption(context)
+
+    table_column, chart_column = st.columns([1.15, 1.85], gap="large")
+    with table_column:
+        rows = [
+            [
+                str(row.month_label),
+                format_number(int(getattr(row, "_2"))),
+                format_number(int(getattr(row, "_3"))),
+                format_number(int(getattr(row, "_4"))),
+                format_number(int(getattr(row, "_5"))),
+                format_number(int(row.Итого)),
+            ]
+            for row in monthly[["month_start", "month_label", *bucket_order, "Итого"]].itertuples(index=False)
+        ]
+        totals = [int(monthly[bucket].sum()) for bucket in bucket_order]
+        _render_html_table(
+            ["Месяц", "1 товар", "2 товара", "3 товара", "4+", "Итого"],
+            rows,
+            ["ИТОГО", *[format_number(value) for value in totals], format_number(total_orders)],
+        )
+    with chart_column:
+        plot_frame = monthly.melt(
+            id_vars=["month_start", "month_label"],
+            value_vars=bucket_order,
+            var_name="Наполнение",
+            value_name="Заказы",
+        )
+        chart = px.bar(
+            plot_frame,
+            x="month_label",
+            y="Заказы",
+            color="Наполнение",
+            barmode="group",
+            title="Количество товаров в заказе по месяцам",
+            labels={"month_label": "Месяц"},
+            color_discrete_sequence=[BRAND_YELLOW, BRAND_GOLD, BRAND_DARK_GOLD, BRAND_BLACK],
+            category_orders={
+                "month_label": monthly["month_label"].tolist(),
+                "Наполнение": bucket_order,
+            },
+        )
+        chart.update_layout(legend_orientation="h", bargap=0.22, bargroupgap=0.06)
+        st.plotly_chart(configure_plot(chart, 500), width="stretch")
+
+    if one_item_share >= 50:
+        _render_summary_box(
+            "CRO-наблюдение",
+            f"{one_item_share:.1f}% заказов содержат один товар. Проверьте блоки допродаж, комплекты, порог бесплатной доставки и рекомендации в корзине.",
+        )
+
 
 
 def render_order_statuses_page(context: dict[str, object]) -> None:
-    orders = context["orders"]
+    orders = _all_status_period_orders(context)
+    if orders.empty:
+        st.info("В выбранном периоде нет заказов для отчёта по статусам.")
+        return
+
     stats = (
         orders.groupby("status", as_index=False)
         .agg(orders=("order_id", "nunique"), revenue=("order_total", "sum"))
         .sort_values("orders", ascending=False)
     )
+    total_orders = int(stats["orders"].sum())
+    total_revenue = float(stats["revenue"].sum())
+    stats["order_share"] = stats["orders"] / total_orders * 100 if total_orders else 0.0
+    stats["revenue_share"] = stats["revenue"] / total_revenue * 100 if total_revenue else 0.0
+    top_status = str(stats.iloc[0]["status"])
 
-    left, right = st.columns([1.4, 1])
+    metrics = st.columns(4)
+    metrics[0].metric("Всего заказов", format_number(total_orders))
+    metrics[1].metric("Общий оборот", format_money(total_revenue))
+    metrics[2].metric("Статусов", format_number(len(stats)))
+    metrics[3].metric("Основной статус", top_status)
+    _render_period_caption(
+        context,
+        "Эта страница показывает все статусы из XML и не ограничивается фильтром статусов слева.",
+    )
+
+    rows = [
+        [
+            str(row.status),
+            format_number(int(row.orders)),
+            format_money(float(row.revenue)),
+            f"{float(row.order_share):.1f}%",
+            f"{float(row.revenue_share):.1f}%",
+        ]
+        for row in stats.itertuples(index=False)
+    ]
+    _render_html_table(
+        ["Статус", "Заказы", "Оборот", "% заказов", "% оборота"],
+        rows,
+        ["ИТОГО", format_number(total_orders), format_money(total_revenue), "100.0%", "100.0%"],
+    )
+
+    left, right = st.columns([1.35, 1], gap="large")
     with left:
-        chart = px.pie(
+        bar_data = stats.sort_values("orders")
+        bar = px.bar(
+            bar_data,
+            x="orders",
+            y="status",
+            orientation="h",
+            title="Количество заказов по статусам",
+            labels={"orders": "Заказы", "status": "Статус"},
+            text="orders",
+            color_discrete_sequence=[BRAND_YELLOW],
+        )
+        bar.update_traces(marker_line_color=BRAND_BLACK, marker_line_width=0.6)
+        bar.update_layout(showlegend=False, yaxis_title=None)
+        st.plotly_chart(configure_plot(bar, 470), width="stretch")
+    with right:
+        pie = px.pie(
             stats,
             names="status",
             values="orders",
-            hole=0.58,
-            title="Заказы по статусам",
-            color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK, BRAND_GOLD],
+            hole=0.48,
+            title="Доля по количеству заказов",
+            color_discrete_sequence=[BRAND_YELLOW, BRAND_GOLD, BRAND_BLACK, BRAND_DARK_GOLD, BRAND_PALE],
         )
-        chart.update_layout(legend_orientation="h")
-        st.plotly_chart(configure_plot(chart, 420), width="stretch")
-    with right:
-        display = stats.rename(
-            columns={"status": "Статус", "orders": "Заказы", "revenue": "Оборот, грн"}
-        )
-        st.dataframe(
-            display,
-            width="stretch",
-            hide_index=True,
-            column_config={"Оборот, грн": st.column_config.NumberColumn(format="%.2f")},
-        )
+        pie.update_layout(legend_orientation="h")
+        pie.update_traces(marker=dict(line=dict(color="#FFFFFF", width=2)))
+        st.plotly_chart(configure_plot(pie, 470), width="stretch")
+
 
 
 def render_order_frequency_page(context: dict[str, object]) -> None:
-    render_module_placeholder("Частота между заказами")
+    history = context["all_orders"].copy()
+    selected_statuses = context.get("selected_statuses", [])
+    if selected_statuses:
+        history = history[history["status"].isin(selected_statuses)].copy()
+
+    history = history.sort_values(["customer_key", "order_date", "order_id"], kind="stable")
+    history["previous_order_date"] = history.groupby("customer_key")["order_date"].shift(1)
+    history["interval_days"] = (
+        history["order_date"].dt.normalize() - history["previous_order_date"].dt.normalize()
+    ).dt.days
+    intervals = history[
+        history["order_date"].dt.date.between(context["start_date"], context["end_date"])
+        & history["interval_days"].notna()
+        & (history["interval_days"] >= 0)
+    ].copy()
+
+    if intervals.empty:
+        st.info("В выбранном периоде нет повторных заказов, для которых можно рассчитать интервал.")
+        _render_period_caption(context)
+        return
+
+    average_interval = float(intervals["interval_days"].mean())
+    median_interval = float(intervals["interval_days"].median())
+    repeat_orders = int(intervals["order_id"].nunique())
+    repeat_customers = int(intervals["customer_key"].nunique())
+    within_30_share = float((intervals["interval_days"] <= 30).mean() * 100)
+
+    metrics = st.columns(4)
+    metrics[0].metric("Средний интервал", f"{average_interval:.1f} дня")
+    metrics[1].metric("Медианный интервал", f"{median_interval:.1f} дня")
+    metrics[2].metric("Повторных заказов", format_number(repeat_orders))
+    metrics[3].metric("До 30 дней", f"{within_30_share:.1f}%")
+    _render_period_caption(context)
+
+    bins = [-1, 7, 14, 30, 60, 90, np.inf]
+    labels = ["0–7 дней", "8–14 дней", "15–30 дней", "31–60 дней", "61–90 дней", "91+ дней"]
+    intervals["interval_group"] = pd.cut(
+        intervals["interval_days"],
+        bins=bins,
+        labels=labels,
+        ordered=True,
+    )
+    distribution = (
+        intervals.groupby("interval_group", observed=False, as_index=False)
+        .agg(orders=("order_id", "nunique"))
+    )
+    distribution["share"] = distribution["orders"] / repeat_orders * 100 if repeat_orders else 0.0
+
+    table_column, chart_column = st.columns([0.9, 2.1], gap="large")
+    with table_column:
+        rows = [
+            [str(row.interval_group), format_number(int(row.orders)), f"{float(row.share):.1f}%"]
+            for row in distribution.itertuples(index=False)
+        ]
+        _render_html_table(
+            ["Интервал", "Заказы", "Доля"],
+            rows,
+            ["ИТОГО", format_number(repeat_orders), "100.0%"],
+        )
+    with chart_column:
+        chart = px.bar(
+            distribution,
+            x="interval_group",
+            y="orders",
+            title="Распределение интервалов между заказами",
+            labels={"interval_group": "Интервал", "orders": "Повторные заказы"},
+            text="orders",
+            color_discrete_sequence=[BRAND_YELLOW],
+            category_orders={"interval_group": labels},
+        )
+        chart.update_traces(marker_line_color=BRAND_BLACK, marker_line_width=0.6)
+        chart.update_layout(showlegend=False)
+        st.plotly_chart(configure_plot(chart, 470), width="stretch")
+
+    reminder_start = max(1, int(round(median_interval * 0.70)))
+    reminder_end = max(reminder_start + 1, int(round(median_interval * 0.85)))
+    _render_summary_box(
+        "CRO-рекомендация",
+        f"Запускайте напоминание о повторной покупке примерно на {reminder_start}–{reminder_end} день после заказа. Медианный повтор происходит через {median_interval:.1f} дня. В расчёте участвуют {repeat_customers} покупателей с повторными заказами.",
+    )
+
 
 
 def render_shipping_rating_page(context: dict[str, object]) -> None:
-    render_module_placeholder("Рейтинг доставок")
+    orders = context["orders"].copy()
+    if orders.empty:
+        st.info("В выбранном периоде нет заказов для рейтинга доставок.")
+        return
+
+    stats = (
+        orders.groupby("shipping_method", as_index=False)
+        .agg(orders=("order_id", "nunique"), revenue=("order_total", "sum"))
+        .sort_values(["orders", "revenue"], ascending=False)
+    )
+    total_orders = int(stats["orders"].sum())
+    total_revenue = float(stats["revenue"].sum())
+    stats["order_share"] = stats["orders"] / total_orders * 100 if total_orders else 0.0
+    stats["revenue_share"] = stats["revenue"] / total_revenue * 100 if total_revenue else 0.0
+    stats["average_check"] = np.where(stats["orders"] > 0, stats["revenue"] / stats["orders"], 0.0)
+    leader = str(stats.iloc[0]["shipping_method"])
+
+    metrics = st.columns(4)
+    metrics[0].metric("Заказов с доставкой", format_number(total_orders))
+    metrics[1].metric("Оборот", format_money(total_revenue))
+    metrics[2].metric("Способов доставки", format_number(len(stats)))
+    metrics[3].metric("Лидер", leader)
+    _render_period_caption(context)
+
+    rows = [
+        [
+            str(row.shipping_method),
+            format_number(int(row.orders)),
+            format_money(float(row.revenue)),
+            f"{float(row.order_share):.1f}%",
+            f"{float(row.revenue_share):.1f}%",
+            format_money(float(row.average_check)),
+        ]
+        for row in stats.itertuples(index=False)
+    ]
+    _render_html_table(
+        ["Способ доставки", "Заказы", "Оборот", "% заказов", "% оборота", "Средний чек"],
+        rows,
+        ["ИТОГО", format_number(total_orders), format_money(total_revenue), "100.0%", "100.0%", format_money(total_revenue / total_orders if total_orders else 0.0)],
+    )
+
+    chart_data = stats.sort_values("orders")
+    chart = px.bar(
+        chart_data,
+        x="orders",
+        y="shipping_method",
+        orientation="h",
+        title="Рейтинг способов доставки по количеству заказов",
+        labels={"orders": "Заказы", "shipping_method": "Способ доставки"},
+        text="orders",
+        color_discrete_sequence=[BRAND_YELLOW],
+    )
+    chart.update_traces(marker_line_color=BRAND_BLACK, marker_line_width=0.6)
+    chart.update_layout(showlegend=False, yaxis_title=None)
+    st.plotly_chart(configure_plot(chart, max(450, 70 * len(stats))), width="stretch")
+
+    missing = stats.loc[stats["shipping_method"] == "Не указано", "orders"]
+    if not missing.empty and int(missing.iloc[0]) > 0:
+        _render_summary_box(
+            "Качество данных",
+            f"У {int(missing.iloc[0])} заказов не указан способ доставки. Заполнение этого поля улучшит точность отчёта и сегментацию клиентов.",
+        )
+
 
 
 def render(page_key: str, context: dict[str, object]) -> bool:
