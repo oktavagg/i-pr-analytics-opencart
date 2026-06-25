@@ -232,38 +232,6 @@ def render_import_screen() -> None:
         unsafe_allow_html=True,
     )
 
-    with st.container(key="demo_import_block"):
-        demo_copy, demo_action = st.columns([2.2, 1], vertical_alignment="center")
-        with demo_copy:
-            st.markdown(
-                """
-                <div class="demo-import-copy">
-                    <div class="demo-import-label">БЫСТРЫЙ СТАРТ</div>
-                    <h3>Посмотреть систему на демо-данных</h3>
-                    <p>Система загрузит тестовые заказы и каталог из папки <b>files_test</b>.</p>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with demo_action:
-            if st.button(
-                "Использовать демо-данные",
-                key="use_demo_data",
-                type="primary",
-                width="stretch",
-            ):
-                try:
-                    load_demo_files()
-                except (OSError, ValueError, RuntimeError) as exc:
-                    st.error(str(exc))
-                else:
-                    st.rerun()
-
-    st.markdown(
-        '<div class="import-divider"><span>или загрузите свои XML-файлы</span></div>',
-        unsafe_allow_html=True,
-    )
-
     orders_column, products_column = st.columns(2, gap="large")
     with orders_column:
         st.markdown("### 01. Заказы")
@@ -285,9 +253,39 @@ def render_import_screen() -> None:
             label_visibility="collapsed",
         )
 
+    st.markdown("### 03. Демо-данные")
+    st.caption("Быстрый запуск системы без загрузки собственных файлов")
+
+    with st.container(key="demo_import_block"):
+        demo_copy, demo_action = st.columns([2.2, 1], vertical_alignment="center")
+        with demo_copy:
+            st.markdown(
+                """
+                <div class="demo-import-copy">
+                    <div class="demo-import-label">БЫСТРЫЙ СТАРТ</div>
+                    <h3>Посмотреть систему на готовом примере</h3>
+                    <p>Будут загружены тестовые заказы и каталог из папки <b>files_test</b>.</p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+        with demo_action:
+            if st.button(
+                "Использовать демо-данные",
+                key="use_demo_data",
+                type="secondary",
+                width="stretch",
+            ):
+                try:
+                    load_demo_files()
+                except (OSError, ValueError, RuntimeError) as exc:
+                    st.error(str(exc))
+                else:
+                    st.rerun()
+
     files_ready = orders_file is not None and products_file is not None
     if not files_ready:
-        st.caption("Продолжение откроется после загрузки обоих файлов.")
+        st.caption("Продолжение откроется после загрузки обоих файлов или выбора демо-данных.")
         return
 
     try:
@@ -1119,16 +1117,18 @@ def apply_theme() -> None:
         }
 
         .st-key-demo_import_block {
-            margin: 0 0 24px;
-            padding: 20px 22px;
-            background: #FBF560;
-            border: 1px solid #111111;
-            transition: transform 160ms ease, box-shadow 160ms ease;
+            margin: 0 0 20px;
+            padding: 18px 20px;
+            background: #F3FAF1;
+            border: 1px solid #A9CDA2;
+            border-left: 5px solid #74A96B;
+            transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
         }
 
         .st-key-demo_import_block:hover {
             transform: translateY(-2px);
-            box-shadow: 0 12px 26px rgba(17, 17, 17, 0.10);
+            border-color: #74A96B;
+            box-shadow: 0 10px 24px rgba(70, 112, 61, 0.10);
         }
 
         .demo-import-copy h3 {
@@ -1138,15 +1138,16 @@ def apply_theme() -> None:
 
         .demo-import-copy p {
             margin: 0;
-            color: #333333 !important;
+            color: #3F4F3B !important;
             font-size: 0.9rem;
         }
 
         .demo-import-label {
             display: inline-block;
             padding: 3px 7px;
-            background: #111111;
-            color: #FBF560 !important;
+            background: #DDEFD8;
+            color: #2F5C29 !important;
+            border: 1px solid #A9CDA2;
             font-size: 0.68rem;
             font-weight: 850;
             letter-spacing: 0.07em;
@@ -1154,16 +1155,24 @@ def apply_theme() -> None:
 
         .st-key-demo_import_block .stButton > button {
             min-height: 3rem;
-            background: #111111 !important;
-            color: #FBF560 !important;
-            border-color: #111111 !important;
-            transition: transform 150ms ease, background 150ms ease, color 150ms ease;
+            background: #CFEBC8 !important;
+            color: #111111 !important;
+            border: 1px solid #5F8E56 !important;
+            transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
+        }
+
+        .st-key-demo_import_block .stButton > button *,
+        .st-key-demo_import_block .stButton > button p,
+        .st-key-demo_import_block .stButton > button span {
+            color: #111111 !important;
+            fill: #111111 !important;
         }
 
         .st-key-demo_import_block .stButton > button:hover {
             transform: translateY(-1px);
-            background: #FFFFFF !important;
+            background: #BFE2B6 !important;
             color: #111111 !important;
+            border-color: #4F7D47 !important;
         }
 
         .import-divider {
