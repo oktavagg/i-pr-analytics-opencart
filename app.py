@@ -10,12 +10,15 @@ from itertools import combinations
 from pathlib import Path
 
 import pandas as pd
-import plotly.express as px
-import plotly.graph_objects as go
 import streamlit as st
 
+import conclusions
 import cro_module
+import customers as customers_module
+import orders as orders_module
+import products as products_module
 
+from analytics_ui import format_money, format_number, safe_percent
 from xml_parser import (
     ALLOWED_STATUSES,
     parse_xml,
@@ -59,49 +62,16 @@ WEEKDAY_NAMES = {
 WEEKDAY_ORDER = list(WEEKDAY_NAMES.values())
 
 
+CATEGORY_MODULES = (
+    conclusions,
+    orders_module,
+    customers_module,
+    products_module,
+)
+
 ANALYTICS_NAVIGATION = [
-    (
-        "Выводы и рекомендации",
-        [
-            ("period_changes", "Изменения за период"),
-            ("recommendations", "Рекомендации"),
-        ],
-    ),
-    (
-        "Заказы",
-        [
-            ("revenue", "Оборот"),
-            ("revenue_segments", "Оборот (от новых/старых)"),
-            ("orders_count", "Количество заказов"),
-            ("orders_segments", "Количество заказов (от новых/старых)"),
-            ("average_check", "Средний чек"),
-            ("check_segments", "Чек (от новых/старых)"),
-            ("items_per_order", "Кол-во товаров в заказе"),
-            ("order_statuses", "Статусы заказов"),
-            ("order_frequency", "Частота между заказами"),
-            ("shipping_rating", "Рейтинг доставок"),
-        ],
-    ),
-    (
-        "Покупатели",
-        [
-            ("customers_count", "Количество (новые/старые)"),
-            ("repeat_share", "Доля повторных"),
-            ("orders_per_customer", "Заказов на покупателя"),
-            ("sleeping_customers", "Спящие покупатели (90 дней)"),
-            ("top_customers_revenue", "ТОП-10 клиентов по обороту"),
-            ("top_customers_orders", "ТОП-10 клиентов по заказам"),
-        ],
-    ),
-    (
-        "Товары",
-        [
-            ("products_no_sales", "Товары без продаж"),
-            ("top_products_revenue", "Топ товаров по выручке"),
-            ("top_products_units", "Топ товаров по количеству продаж"),
-            ("products_together", "Покупают вместе"),
-        ],
-    ),
+    (category_module.CATEGORY_TITLE, category_module.PAGES)
+    for category_module in CATEGORY_MODULES
 ]
 
 PAGE_TITLES = {
@@ -111,22 +81,9 @@ PAGE_TITLES = {
 }
 
 PAGE_DESCRIPTIONS = {
-    "period_changes": "Сводная таблица ключевых показателей с автоматическим сравнением с предыдущим периодом такой же длины.",
-    "recommendations": "Автоматические выводы на основе заказов, покупателей и товаров.",
-    "revenue": "Динамика оборота за выбранный период.",
-    "revenue_segments": "Распределение оборота между новыми и повторными покупателями.",
-    "orders_count": "Количество заказов по дням.",
-    "orders_segments": "Заказы новых и повторных покупателей.",
-    "average_check": "Средний чек и его изменение по дням.",
-    "check_segments": "Средний чек новых и повторных покупателей.",
-    "items_per_order": "Среднее количество товаров и распределение заказов по наполнению.",
-    "order_statuses": "Структура заказов по текущим статусам.",
-    "customers_count": "Новые и повторные покупатели за выбранный период.",
-    "repeat_share": "Доля покупателей, которые сделали больше одного заказа.",
-    "orders_per_customer": "Распределение покупателей по количеству заказов.",
-    "top_products_revenue": "Товары, которые сформировали наибольший оборот.",
-    "top_products_units": "Товары с наибольшим количеством проданных единиц.",
-    "products_together": "Пары товаров, которые встречаются в одном заказе.",
+    page_key: description
+    for category_module in CATEGORY_MODULES
+    for page_key, description in category_module.PAGE_DESCRIPTIONS.items()
 }
 
 
@@ -305,22 +262,7 @@ def render_loaded_files_sidebar() -> None:
         st.rerun()
 
 
-def format_money(value: float) -> str:
-    return f"{value:,.2f} грн".replace(",", " ")
 
-
-def format_number(value: float | int) -> str:
-    return f"{value:,.0f}".replace(",", " ")
-
-
-def percent_delta(current: float, previous: float) -> str | None:
-    if previous == 0:
-        return None
-    return f"{((current - previous) / previous) * 100:+.1f}%"
-
-
-def safe_percent(part: float, total: float) -> float:
-    return part / total * 100 if total else 0.0
 
 
 def apply_theme() -> None:
@@ -366,8 +308,39 @@ def apply_theme() -> None:
         }
 
 
-        [data-testid="stSidebar"] {
-            min-width: 330px;
+        [data-testid="stSidebarCollapsedControl"],
+        [data-testid="stSidebarCollapseButton"] {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            z-index: 1000000 !important;
+        }
+
+        [data-testid="stSidebarCollapsedControl"] {
+            position: fixed !important;
+            top: 0.75rem !important;
+            left: 0.75rem !important;
+            width: 2.45rem !important;
+            height: 2.45rem !important;
+            align-items: center !important;
+            justify-content: center !important;
+            background: #FBF560 !important;
+            border: 1px solid #111111 !important;
+            border-radius: 0 !important;
+            box-shadow: none !important;
+        }
+
+        [data-testid="stSidebarCollapsedControl"] button,
+        [data-testid="stSidebarCollapseButton"] button {
+            color: #111111 !important;
+            background: transparent !important;
+        }
+
+        [data-testid="stSidebarCollapsedControl"] svg,
+        [data-testid="stSidebarCollapseButton"] svg {
+            color: #111111 !important;
+            fill: #111111 !important;
         }
 
         [data-testid="stSidebar"] [role="radiogroup"] {
@@ -522,23 +495,23 @@ def apply_theme() -> None:
         .period-comparison-title {
             margin: 8px 0 14px;
             padding: 17px 20px;
-            background: #223F70;
-            color: #FFFFFF !important;
-            border: 1px solid #173058;
+            background: #FBF560;
+            color: #111111 !important;
+            border: 1px solid #111111;
             font-size: 1.2rem;
             font-weight: 800;
             text-align: center;
         }
 
         .period-comparison-title * {
-            color: #FFFFFF !important;
+            color: #111111 !important;
         }
 
         .comparison-table-wrap {
             width: 100%;
             overflow-x: auto;
             margin-bottom: 14px;
-            border: 1px solid #B8C2D1;
+            border: 1px solid #D9D267;
         }
 
         .comparison-table {
@@ -551,10 +524,10 @@ def apply_theme() -> None:
 
         .comparison-table th {
             padding: 11px 12px;
-            background: #223F70;
-            color: #FFFFFF !important;
-            border-right: 1px solid #8795AA;
-            border-bottom: 1px solid #8795AA;
+            background: #FBF560;
+            color: #111111 !important;
+            border-right: 1px solid #A49E23;
+            border-bottom: 1px solid #111111;
             text-align: center;
             font-weight: 800;
         }
@@ -978,59 +951,7 @@ def apply_theme() -> None:
     )
 
 
-def configure_plot(fig: go.Figure, height: int | None = None) -> go.Figure:
-    fig.update_layout(
-        template="plotly_white",
-        paper_bgcolor="#FFFFFF",
-        plot_bgcolor="#FFFFFF",
-        colorway=CHART_COLORS,
-        font=dict(
-            color=BRAND_BLACK,
-            family="Arial, sans-serif",
-            size=13,
-        ),
-        title=dict(
-            font=dict(color=BRAND_BLACK, size=17),
-            x=0.02,
-            xanchor="left",
-        ),
-        legend=dict(
-            font=dict(color=BRAND_BLACK),
-            title_font=dict(color=BRAND_BLACK),
-        ),
-        margin=dict(l=28, r=22, t=62, b=32),
-        hoverlabel=dict(
-            bgcolor="#FFFFFF",
-            bordercolor=BRAND_GOLD,
-            font=dict(color=BRAND_BLACK),
-        ),
-    )
 
-    fig.update_xaxes(
-        tickfont=dict(color=BRAND_BLACK),
-        title_font=dict(color=BRAND_BLACK),
-        gridcolor="#F2E8BC",
-        linecolor="#CDBB70",
-        zerolinecolor="#CDBB70",
-        showline=True,
-    )
-    fig.update_yaxes(
-        tickfont=dict(color=BRAND_BLACK),
-        title_font=dict(color=BRAND_BLACK),
-        gridcolor="#F2E8BC",
-        linecolor="#CDBB70",
-        zerolinecolor="#CDBB70",
-        showline=True,
-    )
-
-    fig.update_traces(
-        textfont=dict(color=BRAND_BLACK),
-        selector=dict(type="bar"),
-    )
-
-    if height:
-        fig.update_layout(height=height)
-    return fig
 
 
 def render_header() -> None:
@@ -1377,20 +1298,7 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
     return sorted(recommendations, key=lambda item: priority_order[item["priority"]])[:8]
 
 
-def render_recommendations(recommendations: list[dict[str, str]]) -> None:
-    for start in range(0, len(recommendations), 2):
-        columns = st.columns(2)
-        for index, recommendation in enumerate(recommendations[start:start + 2]):
-            with columns[index]:
-                st.markdown(
-                    f"""
-                    <div class="recommendation-card {recommendation['priority']}">
-                        <h4>{escape(recommendation['title'])}</h4>
-                        <p>{escape(recommendation['text'])}</p>
-                    </div>
-                    """,
-                    unsafe_allow_html=True,
-                )
+
 
 
 def render_page_heading(page_key: str) -> None:
@@ -1570,672 +1478,17 @@ def prepare_analytics_context(
     }
 
 
-RUSSIAN_MONTHS = {
-    1: "Январь",
-    2: "Февраль",
-    3: "Март",
-    4: "Апрель",
-    5: "Май",
-    6: "Июнь",
-    7: "Июль",
-    8: "Август",
-    9: "Сентябрь",
-    10: "Октябрь",
-    11: "Ноябрь",
-    12: "Декабрь",
-}
 
-
-def format_period_label(start_date: date, end_date: date) -> str:
-    if start_date == end_date:
-        return start_date.strftime("%d.%m.%Y")
-
-    next_month = (
-        date(start_date.year + 1, 1, 1)
-        if start_date.month == 12
-        else date(start_date.year, start_date.month + 1, 1)
-    )
-    month_end = next_month - timedelta(days=1)
-    if start_date.day == 1 and end_date == month_end:
-        return f"{RUSSIAN_MONTHS[start_date.month]} {start_date.year}"
-
-    return f"{start_date:%d.%m.%Y}–{end_date:%d.%m.%Y}"
-
-
-def classify_orders_by_customer_history(orders: pd.DataFrame) -> pd.DataFrame:
-    segmented = orders.copy()
-    if segmented.empty:
-        segmented["comparison_segment"] = pd.Series(dtype="object")
-        return segmented
-
-    segmented = segmented.sort_values(
-        ["customer_key", "order_date", "order_id"],
-        kind="stable",
-    )
-    segmented["customer_order_number"] = (
-        segmented.groupby("customer_key").cumcount() + 1
-    )
-    segmented["comparison_segment"] = segmented["customer_order_number"].apply(
-        lambda number: "Новый" if number == 1 else "Повторный"
-    )
-    return segmented
-
-
-def calculate_period_snapshot(
-    classified_orders: pd.DataFrame,
-    start_date: date,
-    end_date: date,
-) -> dict[str, float]:
-    period_orders = classified_orders[
-        classified_orders["order_date"].dt.date.between(start_date, end_date)
-    ].copy()
-
-    new_orders = period_orders[
-        period_orders["comparison_segment"] == "Новый"
-    ]
-    repeat_orders = period_orders[
-        period_orders["comparison_segment"] == "Повторный"
-    ]
-
-    total_revenue = float(period_orders["order_total"].sum())
-    new_revenue = float(new_orders["order_total"].sum())
-    repeat_revenue = float(repeat_orders["order_total"].sum())
-    total_orders = int(period_orders["order_id"].nunique())
-    new_order_count = int(new_orders["order_id"].nunique())
-    repeat_order_count = int(repeat_orders["order_id"].nunique())
-
-    return {
-        "total_revenue": total_revenue,
-        "new_revenue": new_revenue,
-        "repeat_revenue": repeat_revenue,
-        "total_orders": total_orders,
-        "new_orders": new_order_count,
-        "repeat_orders": repeat_order_count,
-        "average_check": total_revenue / total_orders if total_orders else 0.0,
-        "new_average_check": (
-            new_revenue / new_order_count if new_order_count else 0.0
-        ),
-        "repeat_average_check": (
-            repeat_revenue / repeat_order_count if repeat_order_count else 0.0
-        ),
-        "one_item_orders": int((period_orders["item_quantity"] == 1).sum()),
-        "two_item_orders": int((period_orders["item_quantity"] == 2).sum()),
-        "three_item_orders": int((period_orders["item_quantity"] == 3).sum()),
-        "four_plus_item_orders": int((period_orders["item_quantity"] >= 4).sum()),
-        "unique_customers": int(period_orders["customer_key"].nunique()),
-    }
-
-
-def comparison_change(current_value: float, previous_value: float) -> float | None:
-    if previous_value == 0:
-        return 0.0 if current_value == 0 else None
-    return (current_value - previous_value) / previous_value * 100
-
-
-def format_change(change: float | None) -> str:
-    if change is None:
-        return "Новый"
-    return f"{change:+.1f}%"
-
-
-def comparison_conclusion(change: float | None) -> tuple[str, str]:
-    if change is None:
-        return "Новый показатель", "positive"
-    if change <= -25:
-        return f"● Значительное падение {change:.1f}%", "negative"
-    if change < -5:
-        return f"▼ Снижение {change:.1f}%", "negative"
-    if change < 5:
-        return f"● Без существенных изменений {change:+.1f}%", "neutral"
-    if change < 25:
-        return f"▲ Рост {change:+.1f}%", "positive"
-    return f"● Значительный рост {change:+.1f}%", "positive"
-
-
-def render_period_comparison_table(
-    previous_snapshot: dict[str, float],
-    current_snapshot: dict[str, float],
-    previous_label: str,
-    current_label: str,
-) -> None:
-    rows = [
-        ("Общий оборот", "total_revenue", "money"),
-        ("Оборот новых клиентов", "new_revenue", "money"),
-        ("Оборот повторных заказов", "repeat_revenue", "money"),
-        ("Количество заказов", "total_orders", "number"),
-        ("Заказы новых клиентов", "new_orders", "number"),
-        ("Повторные заказы", "repeat_orders", "number"),
-        ("Средний чек", "average_check", "money"),
-        ("Средний чек новых клиентов", "new_average_check", "money"),
-        ("Средний чек повторных заказов", "repeat_average_check", "money"),
-        ("Заказы с 1 товаром", "one_item_orders", "number"),
-        ("Заказы с 2 товарами", "two_item_orders", "number"),
-        ("Заказы с 3 товарами", "three_item_orders", "number"),
-        ("Заказы с 4+ товарами", "four_plus_item_orders", "number"),
-        ("Уникальные покупатели", "unique_customers", "number"),
-    ]
-
-    body_rows: list[str] = []
-    for title, key, value_type in rows:
-        previous_value = float(previous_snapshot[key])
-        current_value = float(current_snapshot[key])
-        change = comparison_change(current_value, previous_value)
-        conclusion, state = comparison_conclusion(change)
-        value_formatter = format_money if value_type == "money" else format_number
-
-        body_rows.append(
-            f'''<tr class="{state}">
-                <td>{escape(title)}</td>
-                <td>{escape(value_formatter(previous_value))}</td>
-                <td>{escape(value_formatter(current_value))}</td>
-                <td class="change-{state}">{escape(format_change(change))}</td>
-                <td class="conclusion-{state}">{escape(conclusion)}</td>
-            </tr>'''
-        )
-
-    table_html = f'''
-        <div class="period-comparison-title">
-            Изменения: {escape(previous_label)} → {escape(current_label)}
-        </div>
-        <div class="comparison-table-wrap">
-            <table class="comparison-table">
-                <thead>
-                    <tr>
-                        <th>Показатель</th>
-                        <th>{escape(previous_label)}</th>
-                        <th>{escape(current_label)}</th>
-                        <th>Изменение</th>
-                        <th>Вывод</th>
-                    </tr>
-                </thead>
-                <tbody>{''.join(body_rows)}</tbody>
-            </table>
-        </div>
-    '''
-    st.markdown(table_html, unsafe_allow_html=True)
-
-
-def render_period_changes_page(context: dict[str, object]) -> None:
-    all_orders = context["all_orders"]
-    selected_statuses = context.get("selected_statuses", list(ALLOWED_STATUSES))
-    eligible_orders = all_orders[
-        all_orders["status"].isin(selected_statuses)
-    ].copy()
-
-    if eligible_orders.empty:
-        st.warning("Нет заказов с выбранными статусами.")
-        return
-
-    min_date = eligible_orders["order_date"].min().date()
-    max_date = eligible_orders["order_date"].max().date()
-    default_start = max(date(max_date.year, max_date.month, 1), min_date)
-    default_range = (default_start, max_date)
-
-    stored_range = st.session_state.get("period_changes_range")
-    if isinstance(stored_range, (tuple, list)) and len(stored_range) == 2:
-        stored_start, stored_end = stored_range
-        if stored_start < min_date or stored_end > max_date:
-            st.session_state.pop("period_changes_range", None)
-
-    st.markdown(
-        """
-        <div class="period-control-box">
-            <h3>Период для анализа</h3>
-            <p>Выберите текущий диапазон. Система автоматически сравнит его с предыдущим диапазоном такой же длины.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    period_column, info_column = st.columns([1.25, 1])
-    with period_column:
-        selected_range = st.date_input(
-            "Диапазон дат",
-            value=default_range,
-            min_value=min_date,
-            max_value=max_date,
-            key="period_changes_range",
-        )
-
-    if isinstance(selected_range, (tuple, list)) and len(selected_range) == 2:
-        current_start, current_end = selected_range
-    else:
-        single_date = selected_range if isinstance(selected_range, date) else max_date
-        current_start = single_date
-        current_end = single_date
-
-    if current_start > current_end:
-        current_start, current_end = current_end, current_start
-
-    period_days = (current_end - current_start).days + 1
-    previous_end = current_start - timedelta(days=1)
-    previous_start = previous_end - timedelta(days=period_days - 1)
-
-    with info_column:
-        st.metric("Длина периода", f"{period_days} дн.")
-        st.caption(
-            f"Сравнение: {format_period_label(previous_start, previous_end)}"
-        )
-
-    classified_orders = classify_orders_by_customer_history(eligible_orders)
-    previous_snapshot = calculate_period_snapshot(
-        classified_orders,
-        previous_start,
-        previous_end,
-    )
-    current_snapshot = calculate_period_snapshot(
-        classified_orders,
-        current_start,
-        current_end,
-    )
-
-    previous_label = format_period_label(previous_start, previous_end)
-    current_label = format_period_label(current_start, current_end)
-    render_period_comparison_table(
-        previous_snapshot,
-        current_snapshot,
-        previous_label,
-        current_label,
-    )
-
-    if previous_start < min_date:
-        st.warning(
-            "В загруженном XML нет полного предыдущего периода. "
-            "Часть показателей сравнения рассчитана только по доступным данным."
-        )
-
-    st.markdown(
-        '<div class="comparison-footnote">'
-        'Новый клиент означает первый заказ покупателя в загруженном XML. '
-        'Учитываются статусы, выбранные в боковом меню.'
-        '</div>',
-        unsafe_allow_html=True,
-    )
-
-
-def render_revenue_page(context: dict[str, object]) -> None:
-    revenue = float(context["revenue"])
-    previous_revenue = float(context["previous_revenue"])
-    daily = context["daily"]
-
-    st.metric("Оборот", format_money(revenue), percent_delta(revenue, previous_revenue))
-    chart = px.line(
-        daily,
-        x="day",
-        y="revenue",
-        markers=True,
-        title="Оборот по дням",
-        labels={"day": "Дата", "revenue": "Оборот, грн"},
-        color_discrete_sequence=[BRAND_YELLOW],
-    )
-    chart.update_traces(
-        line_width=3,
-        line_color=BRAND_YELLOW,
-        marker=dict(color=BRAND_YELLOW, size=8, line=dict(color=BRAND_BLACK, width=1)),
-    )
-    st.plotly_chart(configure_plot(chart, 440), width="stretch")
-
-
-def render_revenue_segments_page(context: dict[str, object]) -> None:
-    segmented = context["segmented_orders"]
-    stats = (
-        segmented.groupby("customer_segment", as_index=False)
-        .agg(revenue=("order_total", "sum"), orders=("order_id", "nunique"))
-    )
-    total = float(stats["revenue"].sum())
-    stats["share"] = stats["revenue"].apply(lambda value: safe_percent(value, total))
-
-    columns = st.columns(max(len(stats), 1))
-    for column, (_, row) in zip(columns, stats.iterrows()):
-        column.metric(
-            str(row["customer_segment"]),
-            format_money(float(row["revenue"])),
-            f"{float(row['share']):.1f}% оборота",
-        )
-
-    daily = (
-        segmented.assign(day=segmented["order_date"].dt.floor("D"))
-        .groupby(["day", "customer_segment"], as_index=False)
-        .agg(revenue=("order_total", "sum"))
-    )
-    chart = px.area(
-        daily,
-        x="day",
-        y="revenue",
-        color="customer_segment",
-        title="Оборот новых и повторных покупателей",
-        labels={"day": "Дата", "revenue": "Оборот, грн", "customer_segment": "Покупатели"},
-        color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK],
-    )
-    st.plotly_chart(configure_plot(chart, 440), width="stretch")
-
-
-def render_orders_count_page(context: dict[str, object]) -> None:
-    order_count = int(context["order_count"])
-    previous_count = int(context["previous_count"])
-    daily = context["daily"]
-
-    st.metric(
-        "Количество заказов",
-        format_number(order_count),
-        percent_delta(order_count, previous_count),
-    )
-    chart = px.line(
-        daily,
-        x="day",
-        y="orders",
-        markers=True,
-        title="Количество заказов по дням",
-        labels={"day": "Дата", "orders": "Заказы"},
-        color_discrete_sequence=[BRAND_YELLOW],
-    )
-    chart.update_traces(
-        line_width=3,
-        marker=dict(color=BRAND_YELLOW, size=8, line=dict(color=BRAND_BLACK, width=1)),
-    )
-    st.plotly_chart(configure_plot(chart, 440), width="stretch")
-
-
-def render_orders_segments_page(context: dict[str, object]) -> None:
-    segmented = context["segmented_orders"]
-    stats = (
-        segmented.groupby("customer_segment", as_index=False)
-        .agg(orders=("order_id", "nunique"))
-    )
-    total_orders = int(stats["orders"].sum())
-    stats["share"] = stats["orders"].apply(lambda value: safe_percent(value, total_orders))
-
-    columns = st.columns(max(len(stats), 1))
-    for column, (_, row) in zip(columns, stats.iterrows()):
-        column.metric(
-            str(row["customer_segment"]),
-            format_number(int(row["orders"])),
-            f"{float(row['share']):.1f}% заказов",
-        )
-
-    chart = px.bar(
-        stats,
-        x="customer_segment",
-        y="orders",
-        text="orders",
-        title="Количество заказов по типу покупателя",
-        labels={"customer_segment": "Покупатели", "orders": "Заказы"},
-        color="customer_segment",
-        color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK],
-    )
-    chart.update_layout(showlegend=False)
-    st.plotly_chart(configure_plot(chart, 420), width="stretch")
-
-
-def render_average_check_page(context: dict[str, object]) -> None:
-    average_check = float(context["average_check"])
-    previous_average = float(context["previous_average"])
-    daily = context["daily"]
-
-    st.metric(
-        "Средний чек",
-        format_money(average_check),
-        percent_delta(average_check, previous_average),
-    )
-    chart = px.line(
-        daily,
-        x="day",
-        y="average_check",
-        markers=True,
-        title="Средний чек по дням",
-        labels={"day": "Дата", "average_check": "Средний чек, грн"},
-        color_discrete_sequence=[BRAND_YELLOW],
-    )
-    chart.update_traces(
-        line_width=3,
-        marker=dict(color=BRAND_YELLOW, size=8, line=dict(color=BRAND_BLACK, width=1)),
-    )
-    st.plotly_chart(configure_plot(chart, 440), width="stretch")
-
-
-def render_check_segments_page(context: dict[str, object]) -> None:
-    segmented = context["segmented_orders"]
-    stats = (
-        segmented.groupby("customer_segment", as_index=False)
-        .agg(
-            revenue=("order_total", "sum"),
-            orders=("order_id", "nunique"),
-        )
-    )
-    stats["average_check"] = stats.apply(
-        lambda row: row["revenue"] / row["orders"] if row["orders"] else 0,
-        axis=1,
-    )
-
-    columns = st.columns(max(len(stats), 1))
-    for column, (_, row) in zip(columns, stats.iterrows()):
-        column.metric(str(row["customer_segment"]), format_money(float(row["average_check"])))
-
-    chart = px.bar(
-        stats,
-        x="customer_segment",
-        y="average_check",
-        text_auto=".2s",
-        title="Средний чек новых и повторных покупателей",
-        labels={"customer_segment": "Покупатели", "average_check": "Средний чек, грн"},
-        color="customer_segment",
-        color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK],
-    )
-    chart.update_layout(showlegend=False)
-    st.plotly_chart(configure_plot(chart, 420), width="stretch")
-
-
-def render_items_per_order_page(context: dict[str, object]) -> None:
-    orders = context["orders"]
-    business = context["business"]
-
-    metrics = st.columns(3)
-    metrics[0].metric("Среднее товаров в заказе", f"{float(business['average_items']):.2f}")
-    metrics[1].metric("Заказы с одним товаром", f"{float(business['single_item_share']):.1f}%")
-    metrics[2].metric("Максимум товаров", format_number(int(orders["item_quantity"].max())))
-
-    distribution = (
-        orders.groupby("item_quantity", as_index=False)["order_id"]
-        .nunique()
-        .rename(columns={"item_quantity": "items", "order_id": "orders"})
-        .sort_values("items")
-    )
-    chart = px.bar(
-        distribution,
-        x="items",
-        y="orders",
-        text="orders",
-        title="Распределение заказов по количеству товаров",
-        labels={"items": "Товаров в заказе", "orders": "Заказы"},
-        color_discrete_sequence=[BRAND_YELLOW],
-    )
-    st.plotly_chart(configure_plot(chart, 430), width="stretch")
-
-
-def render_order_statuses_page(context: dict[str, object]) -> None:
-    orders = context["orders"]
-    stats = (
-        orders.groupby("status", as_index=False)
-        .agg(orders=("order_id", "nunique"), revenue=("order_total", "sum"))
-        .sort_values("orders", ascending=False)
-    )
-
-    left, right = st.columns([1.4, 1])
-    with left:
-        chart = px.pie(
-            stats,
-            names="status",
-            values="orders",
-            hole=0.58,
-            title="Заказы по статусам",
-            color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK, BRAND_GOLD],
-        )
-        chart.update_layout(legend_orientation="h")
-        st.plotly_chart(configure_plot(chart, 420), width="stretch")
-    with right:
-        display = stats.rename(
-            columns={"status": "Статус", "orders": "Заказы", "revenue": "Оборот, грн"}
-        )
-        st.dataframe(
-            display,
-            width="stretch",
-            hide_index=True,
-            column_config={"Оборот, грн": st.column_config.NumberColumn(format="%.2f")},
-        )
-
-
-def render_customers_count_page(context: dict[str, object]) -> None:
-    segmented = context["segmented_orders"]
-    stats = (
-        segmented.groupby("customer_segment", as_index=False)["customer_key"]
-        .nunique()
-        .rename(columns={"customer_key": "customers"})
-    )
-    total = int(stats["customers"].sum())
-
-    columns = st.columns(max(len(stats), 1))
-    for column, (_, row) in zip(columns, stats.iterrows()):
-        column.metric(
-            str(row["customer_segment"]),
-            format_number(int(row["customers"])),
-            f"{safe_percent(int(row['customers']), total):.1f}% покупателей",
-        )
-
-    chart = px.pie(
-        stats,
-        names="customer_segment",
-        values="customers",
-        hole=0.62,
-        title="Новые и повторные покупатели",
-        color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK],
-    )
-    chart.update_layout(legend_orientation="h")
-    st.plotly_chart(configure_plot(chart, 430), width="stretch")
-
-
-def render_repeat_share_page(context: dict[str, object]) -> None:
-    business = context["business"]
-    metrics = st.columns(3)
-    metrics[0].metric("Покупатели", format_number(int(context["unique_customers"])))
-    metrics[1].metric("Повторные покупатели", f"{float(context['repeat_rate']):.1f}%")
-    metrics[2].metric("Оборот от повторных", f"{float(business['repeat_revenue_share']):.1f}%")
-
-    customer_summary = context["customer_summary"]
-    segment_stats = (
-        customer_summary.groupby("segment", as_index=False)
-        .agg(customers=("customer_key", "nunique"), revenue=("revenue", "sum"))
-    )
-    chart = px.bar(
-        segment_stats,
-        x="segment",
-        y="revenue",
-        text_auto=".2s",
-        title="Оборот по частоте покупок",
-        labels={"segment": "Сегмент", "revenue": "Оборот, грн"},
-        color="segment",
-        color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK],
-    )
-    chart.update_layout(showlegend=False)
-    st.plotly_chart(configure_plot(chart, 420), width="stretch")
-
-
-def render_orders_per_customer_page(context: dict[str, object]) -> None:
-    customer_summary = context["customer_summary"]
-    frequency = (
-        customer_summary.groupby("orders", as_index=False)["customer_key"]
-        .nunique()
-        .rename(columns={"orders": "order_count", "customer_key": "customers"})
-        .sort_values("order_count")
-    )
-    chart = px.bar(
-        frequency,
-        x="order_count",
-        y="customers",
-        text="customers",
-        title="Распределение покупателей по количеству заказов",
-        labels={"order_count": "Заказов на покупателя", "customers": "Покупатели"},
-        color_discrete_sequence=[BRAND_YELLOW],
-    )
-    st.plotly_chart(configure_plot(chart, 440), width="stretch")
-
-
-def render_top_products_revenue_page(context: dict[str, object]) -> None:
-    products = context["products"]
-    if products.empty:
-        st.info("В выбранном периоде нет товарных позиций.")
-        return
-
-    top_products_frame = products.nlargest(10, "revenue").sort_values("revenue")
-    chart = px.bar(
-        top_products_frame,
-        x="revenue",
-        y="product_name",
-        orientation="h",
-        text_auto=".2s",
-        title="Топ-10 товаров по обороту",
-        labels={"revenue": "Оборот, грн", "product_name": "Товар"},
-        color_discrete_sequence=[BRAND_YELLOW],
-    )
-    chart.update_layout(yaxis_title=None)
-    st.plotly_chart(configure_plot(chart, 500), width="stretch")
-
-
-def render_top_products_units_page(context: dict[str, object]) -> None:
-    products = context["products"]
-    if products.empty:
-        st.info("В выбранном периоде нет товарных позиций.")
-        return
-
-    top_products_frame = products.nlargest(10, "sold_units").sort_values("sold_units")
-    chart = px.bar(
-        top_products_frame,
-        x="sold_units",
-        y="product_name",
-        orientation="h",
-        text="sold_units",
-        title="Топ-10 товаров по количеству продаж",
-        labels={"sold_units": "Продано, шт.", "product_name": "Товар"},
-        color_discrete_sequence=[BRAND_YELLOW],
-    )
-    chart.update_layout(yaxis_title=None)
-    st.plotly_chart(configure_plot(chart, 500), width="stretch")
-
-
-def render_products_together_page(context: dict[str, object]) -> None:
-    pairs = context["business"]["pairs"]
-    if isinstance(pairs, pd.DataFrame) and not pairs.empty:
-        st.dataframe(pairs, width="stretch", hide_index=True)
-    else:
-        st.info("Недостаточно заказов с несколькими товарами для анализа пар.")
 
 
 def render_selected_analytics_page(page_key: str, context: dict[str, object]) -> None:
     render_page_heading(page_key)
 
-    renderers = {
-        "period_changes": render_period_changes_page,
-        "recommendations": lambda data: render_recommendations(data["recommendations"]),
-        "revenue": render_revenue_page,
-        "revenue_segments": render_revenue_segments_page,
-        "orders_count": render_orders_count_page,
-        "orders_segments": render_orders_segments_page,
-        "average_check": render_average_check_page,
-        "check_segments": render_check_segments_page,
-        "items_per_order": render_items_per_order_page,
-        "order_statuses": render_order_statuses_page,
-        "customers_count": render_customers_count_page,
-        "repeat_share": render_repeat_share_page,
-        "orders_per_customer": render_orders_per_customer_page,
-        "top_products_revenue": render_top_products_revenue_page,
-        "top_products_units": render_top_products_units_page,
-        "products_together": render_products_together_page,
-    }
+    for category_module in CATEGORY_MODULES:
+        if category_module.render(page_key, context):
+            return
 
-    renderer = renderers.get(page_key)
-    if renderer is None:
-        render_placeholder(page_key)
-        return
-    renderer(context)
+    render_placeholder(page_key)
 
 
 def main() -> None:
