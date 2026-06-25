@@ -96,14 +96,25 @@ def configure_plot(fig: go.Figure, height: int | None = None) -> go.Figure:
         fig.update_layout(height=height)
     return fig
 
+PRIORITY_LABELS = {
+    "critical": "Критично",
+    "important": "Важно",
+    "recommendation": "Рекомендация",
+    "idea": "Идея",
+}
+
+
 def render_recommendations(recommendations: list[dict[str, str]]) -> None:
     for start in range(0, len(recommendations), 2):
         columns = st.columns(2)
         for index, recommendation in enumerate(recommendations[start:start + 2]):
+            priority = recommendation.get("priority", "recommendation")
+            priority_label = PRIORITY_LABELS.get(priority, "Рекомендация")
             with columns[index]:
                 st.markdown(
                     f"""
-                    <div class="recommendation-card {recommendation['priority']}">
+                    <div class="recommendation-card {escape(priority)}">
+                        <div class="recommendation-priority">{escape(priority_label)}</div>
                         <h4>{escape(recommendation['title'])}</h4>
                         <p>{escape(recommendation['text'])}</p>
                     </div>
