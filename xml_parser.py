@@ -237,6 +237,78 @@ def top_products(items: pd.DataFrame) -> pd.DataFrame:
     )
 
 
+
+
+@dataclass(frozen=True)
+class ProductCatalogData:
+    products: pd.DataFrame
+    total_products: int
+    active_products: int
+
+
+def _catalog_price(value: str) -> float:
+    cleaned = re.sub(r"[^0-9,.-]", "", value or "")
+    return to_float(cleaned)
+
+
+def parse_product_catalog(xml_bytes: bytes) -> ProductCatalogData:
+    """Parse the uploaded OpenCart product catalog into an analytics frame."""
+    try:
+        root = SafeET.fromstring(xml_bytes)
+    except Exception as exc:
+        raise ValueError(f"Не удалось прочитать XML товаров: {exc}") from exc
+
+    rows: list[dict] = []
+    for product_node in root.findall(".//item"):
+        product_id = text_of(product_node, "product_id")
+        name = text_of(product_node, "name")
+        if not product_id or not name:
+            continue
+
+        status = text_of(product_node, "status", "1") == "1"
+        price = _catalog_price(text_of(product_node, "price"))
+        special_price = _catalog_price(text_of(product_node, "price_special"))
+        effective_price = special_price if special_price > 0 else price
+        date_added = pd.to_datetime(text_of(product_node, "date_added"), errors="coerce")
+
+        rows.append(
+            {
+                "product_id": str(product_id),
+                "product_name": name,
+                "model": text_of(product_node, "model"),
+                "sku": text_of(product_node, "sku"),
+                "manufacturer": text_of(product_node, "manufacturer") or "Не указан",
+                "quantity": to_int(text_of(product_node, "quantity")),
+                "price": price,
+                "special_price": special_price,
+                "effective_price": effective_price,
+                "status": status,
+                "status_label": "Активен" if status else "Отключён",
+                "stock_status": text_of(product_node, "stock_status") or "Не указан",
+                "viewed": to_int(text_of(product_node, "viewed")),
+                "date_added": date_added,
+                "image": text_of(product_node, "image"),
+                "link": text_of(product_node, "link"),
+                "meta_title": text_of(product_node, "meta_title"),
+                "meta_description": text_of(product_node, "meta_description"),
+                "description": text_of(product_node, "description"),
+            }
+        )
+
+    frame = pd.DataFrame(rows)
+    if frame.empty:
+        raise ValueError("В XML товаров не найдено ни одного корректного товара.")
+
+    if "date_added" in frame.columns:
+        frame["date_added"] = pd.to_datetime(frame["date_added"], errors="coerce")
+
+    return ProductCatalogData(
+        products=frame,
+        total_products=int(len(frame)),
+        active_products=int(frame["status"].sum()),
+    )
+
+
 @dataclass(frozen=True)
 class ProductCatalogSummary:
     total_products: int

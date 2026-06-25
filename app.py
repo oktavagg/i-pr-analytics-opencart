@@ -22,6 +22,7 @@ from analytics_ui import format_money, format_number, safe_percent
 from xml_parser import (
     ALLOWED_STATUSES,
     parse_xml,
+    parse_product_catalog,
     top_products,
     validate_order_xml,
     validate_product_xml,
@@ -92,6 +93,13 @@ def parse_xml_cached(xml_bytes: bytes):
     return parse_xml(xml_bytes)
 
 
+
+
+@st.cache_data(show_spinner=False)
+def parse_product_catalog_cached(xml_bytes: bytes):
+    return parse_product_catalog(xml_bytes)
+
+
 @st.cache_data(show_spinner=False)
 def validate_order_xml_cached(xml_bytes: bytes):
     return validate_order_xml(xml_bytes)
@@ -157,6 +165,7 @@ def delete_uploaded_files() -> None:
     parse_xml_cached.clear()
     validate_order_xml_cached.clear()
     validate_product_xml_cached.clear()
+    parse_product_catalog_cached.clear()
 
     for key in ("initial_orders_xml", "initial_products_xml"):
         st.session_state.pop(key, None)
@@ -1467,6 +1476,7 @@ def add_customer_segments(
 
 def prepare_analytics_context(
     parsed,
+    product_catalog: pd.DataFrame,
     selected_dates,
     selected_statuses: list[str],
 ) -> dict[str, object] | None:
@@ -1546,6 +1556,8 @@ def prepare_analytics_context(
 
     return {
         "parsed": parsed,
+        "product_catalog": product_catalog,
+        "all_items_history": all_items,
         "all_orders": all_orders,
         "all_status_history": all_status_history,
         "all_status_orders": all_status_orders,
@@ -1616,6 +1628,7 @@ def main() -> None:
 
     try:
         parsed = parse_xml_cached(stored_orders_bytes)
+        catalog_data = parse_product_catalog_cached(stored_products_bytes)
     except ValueError as exc:
         st.error(str(exc))
         st.stop()
@@ -1672,7 +1685,12 @@ def main() -> None:
 
     render_header()
 
-    context = prepare_analytics_context(parsed, selected_dates, selected_statuses)
+    context = prepare_analytics_context(
+        parsed,
+        catalog_data.products,
+        selected_dates,
+        selected_statuses,
+    )
     if context is None:
         render_page_heading(selected_page)
         st.warning("По выбранным фильтрам нет заказов.")
