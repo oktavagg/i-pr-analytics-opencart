@@ -111,7 +111,7 @@ PAGE_TITLES = {
 }
 
 PAGE_DESCRIPTIONS = {
-    "period_changes": "Главные изменения по сравнению с предыдущим периодом такой же длины.",
+    "period_changes": "Сводная таблица ключевых показателей с автоматическим сравнением с предыдущим периодом такой же длины.",
     "recommendations": "Автоматические выводы на основе заказов, покупателей и товаров.",
     "revenue": "Динамика оборота за выбранный период.",
     "revenue_segments": "Распределение оборота между новыми и повторными покупателями.",
@@ -497,6 +497,136 @@ def apply_theme() -> None:
             margin: 0;
             color: #4B4B4B !important;
             line-height: 1.55;
+        }
+
+
+        .period-control-box {
+            margin: 0 0 18px;
+            padding: 18px 20px;
+            background: #FFFEEE;
+            border: 1px solid #D9D267;
+            border-left: 5px solid #FBF560;
+        }
+
+        .period-control-box h3 {
+            margin: 0 0 5px;
+            font-size: 1.05rem;
+        }
+
+        .period-control-box p {
+            margin: 0;
+            color: #4B4B4B !important;
+            font-size: 0.9rem;
+        }
+
+        .period-comparison-title {
+            margin: 8px 0 14px;
+            padding: 17px 20px;
+            background: #223F70;
+            color: #FFFFFF !important;
+            border: 1px solid #173058;
+            font-size: 1.2rem;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        .period-comparison-title * {
+            color: #FFFFFF !important;
+        }
+
+        .comparison-table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            margin-bottom: 14px;
+            border: 1px solid #B8C2D1;
+        }
+
+        .comparison-table {
+            width: 100%;
+            min-width: 920px;
+            border-collapse: collapse;
+            background: #FFFFFF;
+            font-size: 0.91rem;
+        }
+
+        .comparison-table th {
+            padding: 11px 12px;
+            background: #223F70;
+            color: #FFFFFF !important;
+            border-right: 1px solid #8795AA;
+            border-bottom: 1px solid #8795AA;
+            text-align: center;
+            font-weight: 800;
+        }
+
+        .comparison-table th:first-child {
+            text-align: left;
+        }
+
+        .comparison-table td {
+            padding: 10px 12px;
+            border-right: 1px solid #C5CCD6;
+            border-bottom: 1px solid #C5CCD6;
+            color: #111111 !important;
+            vertical-align: middle;
+        }
+
+        .comparison-table td:first-child {
+            width: 31%;
+            font-weight: 750;
+        }
+
+        .comparison-table td:nth-child(2),
+        .comparison-table td:nth-child(3),
+        .comparison-table td:nth-child(4) {
+            text-align: center;
+            white-space: nowrap;
+        }
+
+        .comparison-table td:nth-child(3) {
+            font-weight: 800;
+        }
+
+        .comparison-table td:last-child {
+            width: 25%;
+            white-space: nowrap;
+        }
+
+        .comparison-table tr.positive td {
+            background: #E8F3E4;
+        }
+
+        .comparison-table tr.negative td {
+            background: #FCE8DE;
+        }
+
+        .comparison-table tr.neutral td {
+            background: #F4F4F4;
+        }
+
+        .comparison-table .change-positive,
+        .comparison-table .conclusion-positive {
+            color: #1A6A2A !important;
+            font-weight: 800;
+        }
+
+        .comparison-table .change-negative,
+        .comparison-table .conclusion-negative {
+            color: #C40018 !important;
+            font-weight: 800;
+        }
+
+        .comparison-table .change-neutral,
+        .comparison-table .conclusion-neutral {
+            color: #4B4B4B !important;
+            font-weight: 700;
+        }
+
+        .comparison-footnote {
+            margin: 8px 0 22px;
+            color: #5B5B5B !important;
+            font-size: 0.86rem;
+            font-style: italic;
         }
 
         .block-container {
@@ -1436,73 +1566,291 @@ def prepare_analytics_context(
         "previous_revenue": previous_revenue,
         "previous_count": previous_count,
         "previous_average": previous_average,
+        "selected_statuses": list(selected_statuses),
     }
 
 
+RUSSIAN_MONTHS = {
+    1: "Январь",
+    2: "Февраль",
+    3: "Март",
+    4: "Апрель",
+    5: "Май",
+    6: "Июнь",
+    7: "Июль",
+    8: "Август",
+    9: "Сентябрь",
+    10: "Октябрь",
+    11: "Ноябрь",
+    12: "Декабрь",
+}
+
+
+def format_period_label(start_date: date, end_date: date) -> str:
+    if start_date == end_date:
+        return start_date.strftime("%d.%m.%Y")
+
+    next_month = (
+        date(start_date.year + 1, 1, 1)
+        if start_date.month == 12
+        else date(start_date.year, start_date.month + 1, 1)
+    )
+    month_end = next_month - timedelta(days=1)
+    if start_date.day == 1 and end_date == month_end:
+        return f"{RUSSIAN_MONTHS[start_date.month]} {start_date.year}"
+
+    return f"{start_date:%d.%m.%Y}–{end_date:%d.%m.%Y}"
+
+
+def classify_orders_by_customer_history(orders: pd.DataFrame) -> pd.DataFrame:
+    segmented = orders.copy()
+    if segmented.empty:
+        segmented["comparison_segment"] = pd.Series(dtype="object")
+        return segmented
+
+    segmented = segmented.sort_values(
+        ["customer_key", "order_date", "order_id"],
+        kind="stable",
+    )
+    segmented["customer_order_number"] = (
+        segmented.groupby("customer_key").cumcount() + 1
+    )
+    segmented["comparison_segment"] = segmented["customer_order_number"].apply(
+        lambda number: "Новый" if number == 1 else "Повторный"
+    )
+    return segmented
+
+
+def calculate_period_snapshot(
+    classified_orders: pd.DataFrame,
+    start_date: date,
+    end_date: date,
+) -> dict[str, float]:
+    period_orders = classified_orders[
+        classified_orders["order_date"].dt.date.between(start_date, end_date)
+    ].copy()
+
+    new_orders = period_orders[
+        period_orders["comparison_segment"] == "Новый"
+    ]
+    repeat_orders = period_orders[
+        period_orders["comparison_segment"] == "Повторный"
+    ]
+
+    total_revenue = float(period_orders["order_total"].sum())
+    new_revenue = float(new_orders["order_total"].sum())
+    repeat_revenue = float(repeat_orders["order_total"].sum())
+    total_orders = int(period_orders["order_id"].nunique())
+    new_order_count = int(new_orders["order_id"].nunique())
+    repeat_order_count = int(repeat_orders["order_id"].nunique())
+
+    return {
+        "total_revenue": total_revenue,
+        "new_revenue": new_revenue,
+        "repeat_revenue": repeat_revenue,
+        "total_orders": total_orders,
+        "new_orders": new_order_count,
+        "repeat_orders": repeat_order_count,
+        "average_check": total_revenue / total_orders if total_orders else 0.0,
+        "new_average_check": (
+            new_revenue / new_order_count if new_order_count else 0.0
+        ),
+        "repeat_average_check": (
+            repeat_revenue / repeat_order_count if repeat_order_count else 0.0
+        ),
+        "one_item_orders": int((period_orders["item_quantity"] == 1).sum()),
+        "two_item_orders": int((period_orders["item_quantity"] == 2).sum()),
+        "three_item_orders": int((period_orders["item_quantity"] == 3).sum()),
+        "four_plus_item_orders": int((period_orders["item_quantity"] >= 4).sum()),
+        "unique_customers": int(period_orders["customer_key"].nunique()),
+    }
+
+
+def comparison_change(current_value: float, previous_value: float) -> float | None:
+    if previous_value == 0:
+        return 0.0 if current_value == 0 else None
+    return (current_value - previous_value) / previous_value * 100
+
+
+def format_change(change: float | None) -> str:
+    if change is None:
+        return "Новый"
+    return f"{change:+.1f}%"
+
+
+def comparison_conclusion(change: float | None) -> tuple[str, str]:
+    if change is None:
+        return "Новый показатель", "positive"
+    if change <= -25:
+        return f"● Значительное падение {change:.1f}%", "negative"
+    if change < -5:
+        return f"▼ Снижение {change:.1f}%", "negative"
+    if change < 5:
+        return f"● Без существенных изменений {change:+.1f}%", "neutral"
+    if change < 25:
+        return f"▲ Рост {change:+.1f}%", "positive"
+    return f"● Значительный рост {change:+.1f}%", "positive"
+
+
+def render_period_comparison_table(
+    previous_snapshot: dict[str, float],
+    current_snapshot: dict[str, float],
+    previous_label: str,
+    current_label: str,
+) -> None:
+    rows = [
+        ("Общий оборот", "total_revenue", "money"),
+        ("Оборот новых клиентов", "new_revenue", "money"),
+        ("Оборот повторных заказов", "repeat_revenue", "money"),
+        ("Количество заказов", "total_orders", "number"),
+        ("Заказы новых клиентов", "new_orders", "number"),
+        ("Повторные заказы", "repeat_orders", "number"),
+        ("Средний чек", "average_check", "money"),
+        ("Средний чек новых клиентов", "new_average_check", "money"),
+        ("Средний чек повторных заказов", "repeat_average_check", "money"),
+        ("Заказы с 1 товаром", "one_item_orders", "number"),
+        ("Заказы с 2 товарами", "two_item_orders", "number"),
+        ("Заказы с 3 товарами", "three_item_orders", "number"),
+        ("Заказы с 4+ товарами", "four_plus_item_orders", "number"),
+        ("Уникальные покупатели", "unique_customers", "number"),
+    ]
+
+    body_rows: list[str] = []
+    for title, key, value_type in rows:
+        previous_value = float(previous_snapshot[key])
+        current_value = float(current_snapshot[key])
+        change = comparison_change(current_value, previous_value)
+        conclusion, state = comparison_conclusion(change)
+        value_formatter = format_money if value_type == "money" else format_number
+
+        body_rows.append(
+            f'''<tr class="{state}">
+                <td>{escape(title)}</td>
+                <td>{escape(value_formatter(previous_value))}</td>
+                <td>{escape(value_formatter(current_value))}</td>
+                <td class="change-{state}">{escape(format_change(change))}</td>
+                <td class="conclusion-{state}">{escape(conclusion)}</td>
+            </tr>'''
+        )
+
+    table_html = f'''
+        <div class="period-comparison-title">
+            Изменения: {escape(previous_label)} → {escape(current_label)}
+        </div>
+        <div class="comparison-table-wrap">
+            <table class="comparison-table">
+                <thead>
+                    <tr>
+                        <th>Показатель</th>
+                        <th>{escape(previous_label)}</th>
+                        <th>{escape(current_label)}</th>
+                        <th>Изменение</th>
+                        <th>Вывод</th>
+                    </tr>
+                </thead>
+                <tbody>{''.join(body_rows)}</tbody>
+            </table>
+        </div>
+    '''
+    st.markdown(table_html, unsafe_allow_html=True)
+
+
 def render_period_changes_page(context: dict[str, object]) -> None:
-    revenue = float(context["revenue"])
-    order_count = int(context["order_count"])
-    average_check = float(context["average_check"])
-    sold_units = int(context["sold_units"])
-    previous_revenue = float(context["previous_revenue"])
-    previous_count = int(context["previous_count"])
-    previous_average = float(context["previous_average"])
-    business = context["business"]
-    products = context["products"]
+    all_orders = context["all_orders"]
+    selected_statuses = context.get("selected_statuses", list(ALLOWED_STATUSES))
+    eligible_orders = all_orders[
+        all_orders["status"].isin(selected_statuses)
+    ].copy()
 
-    metrics = st.columns(4)
-    metrics[0].metric(
-        "Оборот",
-        format_money(revenue),
-        percent_delta(revenue, previous_revenue),
-    )
-    metrics[1].metric(
-        "Количество заказов",
-        format_number(order_count),
-        percent_delta(order_count, previous_count),
-    )
-    metrics[2].metric(
-        "Средний чек",
-        format_money(average_check),
-        percent_delta(average_check, previous_average),
-    )
-    metrics[3].metric("Продано единиц", format_number(sold_units))
+    if eligible_orders.empty:
+        st.warning("Нет заказов с выбранными статусами.")
+        return
 
-    trend = float(business["period_trend"])
-    trend_word = "вырос" if trend >= 0 else "снизился"
-    top_product_name = (
-        products.nlargest(1, "revenue")["product_name"].iloc[0]
-        if isinstance(products, pd.DataFrame) and not products.empty
-        else "нет данных"
-    )
+    min_date = eligible_orders["order_date"].min().date()
+    max_date = eligible_orders["order_date"].max().date()
+    default_start = max(date(max_date.year, max_date.month, 1), min_date)
+    default_range = (default_start, max_date)
+
+    stored_range = st.session_state.get("period_changes_range")
+    if isinstance(stored_range, (tuple, list)) and len(stored_range) == 2:
+        stored_start, stored_end = stored_range
+        if stored_start < min_date or stored_end > max_date:
+            st.session_state.pop("period_changes_range", None)
+
     st.markdown(
-        f"""
-        <div class="summary-box">
-            Оборот за вторую половину выбранного периода {trend_word} на
-            <b>{abs(trend):.1f}%</b> относительно первой половины.
-            Лидер по обороту: <b>{escape(str(top_product_name))}</b>.
-            Лучший день недели: <b>{escape(str(business['best_weekday']))}</b>.
+        """
+        <div class="period-control-box">
+            <h3>Период для анализа</h3>
+            <p>Выберите текущий диапазон. Система автоматически сравнит его с предыдущим диапазоном такой же длины.</p>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    daily = context["daily"]
-    chart = px.line(
-        daily,
-        x="day",
-        y=["revenue", "orders"],
-        markers=True,
-        title="Динамика основных показателей",
-        labels={"day": "Дата", "value": "Значение", "variable": "Показатель"},
-        color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK],
-    )
-    chart.for_each_trace(
-        lambda trace: trace.update(
-            name="Оборот" if trace.name == "revenue" else "Заказы"
+    period_column, info_column = st.columns([1.25, 1])
+    with period_column:
+        selected_range = st.date_input(
+            "Диапазон дат",
+            value=default_range,
+            min_value=min_date,
+            max_value=max_date,
+            key="period_changes_range",
         )
+
+    if isinstance(selected_range, (tuple, list)) and len(selected_range) == 2:
+        current_start, current_end = selected_range
+    else:
+        single_date = selected_range if isinstance(selected_range, date) else max_date
+        current_start = single_date
+        current_end = single_date
+
+    if current_start > current_end:
+        current_start, current_end = current_end, current_start
+
+    period_days = (current_end - current_start).days + 1
+    previous_end = current_start - timedelta(days=1)
+    previous_start = previous_end - timedelta(days=period_days - 1)
+
+    with info_column:
+        st.metric("Длина периода", f"{period_days} дн.")
+        st.caption(
+            f"Сравнение: {format_period_label(previous_start, previous_end)}"
+        )
+
+    classified_orders = classify_orders_by_customer_history(eligible_orders)
+    previous_snapshot = calculate_period_snapshot(
+        classified_orders,
+        previous_start,
+        previous_end,
     )
-    st.plotly_chart(configure_plot(chart, 420), width="stretch")
+    current_snapshot = calculate_period_snapshot(
+        classified_orders,
+        current_start,
+        current_end,
+    )
+
+    previous_label = format_period_label(previous_start, previous_end)
+    current_label = format_period_label(current_start, current_end)
+    render_period_comparison_table(
+        previous_snapshot,
+        current_snapshot,
+        previous_label,
+        current_label,
+    )
+
+    if previous_start < min_date:
+        st.warning(
+            "В загруженном XML нет полного предыдущего периода. "
+            "Часть показателей сравнения рассчитана только по доступным данным."
+        )
+
+    st.markdown(
+        '<div class="comparison-footnote">'
+        'Новый клиент означает первый заказ покупателя в загруженном XML. '
+        'Учитываются статусы, выбранные в боковом меню.'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 
 def render_revenue_page(context: dict[str, object]) -> None:
@@ -1945,13 +2293,20 @@ def main() -> None:
             selected_page = "cro"
 
         with st.expander("Фильтры", expanded=False):
-            selected_dates = st.date_input(
-                "Период",
-                value=(min_date, max_date),
-                min_value=min_date,
-                max_value=max_date,
-                key="analytics_period",
-            )
+            if selected_page == "period_changes":
+                selected_dates = (min_date, max_date)
+                st.caption(
+                    "Диапазон для страницы «Изменения за период» "
+                    "выбирается в верхней части самой страницы."
+                )
+            else:
+                selected_dates = st.date_input(
+                    "Период",
+                    value=(min_date, max_date),
+                    min_value=min_date,
+                    max_value=max_date,
+                    key="analytics_period",
+                )
             selected_statuses = st.multiselect(
                 "Статусы",
                 options=list(ALLOWED_STATUSES),
