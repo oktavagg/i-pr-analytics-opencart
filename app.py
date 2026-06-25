@@ -59,6 +59,77 @@ WEEKDAY_NAMES = {
 WEEKDAY_ORDER = list(WEEKDAY_NAMES.values())
 
 
+ANALYTICS_NAVIGATION = [
+    (
+        "Выводы и рекомендации",
+        [
+            ("period_changes", "Изменения за период"),
+            ("recommendations", "Рекомендации"),
+        ],
+    ),
+    (
+        "Заказы",
+        [
+            ("revenue", "Оборот"),
+            ("revenue_segments", "Оборот (от новых/старых)"),
+            ("orders_count", "Количество заказов"),
+            ("orders_segments", "Количество заказов (от новых/старых)"),
+            ("average_check", "Средний чек"),
+            ("check_segments", "Чек (от новых/старых)"),
+            ("items_per_order", "Кол-во товаров в заказе"),
+            ("order_statuses", "Статусы заказов"),
+            ("order_frequency", "Частота между заказами"),
+            ("shipping_rating", "Рейтинг доставок"),
+        ],
+    ),
+    (
+        "Покупатели",
+        [
+            ("customers_count", "Количество (новые/старые)"),
+            ("repeat_share", "Доля повторных"),
+            ("orders_per_customer", "Заказов на покупателя"),
+            ("sleeping_customers", "Спящие покупатели (90 дней)"),
+            ("top_customers_revenue", "ТОП-10 клиентов по обороту"),
+            ("top_customers_orders", "ТОП-10 клиентов по заказам"),
+        ],
+    ),
+    (
+        "Товары",
+        [
+            ("products_no_sales", "Товары без продаж"),
+            ("top_products_revenue", "Топ товаров по выручке"),
+            ("top_products_units", "Топ товаров по количеству продаж"),
+            ("products_together", "Покупают вместе"),
+        ],
+    ),
+]
+
+PAGE_TITLES = {
+    page_key: page_title
+    for _, pages in ANALYTICS_NAVIGATION
+    for page_key, page_title in pages
+}
+
+PAGE_DESCRIPTIONS = {
+    "period_changes": "Главные изменения по сравнению с предыдущим периодом такой же длины.",
+    "recommendations": "Автоматические выводы на основе заказов, покупателей и товаров.",
+    "revenue": "Динамика оборота за выбранный период.",
+    "revenue_segments": "Распределение оборота между новыми и повторными покупателями.",
+    "orders_count": "Количество заказов по дням.",
+    "orders_segments": "Заказы новых и повторных покупателей.",
+    "average_check": "Средний чек и его изменение по дням.",
+    "check_segments": "Средний чек новых и повторных покупателей.",
+    "items_per_order": "Среднее количество товаров и распределение заказов по наполнению.",
+    "order_statuses": "Структура заказов по текущим статусам.",
+    "customers_count": "Новые и повторные покупатели за выбранный период.",
+    "repeat_share": "Доля покупателей, которые сделали больше одного заказа.",
+    "orders_per_customer": "Распределение покупателей по количеству заказов.",
+    "top_products_revenue": "Товары, которые сформировали наибольший оборот.",
+    "top_products_units": "Товары с наибольшим количеством проданных единиц.",
+    "products_together": "Пары товаров, которые встречаются в одном заказе.",
+}
+
+
 @st.cache_data(show_spinner=False)
 def parse_xml_cached(xml_bytes: bytes):
     return parse_xml(xml_bytes)
@@ -292,6 +363,140 @@ def apply_theme() -> None:
 
         [data-testid="stSidebar"] hr {
             border-color: #D9D267 !important;
+        }
+
+
+        [data-testid="stSidebar"] {
+            min-width: 330px;
+        }
+
+        [data-testid="stSidebar"] [role="radiogroup"] {
+            gap: 6px;
+            margin-bottom: 14px;
+        }
+
+        [data-testid="stSidebar"] [role="radio"] {
+            padding: 9px 10px;
+            background: #FFFFFF;
+            border: 1px solid #D9D267;
+        }
+
+        [data-testid="stSidebar"] [role="radio"][aria-checked="true"] {
+            background: #FBF560;
+            border-color: #111111;
+            font-weight: 800;
+        }
+
+        .sidebar-product-title {
+            margin: 0 0 10px;
+            padding: 12px 14px;
+            background: #111111;
+            color: #FFFFFF !important;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .sidebar-product-title * {
+            color: #FFFFFF !important;
+        }
+
+        .nav-group-heading {
+            margin: 24px 0 7px;
+            padding: 0 5px;
+            color: #111111 !important;
+            font-size: 1rem;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        [data-testid="stSidebar"] .stButton {
+            margin: 0 0 2px;
+        }
+
+        [data-testid="stSidebar"] .stButton > button {
+            min-height: 2.15rem;
+            padding: 0.38rem 0.7rem 0.38rem 1.05rem;
+            justify-content: flex-start;
+            text-align: left;
+            background: transparent !important;
+            border: 0 !important;
+            border-left: 3px solid transparent !important;
+            font-size: 0.88rem;
+            font-weight: 600 !important;
+            line-height: 1.2;
+        }
+
+        [data-testid="stSidebar"] .stButton > button:hover {
+            background: #FFF9B5 !important;
+            border-left-color: #D8D142 !important;
+        }
+
+        [data-testid="stSidebar"] button[kind="primary"],
+        [data-testid="stSidebar"] [data-testid="stBaseButton-primary"] {
+            background: #FBF560 !important;
+            border-left: 3px solid #111111 !important;
+            font-weight: 800 !important;
+        }
+
+        [data-testid="stSidebar"] [data-testid="stExpander"] .stButton > button {
+            background: #FBF560 !important;
+            border: 1px solid #111111 !important;
+            padding-left: 0.75rem;
+            justify-content: center;
+        }
+
+        .page-heading {
+            margin: 4px 0 22px;
+            padding-bottom: 14px;
+            border-bottom: 1px solid #D9D267;
+        }
+
+        .page-heading h2 {
+            margin: 0 0 5px;
+            font-size: 1.75rem;
+            line-height: 1.2;
+        }
+
+        .page-heading p {
+            margin: 0;
+            color: #4B4B4B !important;
+        }
+
+        .module-placeholder {
+            min-height: 310px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: flex-start;
+            padding: 38px;
+            background: #FFFEEE;
+            border: 1px solid #D9D267;
+            border-left: 6px solid #FBF560;
+        }
+
+        .module-placeholder .module-status {
+            display: inline-block;
+            margin-bottom: 14px;
+            padding: 5px 9px;
+            background: #FBF560;
+            border: 1px solid #111111;
+            font-size: 0.75rem;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+        }
+
+        .module-placeholder h3 {
+            margin: 0 0 9px;
+            font-size: 1.45rem;
+        }
+
+        .module-placeholder p {
+            max-width: 680px;
+            margin: 0;
+            color: #4B4B4B !important;
+            line-height: 1.55;
         }
 
         .block-container {
@@ -1058,6 +1263,633 @@ def render_recommendations(recommendations: list[dict[str, str]]) -> None:
                 )
 
 
+def render_page_heading(page_key: str) -> None:
+    title = PAGE_TITLES.get(page_key, "Аналитика")
+    description = PAGE_DESCRIPTIONS.get(
+        page_key,
+        "Раздел подключен к навигации. Аналитический модуль будет добавлен отдельно.",
+    )
+    st.markdown(
+        f"""
+        <div class="page-heading">
+            <h2>{escape(title)}</h2>
+            <p>{escape(description)}</p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_placeholder(page_key: str) -> None:
+    title = PAGE_TITLES.get(page_key, "Новый раздел")
+    st.markdown(
+        f"""
+        <div class="module-placeholder">
+            <div class="module-status">МОДУЛЬ ПОДГОТОВЛЕН</div>
+            <h3>{escape(title)}</h3>
+            <p>
+                Пункт уже добавлен в структуру системы. Расчеты, таблицы и графики
+                для него подключим отдельным модулем, не затрагивая остальные разделы.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_analytics_navigation() -> str:
+    selected_page = st.session_state.get("analytics_page", "period_changes")
+    if selected_page not in PAGE_TITLES:
+        selected_page = "period_changes"
+        st.session_state["analytics_page"] = selected_page
+
+    for group_title, pages in ANALYTICS_NAVIGATION:
+        st.markdown(
+            f'<div class="nav-group-heading">{escape(group_title)}</div>',
+            unsafe_allow_html=True,
+        )
+        for page_key, page_title in pages:
+            if st.button(
+                page_title,
+                key=f"nav_{page_key}",
+                width="stretch",
+                type="primary" if page_key == selected_page else "secondary",
+            ):
+                st.session_state["analytics_page"] = page_key
+                st.rerun()
+
+    return selected_page
+
+
+def add_customer_segments(
+    period_orders: pd.DataFrame,
+    all_orders: pd.DataFrame,
+) -> pd.DataFrame:
+    segmented = period_orders.copy()
+    first_order_dates = all_orders.groupby("customer_key")["order_date"].min()
+    segmented["first_order_date"] = segmented["customer_key"].map(first_order_dates)
+    segmented["customer_segment"] = "Повторные"
+    first_order_mask = (
+        segmented["order_date"].dt.normalize()
+        == segmented["first_order_date"].dt.normalize()
+    )
+    segmented.loc[first_order_mask, "customer_segment"] = "Новые"
+    return segmented
+
+
+def prepare_analytics_context(
+    parsed,
+    selected_dates,
+    selected_statuses: list[str],
+) -> dict[str, object] | None:
+    all_orders = parsed.orders.copy()
+    all_items = parsed.items.copy()
+    min_date = all_orders["order_date"].min().date()
+    max_date = all_orders["order_date"].max().date()
+
+    if isinstance(selected_dates, (tuple, list)) and len(selected_dates) == 2:
+        start_date, end_date = selected_dates
+    else:
+        selected_date = selected_dates if isinstance(selected_dates, date) else min_date
+        start_date = selected_date
+        end_date = selected_date
+
+    orders = all_orders[
+        all_orders["order_date"].dt.date.between(start_date, end_date)
+        & all_orders["status"].isin(selected_statuses)
+    ].copy()
+    items = all_items[all_items["order_id"].isin(orders["order_id"])].copy()
+
+    if orders.empty:
+        return None
+
+    filtered_all_orders = all_orders[all_orders["status"].isin(selected_statuses)].copy()
+    segmented_orders = add_customer_segments(orders, filtered_all_orders)
+
+    period_days = (end_date - start_date).days + 1
+    previous_end = start_date - timedelta(days=1)
+    previous_start = previous_end - timedelta(days=period_days - 1)
+    previous_orders = filtered_all_orders[
+        filtered_all_orders["order_date"].dt.date.between(previous_start, previous_end)
+    ].copy()
+
+    revenue = float(orders["order_total"].sum())
+    order_count = int(orders["order_id"].nunique())
+    average_check = revenue / order_count if order_count else 0.0
+    sold_units = int(items["quantity"].sum()) if not items.empty else 0
+    unique_customers = int(orders["customer_key"].nunique())
+    customer_orders = orders.groupby("customer_key")["order_id"].nunique()
+    repeat_customers = int((customer_orders >= 2).sum())
+    repeat_rate = safe_percent(repeat_customers, unique_customers)
+
+    previous_revenue = float(previous_orders["order_total"].sum())
+    previous_count = int(previous_orders["order_id"].nunique())
+    previous_average = previous_revenue / previous_count if previous_count else 0.0
+
+    products = product_analytics(items, start_date, end_date)
+    business = calculate_business_metrics(orders, items, products, start_date, end_date)
+    recommendations = build_recommendations(business, products)
+
+    daily = (
+        orders.assign(day=orders["order_date"].dt.floor("D"))
+        .groupby("day", as_index=False)
+        .agg(
+            revenue=("order_total", "sum"),
+            orders=("order_id", "nunique"),
+            average_check=("order_total", "mean"),
+        )
+    )
+
+    customer_summary = (
+        orders.groupby("customer_key", as_index=False)
+        .agg(
+            orders=("order_id", "nunique"),
+            revenue=("order_total", "sum"),
+            last_order=("order_date", "max"),
+        )
+    )
+    customer_summary["segment"] = customer_summary["orders"].apply(
+        lambda count: "Повторные" if count >= 2 else "Одна покупка"
+    )
+
+    return {
+        "parsed": parsed,
+        "all_orders": all_orders,
+        "orders": orders,
+        "items": items,
+        "segmented_orders": segmented_orders,
+        "previous_orders": previous_orders,
+        "products": products,
+        "business": business,
+        "recommendations": recommendations,
+        "daily": daily,
+        "customer_summary": customer_summary,
+        "start_date": start_date,
+        "end_date": end_date,
+        "revenue": revenue,
+        "order_count": order_count,
+        "average_check": average_check,
+        "sold_units": sold_units,
+        "unique_customers": unique_customers,
+        "repeat_customers": repeat_customers,
+        "repeat_rate": repeat_rate,
+        "previous_revenue": previous_revenue,
+        "previous_count": previous_count,
+        "previous_average": previous_average,
+    }
+
+
+def render_period_changes_page(context: dict[str, object]) -> None:
+    revenue = float(context["revenue"])
+    order_count = int(context["order_count"])
+    average_check = float(context["average_check"])
+    sold_units = int(context["sold_units"])
+    previous_revenue = float(context["previous_revenue"])
+    previous_count = int(context["previous_count"])
+    previous_average = float(context["previous_average"])
+    business = context["business"]
+    products = context["products"]
+
+    metrics = st.columns(4)
+    metrics[0].metric(
+        "Оборот",
+        format_money(revenue),
+        percent_delta(revenue, previous_revenue),
+    )
+    metrics[1].metric(
+        "Количество заказов",
+        format_number(order_count),
+        percent_delta(order_count, previous_count),
+    )
+    metrics[2].metric(
+        "Средний чек",
+        format_money(average_check),
+        percent_delta(average_check, previous_average),
+    )
+    metrics[3].metric("Продано единиц", format_number(sold_units))
+
+    trend = float(business["period_trend"])
+    trend_word = "вырос" if trend >= 0 else "снизился"
+    top_product_name = (
+        products.nlargest(1, "revenue")["product_name"].iloc[0]
+        if isinstance(products, pd.DataFrame) and not products.empty
+        else "нет данных"
+    )
+    st.markdown(
+        f"""
+        <div class="summary-box">
+            Оборот за вторую половину выбранного периода {trend_word} на
+            <b>{abs(trend):.1f}%</b> относительно первой половины.
+            Лидер по обороту: <b>{escape(str(top_product_name))}</b>.
+            Лучший день недели: <b>{escape(str(business['best_weekday']))}</b>.
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    daily = context["daily"]
+    chart = px.line(
+        daily,
+        x="day",
+        y=["revenue", "orders"],
+        markers=True,
+        title="Динамика основных показателей",
+        labels={"day": "Дата", "value": "Значение", "variable": "Показатель"},
+        color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK],
+    )
+    chart.for_each_trace(
+        lambda trace: trace.update(
+            name="Оборот" if trace.name == "revenue" else "Заказы"
+        )
+    )
+    st.plotly_chart(configure_plot(chart, 420), width="stretch")
+
+
+def render_revenue_page(context: dict[str, object]) -> None:
+    revenue = float(context["revenue"])
+    previous_revenue = float(context["previous_revenue"])
+    daily = context["daily"]
+
+    st.metric("Оборот", format_money(revenue), percent_delta(revenue, previous_revenue))
+    chart = px.line(
+        daily,
+        x="day",
+        y="revenue",
+        markers=True,
+        title="Оборот по дням",
+        labels={"day": "Дата", "revenue": "Оборот, грн"},
+        color_discrete_sequence=[BRAND_YELLOW],
+    )
+    chart.update_traces(
+        line_width=3,
+        line_color=BRAND_YELLOW,
+        marker=dict(color=BRAND_YELLOW, size=8, line=dict(color=BRAND_BLACK, width=1)),
+    )
+    st.plotly_chart(configure_plot(chart, 440), width="stretch")
+
+
+def render_revenue_segments_page(context: dict[str, object]) -> None:
+    segmented = context["segmented_orders"]
+    stats = (
+        segmented.groupby("customer_segment", as_index=False)
+        .agg(revenue=("order_total", "sum"), orders=("order_id", "nunique"))
+    )
+    total = float(stats["revenue"].sum())
+    stats["share"] = stats["revenue"].apply(lambda value: safe_percent(value, total))
+
+    columns = st.columns(max(len(stats), 1))
+    for column, (_, row) in zip(columns, stats.iterrows()):
+        column.metric(
+            str(row["customer_segment"]),
+            format_money(float(row["revenue"])),
+            f"{float(row['share']):.1f}% оборота",
+        )
+
+    daily = (
+        segmented.assign(day=segmented["order_date"].dt.floor("D"))
+        .groupby(["day", "customer_segment"], as_index=False)
+        .agg(revenue=("order_total", "sum"))
+    )
+    chart = px.area(
+        daily,
+        x="day",
+        y="revenue",
+        color="customer_segment",
+        title="Оборот новых и повторных покупателей",
+        labels={"day": "Дата", "revenue": "Оборот, грн", "customer_segment": "Покупатели"},
+        color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK],
+    )
+    st.plotly_chart(configure_plot(chart, 440), width="stretch")
+
+
+def render_orders_count_page(context: dict[str, object]) -> None:
+    order_count = int(context["order_count"])
+    previous_count = int(context["previous_count"])
+    daily = context["daily"]
+
+    st.metric(
+        "Количество заказов",
+        format_number(order_count),
+        percent_delta(order_count, previous_count),
+    )
+    chart = px.line(
+        daily,
+        x="day",
+        y="orders",
+        markers=True,
+        title="Количество заказов по дням",
+        labels={"day": "Дата", "orders": "Заказы"},
+        color_discrete_sequence=[BRAND_YELLOW],
+    )
+    chart.update_traces(
+        line_width=3,
+        marker=dict(color=BRAND_YELLOW, size=8, line=dict(color=BRAND_BLACK, width=1)),
+    )
+    st.plotly_chart(configure_plot(chart, 440), width="stretch")
+
+
+def render_orders_segments_page(context: dict[str, object]) -> None:
+    segmented = context["segmented_orders"]
+    stats = (
+        segmented.groupby("customer_segment", as_index=False)
+        .agg(orders=("order_id", "nunique"))
+    )
+    total_orders = int(stats["orders"].sum())
+    stats["share"] = stats["orders"].apply(lambda value: safe_percent(value, total_orders))
+
+    columns = st.columns(max(len(stats), 1))
+    for column, (_, row) in zip(columns, stats.iterrows()):
+        column.metric(
+            str(row["customer_segment"]),
+            format_number(int(row["orders"])),
+            f"{float(row['share']):.1f}% заказов",
+        )
+
+    chart = px.bar(
+        stats,
+        x="customer_segment",
+        y="orders",
+        text="orders",
+        title="Количество заказов по типу покупателя",
+        labels={"customer_segment": "Покупатели", "orders": "Заказы"},
+        color="customer_segment",
+        color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK],
+    )
+    chart.update_layout(showlegend=False)
+    st.plotly_chart(configure_plot(chart, 420), width="stretch")
+
+
+def render_average_check_page(context: dict[str, object]) -> None:
+    average_check = float(context["average_check"])
+    previous_average = float(context["previous_average"])
+    daily = context["daily"]
+
+    st.metric(
+        "Средний чек",
+        format_money(average_check),
+        percent_delta(average_check, previous_average),
+    )
+    chart = px.line(
+        daily,
+        x="day",
+        y="average_check",
+        markers=True,
+        title="Средний чек по дням",
+        labels={"day": "Дата", "average_check": "Средний чек, грн"},
+        color_discrete_sequence=[BRAND_YELLOW],
+    )
+    chart.update_traces(
+        line_width=3,
+        marker=dict(color=BRAND_YELLOW, size=8, line=dict(color=BRAND_BLACK, width=1)),
+    )
+    st.plotly_chart(configure_plot(chart, 440), width="stretch")
+
+
+def render_check_segments_page(context: dict[str, object]) -> None:
+    segmented = context["segmented_orders"]
+    stats = (
+        segmented.groupby("customer_segment", as_index=False)
+        .agg(
+            revenue=("order_total", "sum"),
+            orders=("order_id", "nunique"),
+        )
+    )
+    stats["average_check"] = stats.apply(
+        lambda row: row["revenue"] / row["orders"] if row["orders"] else 0,
+        axis=1,
+    )
+
+    columns = st.columns(max(len(stats), 1))
+    for column, (_, row) in zip(columns, stats.iterrows()):
+        column.metric(str(row["customer_segment"]), format_money(float(row["average_check"])))
+
+    chart = px.bar(
+        stats,
+        x="customer_segment",
+        y="average_check",
+        text_auto=".2s",
+        title="Средний чек новых и повторных покупателей",
+        labels={"customer_segment": "Покупатели", "average_check": "Средний чек, грн"},
+        color="customer_segment",
+        color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK],
+    )
+    chart.update_layout(showlegend=False)
+    st.plotly_chart(configure_plot(chart, 420), width="stretch")
+
+
+def render_items_per_order_page(context: dict[str, object]) -> None:
+    orders = context["orders"]
+    business = context["business"]
+
+    metrics = st.columns(3)
+    metrics[0].metric("Среднее товаров в заказе", f"{float(business['average_items']):.2f}")
+    metrics[1].metric("Заказы с одним товаром", f"{float(business['single_item_share']):.1f}%")
+    metrics[2].metric("Максимум товаров", format_number(int(orders["item_quantity"].max())))
+
+    distribution = (
+        orders.groupby("item_quantity", as_index=False)["order_id"]
+        .nunique()
+        .rename(columns={"item_quantity": "items", "order_id": "orders"})
+        .sort_values("items")
+    )
+    chart = px.bar(
+        distribution,
+        x="items",
+        y="orders",
+        text="orders",
+        title="Распределение заказов по количеству товаров",
+        labels={"items": "Товаров в заказе", "orders": "Заказы"},
+        color_discrete_sequence=[BRAND_YELLOW],
+    )
+    st.plotly_chart(configure_plot(chart, 430), width="stretch")
+
+
+def render_order_statuses_page(context: dict[str, object]) -> None:
+    orders = context["orders"]
+    stats = (
+        orders.groupby("status", as_index=False)
+        .agg(orders=("order_id", "nunique"), revenue=("order_total", "sum"))
+        .sort_values("orders", ascending=False)
+    )
+
+    left, right = st.columns([1.4, 1])
+    with left:
+        chart = px.pie(
+            stats,
+            names="status",
+            values="orders",
+            hole=0.58,
+            title="Заказы по статусам",
+            color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK, BRAND_GOLD],
+        )
+        chart.update_layout(legend_orientation="h")
+        st.plotly_chart(configure_plot(chart, 420), width="stretch")
+    with right:
+        display = stats.rename(
+            columns={"status": "Статус", "orders": "Заказы", "revenue": "Оборот, грн"}
+        )
+        st.dataframe(
+            display,
+            width="stretch",
+            hide_index=True,
+            column_config={"Оборот, грн": st.column_config.NumberColumn(format="%.2f")},
+        )
+
+
+def render_customers_count_page(context: dict[str, object]) -> None:
+    segmented = context["segmented_orders"]
+    stats = (
+        segmented.groupby("customer_segment", as_index=False)["customer_key"]
+        .nunique()
+        .rename(columns={"customer_key": "customers"})
+    )
+    total = int(stats["customers"].sum())
+
+    columns = st.columns(max(len(stats), 1))
+    for column, (_, row) in zip(columns, stats.iterrows()):
+        column.metric(
+            str(row["customer_segment"]),
+            format_number(int(row["customers"])),
+            f"{safe_percent(int(row['customers']), total):.1f}% покупателей",
+        )
+
+    chart = px.pie(
+        stats,
+        names="customer_segment",
+        values="customers",
+        hole=0.62,
+        title="Новые и повторные покупатели",
+        color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK],
+    )
+    chart.update_layout(legend_orientation="h")
+    st.plotly_chart(configure_plot(chart, 430), width="stretch")
+
+
+def render_repeat_share_page(context: dict[str, object]) -> None:
+    business = context["business"]
+    metrics = st.columns(3)
+    metrics[0].metric("Покупатели", format_number(int(context["unique_customers"])))
+    metrics[1].metric("Повторные покупатели", f"{float(context['repeat_rate']):.1f}%")
+    metrics[2].metric("Оборот от повторных", f"{float(business['repeat_revenue_share']):.1f}%")
+
+    customer_summary = context["customer_summary"]
+    segment_stats = (
+        customer_summary.groupby("segment", as_index=False)
+        .agg(customers=("customer_key", "nunique"), revenue=("revenue", "sum"))
+    )
+    chart = px.bar(
+        segment_stats,
+        x="segment",
+        y="revenue",
+        text_auto=".2s",
+        title="Оборот по частоте покупок",
+        labels={"segment": "Сегмент", "revenue": "Оборот, грн"},
+        color="segment",
+        color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK],
+    )
+    chart.update_layout(showlegend=False)
+    st.plotly_chart(configure_plot(chart, 420), width="stretch")
+
+
+def render_orders_per_customer_page(context: dict[str, object]) -> None:
+    customer_summary = context["customer_summary"]
+    frequency = (
+        customer_summary.groupby("orders", as_index=False)["customer_key"]
+        .nunique()
+        .rename(columns={"orders": "order_count", "customer_key": "customers"})
+        .sort_values("order_count")
+    )
+    chart = px.bar(
+        frequency,
+        x="order_count",
+        y="customers",
+        text="customers",
+        title="Распределение покупателей по количеству заказов",
+        labels={"order_count": "Заказов на покупателя", "customers": "Покупатели"},
+        color_discrete_sequence=[BRAND_YELLOW],
+    )
+    st.plotly_chart(configure_plot(chart, 440), width="stretch")
+
+
+def render_top_products_revenue_page(context: dict[str, object]) -> None:
+    products = context["products"]
+    if products.empty:
+        st.info("В выбранном периоде нет товарных позиций.")
+        return
+
+    top_products_frame = products.nlargest(10, "revenue").sort_values("revenue")
+    chart = px.bar(
+        top_products_frame,
+        x="revenue",
+        y="product_name",
+        orientation="h",
+        text_auto=".2s",
+        title="Топ-10 товаров по обороту",
+        labels={"revenue": "Оборот, грн", "product_name": "Товар"},
+        color_discrete_sequence=[BRAND_YELLOW],
+    )
+    chart.update_layout(yaxis_title=None)
+    st.plotly_chart(configure_plot(chart, 500), width="stretch")
+
+
+def render_top_products_units_page(context: dict[str, object]) -> None:
+    products = context["products"]
+    if products.empty:
+        st.info("В выбранном периоде нет товарных позиций.")
+        return
+
+    top_products_frame = products.nlargest(10, "sold_units").sort_values("sold_units")
+    chart = px.bar(
+        top_products_frame,
+        x="sold_units",
+        y="product_name",
+        orientation="h",
+        text="sold_units",
+        title="Топ-10 товаров по количеству продаж",
+        labels={"sold_units": "Продано, шт.", "product_name": "Товар"},
+        color_discrete_sequence=[BRAND_YELLOW],
+    )
+    chart.update_layout(yaxis_title=None)
+    st.plotly_chart(configure_plot(chart, 500), width="stretch")
+
+
+def render_products_together_page(context: dict[str, object]) -> None:
+    pairs = context["business"]["pairs"]
+    if isinstance(pairs, pd.DataFrame) and not pairs.empty:
+        st.dataframe(pairs, width="stretch", hide_index=True)
+    else:
+        st.info("Недостаточно заказов с несколькими товарами для анализа пар.")
+
+
+def render_selected_analytics_page(page_key: str, context: dict[str, object]) -> None:
+    render_page_heading(page_key)
+
+    renderers = {
+        "period_changes": render_period_changes_page,
+        "recommendations": lambda data: render_recommendations(data["recommendations"]),
+        "revenue": render_revenue_page,
+        "revenue_segments": render_revenue_segments_page,
+        "orders_count": render_orders_count_page,
+        "orders_segments": render_orders_segments_page,
+        "average_check": render_average_check_page,
+        "check_segments": render_check_segments_page,
+        "items_per_order": render_items_per_order_page,
+        "order_statuses": render_order_statuses_page,
+        "customers_count": render_customers_count_page,
+        "repeat_share": render_repeat_share_page,
+        "orders_per_customer": render_orders_per_customer_page,
+        "top_products_revenue": render_top_products_revenue_page,
+        "top_products_units": render_top_products_units_page,
+        "products_together": render_products_together_page,
+    }
+
+    renderer = renderers.get(page_key)
+    if renderer is None:
+        render_placeholder(page_key)
+        return
+    renderer(context)
+
+
 def main() -> None:
     st.set_page_config(
         page_title="I-PR Store Analytics",
@@ -1085,23 +1917,6 @@ def main() -> None:
             st.rerun()
         st.stop()
 
-    with st.sidebar:
-        st.header("Разделы")
-        active_section = st.radio(
-            "Раздел приложения",
-            options=["Аналитика", "CRO"],
-            label_visibility="collapsed",
-        )
-        st.divider()
-        render_loaded_files_sidebar()
-        st.divider()
-
-    if active_section == "CRO":
-        cro_module.render_cro_page(LOGO_PATH)
-        return
-
-    render_header()
-
     try:
         parsed = parse_xml_cached(stored_orders_bytes)
     except ValueError as exc:
@@ -1113,438 +1928,59 @@ def main() -> None:
         st.stop()
 
     all_orders = parsed.orders.copy()
-    all_items = parsed.items.copy()
     min_date = all_orders["order_date"].min().date()
     max_date = all_orders["order_date"].max().date()
 
     with st.sidebar:
-        st.divider()
-        st.header("Фильтры")
-        selected_dates = st.date_input(
-            "Период",
-            value=(min_date, max_date),
-            min_value=min_date,
-            max_value=max_date,
-        )
-        selected_statuses = st.multiselect(
-            "Статусы",
-            options=list(ALLOWED_STATUSES),
-            default=list(ALLOWED_STATUSES),
+        active_module = st.radio(
+            "Основной раздел",
+            options=["01 Аналитика продаж", "02 CRO аудит"],
+            key="main_module",
+            label_visibility="collapsed",
         )
 
-    if isinstance(selected_dates, (tuple, list)) and len(selected_dates) == 2:
-        start_date, end_date = selected_dates
-    else:
-        selected_date = selected_dates if isinstance(selected_dates, date) else min_date
-        start_date = selected_date
-        end_date = selected_date
+        if active_module == "01 Аналитика продаж":
+            selected_page = render_analytics_navigation()
+        else:
+            selected_page = "cro"
 
-    orders = all_orders[
-        all_orders["order_date"].dt.date.between(start_date, end_date)
-        & all_orders["status"].isin(selected_statuses)
-    ].copy()
-    items = all_items[all_items["order_id"].isin(orders["order_id"])].copy()
+        with st.expander("Фильтры", expanded=False):
+            selected_dates = st.date_input(
+                "Период",
+                value=(min_date, max_date),
+                min_value=min_date,
+                max_value=max_date,
+                key="analytics_period",
+            )
+            selected_statuses = st.multiselect(
+                "Статусы",
+                options=list(ALLOWED_STATUSES),
+                default=list(ALLOWED_STATUSES),
+                key="analytics_statuses",
+            )
 
-    if orders.empty:
+        with st.expander("Загруженные файлы", expanded=False):
+            render_loaded_files_sidebar()
+
+    if active_module == "02 CRO аудит":
+        cro_module.render_cro_page(LOGO_PATH)
+        return
+
+    render_header()
+
+    context = prepare_analytics_context(parsed, selected_dates, selected_statuses)
+    if context is None:
+        render_page_heading(selected_page)
         st.warning("По выбранным фильтрам нет заказов.")
-        st.stop()
+        return
 
-    period_days = (end_date - start_date).days + 1
-    previous_end = start_date - timedelta(days=1)
-    previous_start = previous_end - timedelta(days=period_days - 1)
-    previous_orders = all_orders[
-        all_orders["order_date"].dt.date.between(previous_start, previous_end)
-        & all_orders["status"].isin(selected_statuses)
-    ]
-
-    revenue = float(orders["order_total"].sum())
-    order_count = int(orders["order_id"].nunique())
-    average_check = revenue / order_count if order_count else 0.0
-    sold_units = int(items["quantity"].sum()) if not items.empty else 0
-    unique_customers = int(orders["customer_key"].nunique())
-    customer_orders = orders.groupby("customer_key")["order_id"].nunique()
-    repeat_customers = int((customer_orders >= 2).sum())
-    repeat_rate = safe_percent(repeat_customers, unique_customers)
-
-    previous_revenue = float(previous_orders["order_total"].sum())
-    previous_count = int(previous_orders["order_id"].nunique())
-    previous_average = previous_revenue / previous_count if previous_count else 0.0
-
-    products = product_analytics(items, start_date, end_date)
-    business = calculate_business_metrics(orders, items, products, start_date, end_date)
-    recommendations = build_recommendations(business, products)
-
-    first_metrics = st.columns(6)
-    first_metrics[0].metric("Сумма заказов", format_money(revenue), percent_delta(revenue, previous_revenue))
-    first_metrics[1].metric("Заказы", format_number(order_count), percent_delta(order_count, previous_count))
-    first_metrics[2].metric("Средний чек", format_money(average_check), percent_delta(average_check, previous_average))
-    first_metrics[3].metric("Медианный чек", format_money(float(business["median_check"])))
-    first_metrics[4].metric("Продано единиц", format_number(sold_units))
-    first_metrics[5].metric("Товаров в заказе", f"{float(business['average_items']):.2f}")
-
-    second_metrics = st.columns(5)
-    second_metrics[0].metric("Покупатели", format_number(unique_customers))
-    second_metrics[1].metric("Повторные покупатели", f"{repeat_rate:.1f}%")
-    second_metrics[2].metric("Сумма от повторных", f"{float(business['repeat_revenue_share']):.1f}%")
-    second_metrics[3].metric("Доля топ-5 товаров", f"{float(business['top5_share']):.1f}%")
-    second_metrics[4].metric("Заказы с 1 товаром", f"{float(business['single_item_share']):.1f}%")
+    render_selected_analytics_page(selected_page, context)
 
     st.caption(
         f"В XML найдено {parsed.total_xml_orders} заказов. "
         f"Исключено по статусу: {parsed.skipped_by_status}. "
-        f"В текущем фильтре: {order_count}."
+        f"В текущем фильтре: {int(context['order_count'])}."
     )
-
-    trend_text = float(business["period_trend"])
-    trend_word = "выросла" if trend_text >= 0 else "снизилась"
-    top_product_name = products.nlargest(1, "revenue")["product_name"].iloc[0] if not products.empty else "нет данных"
-    st.markdown(
-        f"""
-        <div class="summary-box">
-            За выбранный период магазин получил <b>{format_money(revenue)}</b> из <b>{order_count}</b> заказов.
-            Средняя дневная сумма во второй половине периода {trend_word} на <b>{abs(trend_text):.1f}%</b>.
-            Лидер по сумме продаж: <b>{escape(str(top_product_name))}</b>.
-            Лучший день недели по средней дневной сумме: <b>{escape(str(business['best_weekday']))}</b>.
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    overview_tab, products_tab, customers_tab, recommendations_tab, quality_tab = st.tabs(
-        ["Обзор", "Товары", "Клиенты", "Рекомендации", "Качество данных"]
-    )
-
-    with overview_tab:
-        daily = (
-            orders.assign(day=orders["order_date"].dt.floor("D"))
-            .groupby("day", as_index=False)
-            .agg(revenue=("order_total", "sum"), orders=("order_id", "nunique"))
-        )
-
-        daily_chart = px.line(
-            daily,
-            x="day",
-            y="revenue",
-            markers=True,
-            title="Динамика суммы заказов",
-            labels={"day": "Дата", "revenue": "Сумма, грн"},
-            color_discrete_sequence=[BRAND_YELLOW],
-        )
-        daily_chart.update_traces(
-            line_width=3,
-            line_color=BRAND_YELLOW,
-            marker=dict(
-                color=BRAND_YELLOW,
-                size=8,
-                line=dict(color=BRAND_BLACK, width=1),
-            ),
-        )
-        daily_chart.update_layout(hovermode="x unified")
-        st.plotly_chart(configure_plot(daily_chart, 390), width="stretch")
-
-        left, right = st.columns(2)
-        with left:
-            if not products.empty:
-                top_units = products.nlargest(7, "sold_units").sort_values("sold_units")
-                units_chart = px.bar(
-                    top_units,
-                    x="sold_units",
-                    y="product_name",
-                    orientation="h",
-                    title="Топ товаров по количеству",
-                    labels={"sold_units": "Продано, шт.", "product_name": "Товар"},
-                    text="sold_units",
-                    color_discrete_sequence=[BRAND_YELLOW],
-                )
-                units_chart.update_layout(yaxis_title=None)
-                units_chart.update_traces(marker_line_color=BRAND_DARK_GOLD, marker_line_width=0.7)
-                st.plotly_chart(configure_plot(units_chart, 430), width="stretch")
-
-        with right:
-            if not products.empty:
-                top_revenue = products.nlargest(7, "revenue").sort_values("revenue")
-                revenue_chart = px.bar(
-                    top_revenue,
-                    x="revenue",
-                    y="product_name",
-                    orientation="h",
-                    title="Топ товаров по сумме",
-                    labels={"revenue": "Сумма, грн", "product_name": "Товар"},
-                    text_auto=".2s",
-                    color_discrete_sequence=[BRAND_GOLD],
-                )
-                revenue_chart.update_layout(yaxis_title=None)
-                revenue_chart.update_traces(marker_line_color=BRAND_DARK_GOLD, marker_line_width=0.7)
-                st.plotly_chart(configure_plot(revenue_chart, 430), width="stretch")
-
-        status_column, payment_column, region_column = st.columns(3)
-        with status_column:
-            status_stats = orders.groupby("status", as_index=False)["order_total"].sum()
-            status_chart = px.pie(
-                status_stats,
-                names="status",
-                values="order_total",
-                hole=0.6,
-                title="Сумма по статусам",
-                color_discrete_sequence=[BRAND_YELLOW, BRAND_BLACK, BRAND_GOLD],
-            )
-            status_chart.update_layout(legend_orientation="h")
-            status_chart.update_traces(
-                textfont=dict(color=BRAND_BLACK, size=12),
-                marker=dict(line=dict(color="#FFFFFF", width=2)),
-            )
-            st.plotly_chart(configure_plot(status_chart, 390), width="stretch")
-
-        with payment_column:
-            payment_stats = (
-                orders.groupby("payment_method", as_index=False)["order_id"]
-                .nunique()
-                .rename(columns={"order_id": "orders"})
-                .nlargest(6, "orders")
-                .sort_values("orders")
-            )
-            payment_chart = px.bar(
-                payment_stats,
-                x="orders",
-                y="payment_method",
-                orientation="h",
-                title="Способы оплаты",
-                labels={"orders": "Заказы", "payment_method": "Оплата"},
-                color_discrete_sequence=[BRAND_GOLD],
-            )
-            payment_chart.update_layout(yaxis_title=None)
-            payment_chart.update_traces(marker_line_color=BRAND_DARK_GOLD, marker_line_width=0.7)
-            st.plotly_chart(configure_plot(payment_chart, 390), width="stretch")
-
-        with region_column:
-            region_stats = (
-                orders.groupby("region", as_index=False)["order_total"]
-                .sum()
-                .nlargest(7, "order_total")
-                .sort_values("order_total")
-            )
-            region_chart = px.bar(
-                region_stats,
-                x="order_total",
-                y="region",
-                orientation="h",
-                title="Топ регионов",
-                labels={"order_total": "Сумма, грн", "region": "Регион"},
-                color_discrete_sequence=[BRAND_DARK_GOLD],
-            )
-            region_chart.update_layout(yaxis_title=None)
-            region_chart.update_traces(marker_line_color=BRAND_DARK_GOLD, marker_line_width=0.7)
-            st.plotly_chart(configure_plot(region_chart, 390), width="stretch")
-
-        weekday_daily = daily.copy()
-        weekday_daily["weekday_num"] = weekday_daily["day"].dt.weekday
-        weekday_daily["День недели"] = weekday_daily["weekday_num"].map(WEEKDAY_NAMES)
-        weekday_stats = (
-            weekday_daily.groupby("День недели", as_index=False)
-            .agg(**{"Средняя дневная сумма": ("revenue", "mean"), "Заказы": ("orders", "sum")})
-        )
-        weekday_stats["День недели"] = pd.Categorical(
-            weekday_stats["День недели"], categories=WEEKDAY_ORDER, ordered=True
-        )
-        weekday_stats = weekday_stats.sort_values("День недели")
-        weekday_chart = px.bar(
-            weekday_stats,
-            x="День недели",
-            y="Средняя дневная сумма",
-            title="Средняя дневная сумма по дням недели",
-            text_auto=".2s",
-            color_discrete_sequence=[BRAND_YELLOW],
-        )
-        st.plotly_chart(configure_plot(weekday_chart, 390), width="stretch")
-
-    with products_tab:
-        if products.empty:
-            st.info("В выбранном периоде нет товарных позиций.")
-        else:
-            product_table = products.copy()
-            product_table["revenue_share"] = product_table["revenue"] / revenue * 100 if revenue else 0
-            product_table["last_sale"] = product_table["last_sale"].dt.strftime("%d.%m.%Y")
-            product_table = product_table.rename(
-                columns={
-                    "product_name": "Товар",
-                    "sku": "SKU",
-                    "sold_units": "Продано, шт.",
-                    "revenue": "Сумма, грн",
-                    "orders": "Заказов",
-                    "average_price": "Средняя цена",
-                    "revenue_share": "Доля, %",
-                    "growth_percent": "Динамика, %",
-                    "last_sale": "Последняя продажа",
-                    "days_since_last_sale": "Дней без продаж",
-                }
-            )
-            display_columns = [
-                "Товар",
-                "SKU",
-                "Продано, шт.",
-                "Заказов",
-                "Сумма, грн",
-                "Доля, %",
-                "Динамика, %",
-                "Последняя продажа",
-                "Дней без продаж",
-            ]
-            st.dataframe(
-                product_table[display_columns],
-                width="stretch",
-                hide_index=True,
-                column_config={
-                    "Сумма, грн": st.column_config.NumberColumn(format="%.2f"),
-                    "Доля, %": st.column_config.NumberColumn(format="%.2f%%"),
-                    "Динамика, %": st.column_config.NumberColumn(format="%+.1f%%"),
-                },
-            )
-
-            growth_left, growth_right = st.columns(2)
-            meaningful_products = products[products["sold_units"] >= 2]
-            with growth_left:
-                st.subheader("Товары с ростом")
-                growing = meaningful_products.nlargest(10, "growth_percent")[[
-                    "product_name", "sold_units", "revenue", "growth_percent"
-                ]].rename(columns={
-                    "product_name": "Товар",
-                    "sold_units": "Продано, шт.",
-                    "revenue": "Сумма, грн",
-                    "growth_percent": "Рост, %",
-                })
-                st.dataframe(growing, width="stretch", hide_index=True)
-
-            with growth_right:
-                st.subheader("Товары со снижением")
-                declining = meaningful_products.nsmallest(10, "growth_percent")[[
-                    "product_name", "sold_units", "revenue", "growth_percent"
-                ]].rename(columns={
-                    "product_name": "Товар",
-                    "sold_units": "Продано, шт.",
-                    "revenue": "Сумма, грн",
-                    "growth_percent": "Изменение, %",
-                })
-                st.dataframe(declining, width="stretch", hide_index=True)
-
-            st.subheader("Товары, которые покупают вместе")
-            pairs = business["pairs"]
-            if isinstance(pairs, pd.DataFrame) and not pairs.empty:
-                st.dataframe(pairs, width="stretch", hide_index=True)
-            else:
-                st.info("Недостаточно заказов с несколькими товарами для анализа пар.")
-
-            csv_data = product_table.to_csv(index=False).encode("utf-8-sig")
-            st.download_button(
-                "Скачать отчет по товарам CSV",
-                data=csv_data,
-                file_name=f"products_{start_date}_{end_date}.csv",
-                mime="text/csv",
-            )
-
-    with customers_tab:
-        customer_summary = (
-            orders.groupby("customer_key", as_index=False)
-            .agg(orders=("order_id", "nunique"), revenue=("order_total", "sum"), last_order=("order_date", "max"))
-        )
-        customer_summary["Сегмент"] = customer_summary["orders"].apply(
-            lambda count: "Повторные" if count >= 2 else "Одна покупка"
-        )
-        segment_stats = (
-            customer_summary.groupby("Сегмент", as_index=False)
-            .agg(Покупатели=("customer_key", "nunique"), **{"Сумма, грн": ("revenue", "sum")})
-        )
-
-        customer_left, customer_right = st.columns(2)
-        with customer_left:
-            customer_chart = px.pie(
-                segment_stats,
-                names="Сегмент",
-                values="Покупатели",
-                hole=0.62,
-                title="Структура клиентской базы",
-                color_discrete_sequence=[BRAND_YELLOW, "#F4E7A5"],
-            )
-            customer_chart.update_layout(legend_orientation="h")
-            customer_chart.update_traces(
-                textfont=dict(color=BRAND_BLACK, size=12),
-                marker=dict(line=dict(color="#FFFFFF", width=2)),
-            )
-            st.plotly_chart(configure_plot(customer_chart, 390), width="stretch")
-
-        with customer_right:
-            revenue_segment_chart = px.bar(
-                segment_stats,
-                x="Сегмент",
-                y="Сумма, грн",
-                title="Сумма по клиентским сегментам",
-                text_auto=".2s",
-                color="Сегмент",
-                color_discrete_sequence=[BRAND_GOLD, "#F0D66C"],
-            )
-            revenue_segment_chart.update_layout(showlegend=False)
-            st.plotly_chart(configure_plot(revenue_segment_chart, 390), width="stretch")
-
-        frequency = (
-            customer_summary.groupby("orders", as_index=False)["customer_key"]
-            .nunique()
-            .rename(columns={"orders": "Количество заказов", "customer_key": "Покупатели"})
-            .sort_values("Количество заказов")
-        )
-        frequency_chart = px.bar(
-            frequency,
-            x="Количество заказов",
-            y="Покупатели",
-            title="Распределение покупателей по количеству заказов",
-            text="Покупатели",
-            color_discrete_sequence=[BRAND_GOLD],
-        )
-        st.plotly_chart(configure_plot(frequency_chart, 390), width="stretch")
-
-        st.caption(
-            "Имена, телефоны и email покупателей не выводятся. Для аналитики используется обезличенный идентификатор."
-        )
-
-    with recommendations_tab:
-        st.subheader("Автоматические бизнес-рекомендации")
-        st.caption("Рекомендации формируются по правилам на основе загруженных заказов и выбранного периода.")
-        render_recommendations(recommendations)
-
-    with quality_tab:
-        adjustment_orders = orders[orders["adjustment"].abs() > 0.01]
-        quality_metrics = st.columns(4)
-        quality_metrics[0].metric("Расхождения суммы", format_number(len(adjustment_orders)))
-        quality_metrics[1].metric(
-            "Сумма расхождений",
-            format_money(float(adjustment_orders["adjustment"].sum())),
-        )
-        quality_metrics[2].metric(
-            "Без способа оплаты",
-            format_number(int((orders["payment_method"] == "Не указано").sum())),
-        )
-        quality_metrics[3].metric(
-            "Без способа доставки",
-            format_number(int((orders["shipping_method"] == "Не указано").sum())),
-        )
-
-        st.write(
-            "Расхождение между суммой товаров и итогом заказа обычно связано со скидкой, доставкой или ручной корректировкой. "
-            "Для точного учета в XML нужны отдельные поля discount_total, shipping_total и coupon_code."
-        )
-
-        if not adjustment_orders.empty:
-            quality_table = adjustment_orders[[
-                "order_id", "order_date", "status", "products_total", "order_total", "adjustment"
-            ]].copy()
-            quality_table["order_date"] = quality_table["order_date"].dt.strftime("%d.%m.%Y %H:%M")
-            quality_table = quality_table.rename(columns={
-                "order_id": "Заказ",
-                "order_date": "Дата",
-                "status": "Статус",
-                "products_total": "Сумма товаров",
-                "order_total": "Итог заказа",
-                "adjustment": "Расхождение",
-            })
-            st.dataframe(quality_table, width="stretch", hide_index=True)
 
 
 if __name__ == "__main__":
