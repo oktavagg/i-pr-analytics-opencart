@@ -224,7 +224,6 @@ def render_import_screen() -> None:
     st.markdown(
         """
         <div class="import-intro">
-            <div class="import-step">ПЕРВЫЙ ШАГ</div>
             <h2>Загрузите данные магазина</h2>
             <p>Для запуска системы нужны два XML-файла: заказы и полный каталог товаров.</p>
         </div>
@@ -234,24 +233,26 @@ def render_import_screen() -> None:
 
     orders_column, products_column = st.columns(2, gap="large")
     with orders_column:
-        st.markdown("### 01. Заказы")
-        st.caption("XML с заказами и товарами внутри каждого заказа")
-        orders_file = st.file_uploader(
-            "Файл заказов",
-            type=["xml"],
-            key="initial_orders_xml",
-            label_visibility="collapsed",
-        )
+        with st.container(key="orders_upload_card"):
+            st.markdown("### 01. Заказы")
+            st.caption("XML с заказами и товарами внутри каждого заказа")
+            orders_file = st.file_uploader(
+                "Файл заказов",
+                type=["xml"],
+                key="initial_orders_xml",
+                label_visibility="collapsed",
+            )
 
     with products_column:
-        st.markdown("### 02. Товары")
-        st.caption("XML со всеми товарами интернет-магазина")
-        products_file = st.file_uploader(
-            "Файл товаров",
-            type=["xml"],
-            key="initial_products_xml",
-            label_visibility="collapsed",
-        )
+        with st.container(key="products_upload_card"):
+            st.markdown("### 02. Товары")
+            st.caption("XML со всеми товарами интернет-магазина")
+            products_file = st.file_uploader(
+                "Файл товаров",
+                type=["xml"],
+                key="initial_products_xml",
+                label_visibility="collapsed",
+            )
 
     st.markdown("### 03. Демо-данные")
     st.caption("Быстрый запуск системы без загрузки собственных файлов")
@@ -262,7 +263,6 @@ def render_import_screen() -> None:
             st.markdown(
                 """
                 <div class="demo-import-copy">
-                    <div class="demo-import-label">БЫСТРЫЙ СТАРТ</div>
                     <h3>Посмотреть систему на готовом примере</h3>
                     <p>Будут загружены тестовые заказы и каталог из папки <b>files_test</b>.</p>
                 </div>
@@ -877,8 +877,8 @@ def apply_theme() -> None:
             padding: 22px 28px;
             border: 1px solid #D9D267;
             border-top: 4px solid #FBF560;
-            border-radius: 0;
-            background: linear-gradient(120deg, #FFFFFF 0%, #FFFEEE 60%, #FFFCD0 100%);
+            border-radius: 14px;
+            background: linear-gradient(120deg, #FFFFFF 0%, #FFFDF4 68%, #FFFBCB 100%);
             box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
             margin-bottom: 22px;
             overflow: hidden;
@@ -891,8 +891,8 @@ def apply_theme() -> None:
             top: -80px;
             width: 230px;
             height: 230px;
-            border-radius: 0;
-            background: rgba(251, 245, 96, 0.18);
+            border-radius: 28px;
+            background: rgba(251, 245, 96, 0.16);
             transform: rotate(12deg);
         }
 
@@ -905,9 +905,9 @@ def apply_theme() -> None:
             flex: 0 0 205px;
             min-height: 72px;
             padding: 8px 14px;
-            border-radius: 0;
+            border-radius: 10px;
             background: #FFFFFF;
-            border: 1px solid #D9D267;
+            border: 1px solid #E2DDA5;
         }
 
         .brand-logo img {
@@ -1192,27 +1192,27 @@ def apply_theme() -> None:
         [data-testid="stFileUploaderDropzone"] {
             background: #FFFFFF !important;
             color: #111111 !important;
-            border: 1px solid #D9D267 !important;
-            border-radius: 0 !important;
+            border: 1px solid #DDD9B3 !important;
+            border-radius: 10px !important;
         }
 
         [data-testid="stFileUploaderDropzone"] button {
             background: #FBF560 !important;
             color: #111111 !important;
             border: 1px solid #111111 !important;
-            border-radius: 0 !important;
+            border-radius: 8px !important;
         }
 
         [data-testid="stFileUploader"] section {
             background: #FFFFFF !important;
-            border-radius: 0 !important;
+            border-radius: 10px !important;
         }
 
         [data-testid="stFileUploaderFile"] {
             background: #FFFFFF !important;
             color: #111111 !important;
-            border: 1px solid #111111 !important;
-            border-radius: 0 !important;
+            border: 1px solid #D8D8D8 !important;
+            border-radius: 8px !important;
             box-shadow: none !important;
         }
 
@@ -1229,7 +1229,7 @@ def apply_theme() -> None:
             background: #FBF560 !important;
             color: #111111 !important;
             border: 1px solid #111111 !important;
-            border-radius: 0 !important;
+            border-radius: 7px !important;
         }
 
         [data-testid="stFileUploaderFileDeleteBtn"] * {
@@ -1246,33 +1246,60 @@ def apply_theme() -> None:
 
 
         .import-intro {
-            padding: 30px 32px;
+            padding: 28px 30px;
             margin: 8px 0 24px;
-            background: #FFFEEE;
-            border: 1px solid #D9D267;
-            border-left: 6px solid #FBF560;
+            background: #FFFFFF;
+            border: 1px solid #E5E2CC;
+            border-left: 4px solid #FBF560;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(17, 17, 17, 0.035);
             transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
         }
 
         .import-intro:hover {
-            transform: translateY(-2px);
-            border-color: #A49E23;
-            box-shadow: 0 10px 24px rgba(17, 17, 17, 0.06);
+            transform: translateY(-1px);
+            border-color: #D6D09A;
+            box-shadow: 0 12px 30px rgba(17, 17, 17, 0.055);
+        }
+
+        .st-key-orders_upload_card,
+        .st-key-products_upload_card {
+            height: 100%;
+            padding: 20px 20px 18px;
+            background: #FFFFFF;
+            border: 1px solid #E5E5E5;
+            border-radius: 12px;
+            box-shadow: 0 8px 22px rgba(17, 17, 17, 0.03);
+            transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+        }
+
+        .st-key-orders_upload_card:hover,
+        .st-key-products_upload_card:hover {
+            transform: translateY(-1px);
+            border-color: #D7D18C;
+            box-shadow: 0 12px 28px rgba(17, 17, 17, 0.05);
+        }
+
+        .st-key-orders_upload_card h3,
+        .st-key-products_upload_card h3 {
+            margin-top: 0;
         }
 
         .st-key-demo_import_block {
             margin: 0 0 20px;
             padding: 18px 20px;
-            background: #F3FAF1;
-            border: 1px solid #A9CDA2;
-            border-left: 5px solid #74A96B;
+            background: #F5FAF4;
+            border: 1px solid #C9DDC5;
+            border-left: 4px solid #74A96B;
+            border-radius: 12px;
+            box-shadow: 0 8px 22px rgba(70, 112, 61, 0.04);
             transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
         }
 
         .st-key-demo_import_block:hover {
-            transform: translateY(-2px);
-            border-color: #74A96B;
-            box-shadow: 0 10px 24px rgba(70, 112, 61, 0.10);
+            transform: translateY(-1px);
+            border-color: #8DB985;
+            box-shadow: 0 12px 28px rgba(70, 112, 61, 0.08);
         }
 
         .demo-import-copy h3 {
@@ -1286,22 +1313,12 @@ def apply_theme() -> None:
             font-size: 0.9rem;
         }
 
-        .demo-import-label {
-            display: inline-block;
-            padding: 3px 7px;
-            background: #DDEFD8;
-            color: #2F5C29 !important;
-            border: 1px solid #A9CDA2;
-            font-size: 0.68rem;
-            font-weight: 850;
-            letter-spacing: 0.07em;
-        }
-
         .st-key-demo_import_block .stButton > button {
             min-height: 3rem;
-            background: #CFEBC8 !important;
+            background: #DDF0D8 !important;
             color: #111111 !important;
-            border: 1px solid #5F8E56 !important;
+            border: 1px solid #7FAA76 !important;
+            border-radius: 9px !important;
             transition: transform 150ms ease, background 150ms ease, border-color 150ms ease;
         }
 
@@ -1355,7 +1372,7 @@ def apply_theme() -> None:
         }
 
         .import-intro h2 {
-            margin: 7px 0 8px;
+            margin: 0 0 8px;
             font-size: 1.75rem;
         }
 
@@ -1364,15 +1381,7 @@ def apply_theme() -> None:
             color: #4B4B4B !important;
         }
 
-        .import-step {
-            display: inline-block;
-            padding: 4px 8px;
-            background: #FBF560;
-            border: 1px solid #111111;
-            font-size: 0.75rem;
-            font-weight: 800;
-            letter-spacing: 0.08em;
-        }
+
 
         @media (max-width: 800px) {
             .brand-header {
