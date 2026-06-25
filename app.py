@@ -90,6 +90,31 @@ PAGE_DESCRIPTIONS = {
     for page_key, description in category_module.PAGE_DESCRIPTIONS.items()
 }
 
+PAGE_ICONS = {
+    "period_changes": "monitoring",
+    "recommendations": "tips_and_updates",
+    "revenue": "payments",
+    "revenue_segments": "pie_chart",
+    "orders_count": "shopping_bag",
+    "orders_segments": "grouped_bar_chart",
+    "average_check": "receipt_long",
+    "check_segments": "balance",
+    "items_per_order": "inventory_2",
+    "order_statuses": "checklist",
+    "order_frequency": "schedule",
+    "shipping_rating": "local_shipping",
+    "customers_count": "groups",
+    "repeat_share": "autorenew",
+    "orders_per_customer": "person_search",
+    "sleeping_customers": "bedtime",
+    "top_customers_revenue": "military_tech",
+    "top_customers_orders": "emoji_events",
+    "products_no_sales": "inventory",
+    "top_products_revenue": "sell",
+    "top_products_units": "bar_chart",
+    "products_together": "device_hub",
+}
+
 
 @st.cache_data(show_spinner=False)
 def parse_xml_cached(xml_bytes: bytes):
@@ -609,9 +634,36 @@ def apply_theme() -> None:
             transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease !important;
         }
 
+        [data-testid="stSidebar"] .stButton > button > div {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0.52rem;
+            text-align: left;
+        }
+
         [data-testid="stSidebar"] .stButton > button p,
-        [data-testid="stSidebar"] .stButton > button span {
+        [data-testid="stSidebar"] .stButton > button span,
+        [data-testid="stSidebar"] .stButton > button label {
             color: #343431 !important;
+            text-align: left !important;
+        }
+
+        [data-testid="stSidebar"] .stButton > button [data-testid="stMarkdownContainer"] p {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            gap: 0.52rem;
+            margin: 0;
+            width: 100%;
+            text-align: left !important;
+        }
+
+        [data-testid="stSidebar"] .stButton > button [data-testid="stMarkdownContainer"] .material-symbols-rounded {
+            font-size: 1rem !important;
+            line-height: 1;
+            flex: 0 0 auto;
         }
 
         [data-testid="stSidebar"] .stButton > button:hover {
@@ -645,8 +697,10 @@ def apply_theme() -> None:
 
         [data-testid="stSidebar"] button[kind="primary"] p,
         [data-testid="stSidebar"] button[kind="primary"] span,
+        [data-testid="stSidebar"] button[kind="primary"] label,
         [data-testid="stSidebar"] [data-testid="stBaseButton-primary"] p,
-        [data-testid="stSidebar"] [data-testid="stBaseButton-primary"] span {
+        [data-testid="stSidebar"] [data-testid="stBaseButton-primary"] span,
+        [data-testid="stSidebar"] [data-testid="stBaseButton-primary"] label {
             color: #FFFFFF !important;
         }
 
@@ -1829,8 +1883,9 @@ def render_analytics_navigation() -> str:
             unsafe_allow_html=True,
         )
         for page_key, page_title in pages:
+            button_label = f":material/{PAGE_ICONS.get(page_key, 'chevron_right')}: {page_title}"
             if st.button(
-                page_title,
+                button_label,
                 key=f"nav_{page_key}",
                 width="stretch",
                 type="primary" if page_key == selected_page else "secondary",
@@ -2036,13 +2091,13 @@ def main() -> None:
         )
         active_module = st.radio(
             "Основной раздел",
-            options=["01 Аналитика", "02 CRO аудит"],
+            options=[":material/monitoring: 01 Аналитика", ":material/rule: 02 CRO аудит"],
             key="main_module",
             label_visibility="collapsed",
             horizontal=True,
         )
 
-        if active_module == "01 Аналитика":
+        if active_module == ":material/monitoring: 01 Аналитика":
             selected_page = render_analytics_navigation()
         else:
             selected_page = "cro"
@@ -2050,7 +2105,7 @@ def main() -> None:
         with st.expander("Загруженные файлы", expanded=False):
             render_loaded_files_sidebar()
 
-    if active_module == "02 CRO аудит":
+    if active_module == ":material/rule: 02 CRO аудит":
         cro_module.render_cro_page(LOGO_PATH)
         return
 
