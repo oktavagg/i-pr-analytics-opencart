@@ -366,18 +366,34 @@ def apply_theme() -> None:
         }
 
         [data-testid="stSidebar"] {
-            background: #FFFEEE !important;
-            border-right: 1px solid #D9D267;
+            background: #F5F5F2 !important;
+            border-right: 1px solid #E1E1DB;
+        }
+
+        [data-testid="stSidebar"] > div:first-child {
+            padding-top: 0.75rem;
         }
 
         [data-testid="stSidebar"] * {
-            color: #111111 !important;
+            color: #171717;
         }
 
         [data-testid="stSidebar"] hr {
-            border-color: #D9D267 !important;
+            border-color: #DFDFD8 !important;
         }
 
+        [data-testid="stSidebar"] ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        [data-testid="stSidebar"] ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        [data-testid="stSidebar"] ::-webkit-scrollbar-thumb {
+            background: #C9C9C1;
+            border-radius: 999px;
+        }
 
         [data-testid="stSidebarCollapsedControl"],
         [data-testid="stSidebarCollapseButton"] {
@@ -392,14 +408,21 @@ def apply_theme() -> None:
             position: fixed !important;
             top: 0.75rem !important;
             left: 0.75rem !important;
-            width: 2.45rem !important;
-            height: 2.45rem !important;
+            width: 2.5rem !important;
+            height: 2.5rem !important;
             align-items: center !important;
             justify-content: center !important;
+            background: #FFFFFF !important;
+            border: 1px solid #DADAD3 !important;
+            border-radius: 11px !important;
+            box-shadow: 0 8px 24px rgba(17, 17, 17, 0.08) !important;
+            transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease !important;
+        }
+
+        [data-testid="stSidebarCollapsedControl"]:hover {
             background: #FBF560 !important;
-            border: 1px solid #111111 !important;
-            border-radius: 0 !important;
-            box-shadow: none !important;
+            border-color: #111111 !important;
+            transform: translateY(-1px);
         }
 
         [data-testid="stSidebarCollapsedControl"] button,
@@ -414,44 +437,25 @@ def apply_theme() -> None:
             fill: #111111 !important;
         }
 
-        [data-testid="stSidebar"] [role="radiogroup"] {
-            gap: 6px;
-            margin-bottom: 14px;
-        }
-
-        [data-testid="stSidebar"] [role="radio"] {
-            padding: 9px 10px;
-            background: #FFFFFF;
-            border: 1px solid #D9D267;
-        }
-
-        [data-testid="stSidebar"] [role="radio"][aria-checked="true"] {
-            background: #FBF560;
-            border-color: #111111;
-            font-weight: 800;
-        }
-
-        .sidebar-product-title {
-            margin: 0 0 10px;
-            padding: 12px 14px;
-            background: #111111;
-            color: #FFFFFF !important;
-            font-size: 0.82rem;
-            font-weight: 800;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .sidebar-product-title * {
-            color: #FFFFFF !important;
-        }
-
         .sidebar-brand {
+            position: relative;
             margin: 0 0 14px;
-            padding: 14px 12px 16px;
+            padding: 15px;
+            overflow: hidden;
             background: #FFFFFF;
-            border: 1px solid #D9D267;
-            border-top: 4px solid #FBF560;
+            border: 1px solid #E1E1DB;
+            border-radius: 16px;
+            box-shadow: 0 10px 28px rgba(17, 17, 17, 0.055);
+        }
+
+        .sidebar-brand::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: #FBF560;
         }
 
         .sidebar-brand-logo {
@@ -459,16 +463,17 @@ def apply_theme() -> None:
             align-items: center;
             justify-content: center;
             min-height: 54px;
-            margin-bottom: 11px;
-            padding: 7px 9px;
-            background: #FFFFFF;
-            border: 1px solid #D9D267;
+            margin-bottom: 12px;
+            padding: 8px 10px;
+            background: #FAFAF7;
+            border: 1px solid #ECECE5;
+            border-radius: 11px;
         }
 
         .sidebar-brand-logo img {
             display: block;
-            width: 145px;
-            max-height: 54px;
+            width: 138px;
+            max-height: 52px;
             object-fit: contain;
         }
 
@@ -480,58 +485,197 @@ def apply_theme() -> None:
 
         .sidebar-brand h2 {
             margin: 0 0 5px;
+            color: #171717 !important;
             font-size: 1rem;
             line-height: 1.25;
         }
 
         .sidebar-brand p {
             margin: 0;
-            color: #4B4B4B !important;
-            font-size: 0.77rem;
-            line-height: 1.4;
+            color: #6A6A64 !important;
+            font-size: 0.76rem;
+            line-height: 1.45;
+        }
+
+        .sidebar-mode-label {
+            margin: 2px 2px 7px;
+            color: #777770 !important;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+        }
+
+        [data-testid="stSidebar"] [role="radiogroup"] {
+            display: grid !important;
+            grid-template-columns: 1fr 1fr;
+            gap: 5px;
+            margin: 0 0 18px;
+            padding: 5px;
+            background: #E9E9E4;
+            border: 1px solid #DDDDD6;
+            border-radius: 13px;
+        }
+
+        [data-testid="stSidebar"] [role="radio"] {
+            position: relative;
+            min-width: 0;
+            min-height: 46px;
+            padding: 8px 7px !important;
+            justify-content: center;
+            text-align: center;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: 9px;
+            transition: background 0.18s ease, box-shadow 0.18s ease, transform 0.18s ease;
+        }
+
+        [data-testid="stSidebar"] [role="radio"] > div:first-child {
+            display: none !important;
+        }
+
+        [data-testid="stSidebar"] [role="radio"] p {
+            margin: 0;
+            color: #4A4A45 !important;
+            font-size: 0.75rem !important;
+            font-weight: 750 !important;
+            line-height: 1.15 !important;
+        }
+
+        [data-testid="stSidebar"] [role="radio"]:hover {
+            background: rgba(255, 255, 255, 0.72);
+        }
+
+        [data-testid="stSidebar"] [role="radio"][aria-checked="true"] {
+            background: #171717;
+            border-color: #171717;
+            box-shadow: 0 6px 16px rgba(17, 17, 17, 0.16);
+            transform: translateY(-1px);
+        }
+
+        [data-testid="stSidebar"] [role="radio"][aria-checked="true"]::after {
+            content: "";
+            position: absolute;
+            top: 7px;
+            right: 7px;
+            width: 6px;
+            height: 6px;
+            background: #FBF560;
+            border-radius: 50%;
+        }
+
+        [data-testid="stSidebar"] [role="radio"][aria-checked="true"] p,
+        [data-testid="stSidebar"] [role="radio"][aria-checked="true"] * {
+            color: #FFFFFF !important;
         }
 
         .nav-group-heading {
-            margin: 24px 0 7px;
-            padding: 0 5px;
-            color: #111111 !important;
-            font-size: 1rem;
-            font-weight: 800;
-            line-height: 1.25;
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin: 22px 4px 8px;
+            color: #75756F !important;
+            font-size: 0.7rem;
+            font-weight: 850;
+            letter-spacing: 0.085em;
+            line-height: 1.2;
+            text-transform: uppercase;
+        }
+
+        .nav-group-heading::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: #DCDCD5;
         }
 
         [data-testid="stSidebar"] .stButton {
-            margin: 0 0 2px;
+            margin: 0 0 3px;
         }
 
         [data-testid="stSidebar"] .stButton > button {
-            min-height: 2.15rem;
-            padding: 0.38rem 0.7rem 0.38rem 1.05rem;
+            position: relative;
+            min-height: 2.35rem;
+            padding: 0.48rem 0.72rem 0.48rem 0.86rem;
             justify-content: flex-start;
             text-align: left;
             background: transparent !important;
-            border: 0 !important;
-            border-left: 3px solid transparent !important;
-            font-size: 0.88rem;
-            font-weight: 600 !important;
+            border: 1px solid transparent !important;
+            border-radius: 9px !important;
+            box-shadow: none !important;
+            font-size: 0.84rem;
+            font-weight: 620 !important;
             line-height: 1.2;
+            transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease !important;
+        }
+
+        [data-testid="stSidebar"] .stButton > button p,
+        [data-testid="stSidebar"] .stButton > button span {
+            color: #343431 !important;
         }
 
         [data-testid="stSidebar"] .stButton > button:hover {
-            background: #FFF9B5 !important;
-            border-left-color: #D8D142 !important;
+            background: #FFFFFF !important;
+            border-color: #E2E2DC !important;
+            box-shadow: 0 5px 14px rgba(17, 17, 17, 0.055) !important;
+            transform: translateX(2px);
         }
 
         [data-testid="stSidebar"] button[kind="primary"],
         [data-testid="stSidebar"] [data-testid="stBaseButton-primary"] {
-            background: #FBF560 !important;
-            border-left: 3px solid #111111 !important;
-            font-weight: 800 !important;
+            padding-left: 1.15rem;
+            background: #171717 !important;
+            border-color: #171717 !important;
+            box-shadow: 0 7px 18px rgba(17, 17, 17, 0.14) !important;
+            font-weight: 760 !important;
+        }
+
+        [data-testid="stSidebar"] button[kind="primary"]::before,
+        [data-testid="stSidebar"] [data-testid="stBaseButton-primary"]::before {
+            content: "";
+            position: absolute;
+            left: 7px;
+            top: 50%;
+            width: 4px;
+            height: 18px;
+            background: #FBF560;
+            border-radius: 999px;
+            transform: translateY(-50%);
+        }
+
+        [data-testid="stSidebar"] button[kind="primary"] p,
+        [data-testid="stSidebar"] button[kind="primary"] span,
+        [data-testid="stSidebar"] [data-testid="stBaseButton-primary"] p,
+        [data-testid="stSidebar"] [data-testid="stBaseButton-primary"] span {
+            color: #FFFFFF !important;
+        }
+
+        [data-testid="stSidebar"] button[kind="primary"]:hover,
+        [data-testid="stSidebar"] [data-testid="stBaseButton-primary"]:hover {
+            background: #242424 !important;
+            border-color: #242424 !important;
+            transform: translateX(2px);
+        }
+
+        [data-testid="stSidebar"] [data-testid="stExpander"] {
+            margin-top: 18px;
+            border: 1px solid #DEDED7;
+            border-radius: 11px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.58);
+        }
+
+        [data-testid="stSidebar"] [data-testid="stExpander"] summary {
+            min-height: 2.6rem;
+            padding: 0 0.75rem;
+            font-size: 0.78rem;
+            font-weight: 750;
         }
 
         [data-testid="stSidebar"] [data-testid="stExpander"] .stButton > button {
-            background: #FBF560 !important;
-            border: 1px solid #111111 !important;
+            background: #FFFFFF !important;
+            border: 1px solid #DCDCD5 !important;
+            border-radius: 8px !important;
             padding-left: 0.75rem;
             justify-content: center;
         }
@@ -1877,14 +2021,19 @@ def main() -> None:
     with st.sidebar:
         render_sidebar_brand()
 
+        st.markdown(
+            '<div class="sidebar-mode-label">Режим работы</div>',
+            unsafe_allow_html=True,
+        )
         active_module = st.radio(
             "Основной раздел",
-            options=["01 Аналитика продаж", "02 CRO аудит"],
+            options=["01 Аналитика", "02 CRO аудит"],
             key="main_module",
             label_visibility="collapsed",
+            horizontal=True,
         )
 
-        if active_module == "01 Аналитика продаж":
+        if active_module == "01 Аналитика":
             selected_page = render_analytics_navigation()
         else:
             selected_page = "cro"
