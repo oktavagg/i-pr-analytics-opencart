@@ -167,29 +167,32 @@ def _render_top_products_table(products: pd.DataFrame) -> None:
         st.info("В выбранном периоде нет данных по товарам.")
         return
 
-    top_products = products.nlargest(5, "revenue").copy()
-    top_products = top_products[["product_name", "orders", "sold_units", "revenue"]].rename(
-        columns={
-            "product_name": "Товар",
-            "orders": "Заказы",
-            "sold_units": "Шт.",
-            "revenue": "Выручка",
-        }
+    top_products = (
+        products.nlargest(5, "revenue")
+        [["product_name", "orders", "sold_units", "revenue"]]
+        .reset_index(drop=True)
     )
 
     with st.container(border=True):
         st.markdown("#### Топ-5 товаров по выручке")
-        st.dataframe(
-            top_products,
-            width="stretch",
-            hide_index=True,
-            column_config={
-                "Товар": st.column_config.TextColumn(width="large"),
-                "Заказы": st.column_config.NumberColumn(format="%d"),
-                "Шт.": st.column_config.NumberColumn(format="%d"),
-                "Выручка": st.column_config.NumberColumn(format="%.2f грн"),
-            },
-        )
+
+        header = st.columns([0.28, 3.2, 0.72, 0.62, 1.15], gap="small")
+        header[0].caption("#")
+        header[1].caption("Товар")
+        header[2].caption("Заказы")
+        header[3].caption("Шт.")
+        header[4].caption("Выручка")
+
+        for index, row in top_products.iterrows():
+            columns = st.columns([0.28, 3.2, 0.72, 0.62, 1.15], gap="small")
+            columns[0].write(str(index + 1))
+            columns[1].write(str(row["product_name"]))
+            columns[2].write(format_number(int(row["orders"])))
+            columns[3].write(format_number(int(row["sold_units"])))
+            columns[4].write(format_money(float(row["revenue"])))
+
+            if index < len(top_products) - 1:
+                st.divider()
 
 
 def render_overview_page(context: dict[str, object]) -> None:
