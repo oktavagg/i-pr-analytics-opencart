@@ -264,7 +264,16 @@ def render_period_changes_page(context: dict[str, object]) -> None:
 def render(page_key: str, context: dict[str, object]) -> bool:
     renderers = {
         "period_changes": render_period_changes_page,
-        "recommendations": lambda data: render_recommendations(data["recommendations"]),
+        "recommendations": lambda data: render_recommendations(
+            data["recommendations"],
+            lead_context={
+                "start_date": data.get("start_date"),
+                "end_date": data.get("end_date"),
+                "revenue": format_money(float(data.get("revenue", 0.0))),
+                "order_count": format_number(int(data.get("order_count", 0))),
+            },
+            key_prefix="recommendations",
+        ),
     }
     renderer = renderers.get(page_key)
     if renderer is None:

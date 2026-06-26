@@ -353,7 +353,16 @@ def render_overview_page(context: dict[str, object]) -> None:
         )
 
     st.markdown('<div class="overview-section-title">Что требует внимания</div>', unsafe_allow_html=True)
-    render_recommendations(recommendations[:4])
+    render_recommendations(
+        recommendations[:4],
+        lead_context={
+            "start_date": start_date,
+            "end_date": end_date,
+            "revenue": format_money(current_metrics["revenue"]),
+            "order_count": format_number(current_metrics["order_count"]),
+        },
+        key_prefix="overview",
+    )
 
 
 def render(page_key: str, context: dict[str, object]) -> bool:
