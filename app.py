@@ -2261,6 +2261,11 @@ def render_placeholder(page_key: str) -> None:
 
 
 def render_analytics_navigation() -> str:
+    navigation_version = "overview_default_v1"
+    if st.session_state.get("analytics_navigation_version") != navigation_version:
+        st.session_state["analytics_navigation_version"] = navigation_version
+        st.session_state["analytics_page"] = "overview"
+
     selected_page = st.session_state.get("analytics_page", "overview")
     if selected_page not in PAGE_TITLES:
         selected_page = "overview"

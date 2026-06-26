@@ -167,38 +167,29 @@ def _render_top_products_table(products: pd.DataFrame) -> None:
         st.info("В выбранном периоде нет данных по товарам.")
         return
 
-    rows = []
-    for _, row in products.nlargest(5, "revenue").iterrows():
-        rows.append(
-            f"""
-            <tr>
-                <td>{escape(str(row['product_name']))}</td>
-                <td class="num">{escape(format_number(row['orders']))}</td>
-                <td class="num">{escape(format_number(row['sold_units']))}</td>
-                <td class="money">{escape(format_money(float(row['revenue'])))}</td>
-            </tr>
-            """
-        )
-
-    st.markdown(
-        f"""
-        <div class="overview-mini-card">
-            <h4>Топ-5 товаров по выручке</h4>
-            <table class="overview-top-table">
-                <thead>
-                    <tr>
-                        <th>Товар</th>
-                        <th>Заказы</th>
-                        <th>Шт.</th>
-                        <th>Выручка</th>
-                    </tr>
-                </thead>
-                <tbody>{''.join(rows)}</tbody>
-            </table>
-        </div>
-        """,
-        unsafe_allow_html=True,
+    top_products = products.nlargest(5, "revenue").copy()
+    top_products = top_products[["product_name", "orders", "sold_units", "revenue"]].rename(
+        columns={
+            "product_name": "Товар",
+            "orders": "Заказы",
+            "sold_units": "Шт.",
+            "revenue": "Выручка",
+        }
     )
+
+    with st.container(border=True):
+        st.markdown("#### Топ-5 товаров по выручке")
+        st.dataframe(
+            top_products,
+            width="stretch",
+            hide_index=True,
+            column_config={
+                "Товар": st.column_config.TextColumn(width="large"),
+                "Заказы": st.column_config.NumberColumn(format="%d"),
+                "Шт.": st.column_config.NumberColumn(format="%d"),
+                "Выручка": st.column_config.NumberColumn(format="%.2f грн"),
+            },
+        )
 
 
 def render_overview_page(context: dict[str, object]) -> None:
