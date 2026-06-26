@@ -210,54 +210,19 @@ def render_period_changes_page(context: dict[str, object]) -> None:
         return
 
     min_date = eligible_orders["order_date"].min().date()
-    max_date = eligible_orders["order_date"].max().date()
-    default_start = max(date(max_date.year, max_date.month, 1), min_date)
-    default_range = (default_start, max_date)
-
-    stored_range = st.session_state.get("period_changes_range")
-    if isinstance(stored_range, (tuple, list)) and len(stored_range) == 2:
-        stored_start, stored_end = stored_range
-        if stored_start < min_date or stored_end > max_date:
-            st.session_state.pop("period_changes_range", None)
-
-    st.markdown(
-        """
-        <div class="period-control-box">
-            <h3>Период для анализа</h3>
-            <p>Выберите текущий диапазон. Система автоматически сравнит его с предыдущим диапазоном такой же длины.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    period_column, info_column = st.columns([1.25, 1])
-    with period_column:
-        selected_range = st.date_input(
-            "Диапазон дат",
-            value=default_range,
-            min_value=min_date,
-            max_value=max_date,
-            key="period_changes_range",
-        )
-
-    if isinstance(selected_range, (tuple, list)) and len(selected_range) == 2:
-        current_start, current_end = selected_range
-    else:
-        single_date = selected_range if isinstance(selected_range, date) else max_date
-        current_start = single_date
-        current_end = single_date
-
-    if current_start > current_end:
-        current_start, current_end = current_end, current_start
-
+    current_start = context["start_date"]
+    current_end = context["end_date"]
     period_days = (current_end - current_start).days + 1
     previous_end = current_start - timedelta(days=1)
     previous_start = previous_end - timedelta(days=period_days - 1)
 
-    with info_column:
-        st.metric("Длина периода", f"{period_days} дн.")
-        st.caption(
-            f"Сравнение: {format_period_label(previous_start, previous_end)}"
+    period_info, comparison_info = st.columns(2)
+    with period_info:
+        st.metric("Длина выбранного периода", f"{period_days} дн.")
+    with comparison_info:
+        st.metric(
+            "Предыдущий период",
+            format_period_label(previous_start, previous_end),
         )
 
     classified_orders = classify_orders_by_customer_history(eligible_orders)
@@ -290,7 +255,7 @@ def render_period_changes_page(context: dict[str, object]) -> None:
     st.markdown(
         '<div class="comparison-footnote">'
         'Новый клиент означает первый заказ покупателя в загруженном XML. '
-        'Учитываются статусы, выбранные в боковом меню.'
+        'Учитываются рабочие статусы заказов.'
         '</div>',
         unsafe_allow_html=True,
     )

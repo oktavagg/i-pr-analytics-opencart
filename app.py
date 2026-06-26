@@ -116,6 +116,14 @@ PAGE_ICONS = {
 }
 
 
+PERIOD_PRESETS = (
+    "За всё время",
+    "Последние 30 дней",
+    "Последние 90 дней",
+    "Свой диапазон",
+)
+
+
 @st.cache_data(show_spinner=False)
 def parse_xml_cached(xml_bytes: bytes):
     return parse_xml(xml_bytes)
@@ -393,8 +401,8 @@ def apply_theme() -> None:
         [data-testid="stSidebar"] {
             background: #171B22 !important;
             border-right: 1px solid #232A35;
-            min-width: 318px !important;
-            max-width: 318px !important;
+            min-width: 330px !important;
+            max-width: 330px !important;
         }
 
         [data-testid="stSidebar"] > div:first-child {
@@ -600,9 +608,9 @@ def apply_theme() -> None:
             display: flex;
             align-items: center;
             gap: 9px;
-            margin: 22px 4px 8px;
+            margin: 24px 4px 9px;
             color: #98A3B5 !important;
-            font-size: 0.7rem;
+            font-size: 0.73rem;
             font-weight: 850;
             letter-spacing: 0.085em;
             line-height: 1.2;
@@ -622,7 +630,7 @@ def apply_theme() -> None:
 
         [data-testid="stSidebar"] .stButton > button {
             position: relative;
-            min-height: 2.7rem;
+            min-height: 3rem;
             padding: 0.48rem 0.72rem 0.48rem 0.86rem;
             justify-content: flex-start;
             text-align: left;
@@ -630,7 +638,7 @@ def apply_theme() -> None:
             border: 1px solid transparent !important;
             border-radius: 9px !important;
             box-shadow: none !important;
-            font-size: 0.93rem;
+            font-size: 0.98rem;
             font-weight: 600 !important;
             line-height: 1.2;
             transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease !important;
@@ -663,7 +671,7 @@ def apply_theme() -> None:
         }
 
         [data-testid="stSidebar"] .stButton > button [data-testid="stMarkdownContainer"] .material-symbols-rounded {
-            font-size: 1rem !important;
+            font-size: 1.1rem !important;
             line-height: 1;
             flex: 0 0 auto;
         }
@@ -1419,7 +1427,7 @@ def apply_theme() -> None:
             padding: 0 12px;
             background: #FFFFFF;
             color: #6B7280 !important;
-            font-size: 0.93rem;
+            font-size: 0.98rem;
         }
 
         [data-testid="stFileUploaderDropzone"] {
@@ -1478,6 +1486,111 @@ def apply_theme() -> None:
         .page-heading p {
             max-width: 760px;
             font-size: 0.96rem;
+        }
+
+        .st-key-page_period_filter {
+            margin: 0 0 22px;
+            padding: 16px 18px 15px;
+            background: #FFFFFF;
+            border: 1px solid #E7EAF0;
+            border-radius: 18px;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.045);
+        }
+
+        .period-filter-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 13px;
+        }
+
+        .period-filter-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex: 0 0 38px;
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: #FFF7D6;
+            color: #9A7300 !important;
+            font-size: 1.2rem !important;
+        }
+
+        .period-filter-title {
+            color: #111827 !important;
+            font-size: 0.96rem;
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .period-filter-description {
+            margin-top: 3px;
+            color: #7A8494 !important;
+            font-size: 0.82rem;
+            line-height: 1.35;
+        }
+
+        .st-key-page_period_filter [data-testid="stSegmentedControl"],
+        .st-key-page_period_filter [data-baseweb="button-group"] {
+            width: 100%;
+            padding: 4px;
+            background: #F3F5F8;
+            border: 1px solid #E8EBF0;
+            border-radius: 13px;
+        }
+
+        .st-key-page_period_filter [data-testid="stSegmentedControl"] button,
+        .st-key-page_period_filter [data-baseweb="button-group"] button {
+            min-height: 2.35rem;
+            border: 0 !important;
+            border-radius: 10px !important;
+            background: transparent !important;
+            color: #667085 !important;
+            box-shadow: none !important;
+            font-size: 0.84rem !important;
+            font-weight: 700 !important;
+        }
+
+        .st-key-page_period_filter [data-testid="stSegmentedControl"] button[aria-pressed="true"],
+        .st-key-page_period_filter [data-baseweb="button-group"] button[aria-pressed="true"],
+        .st-key-page_period_filter [data-testid="stSegmentedControl"] button[data-active="true"] {
+            background: #FFFFFF !important;
+            color: #111827 !important;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+        }
+
+        .st-key-page_period_filter [data-testid="stDateInput"] {
+            margin-top: 12px;
+        }
+
+        .period-filter-result {
+            display: flex;
+            align-items: center;
+            gap: 9px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #EEF1F5;
+            color: #667085 !important;
+            font-size: 0.84rem;
+        }
+
+        .period-filter-result span,
+        .period-filter-result small {
+            color: #7A8494 !important;
+        }
+
+        .period-filter-result strong {
+            color: #111827 !important;
+            font-size: 0.9rem;
+        }
+
+        .period-filter-result small {
+            margin-left: auto;
+            padding: 4px 8px;
+            border-radius: 999px;
+            background: #F3F5F8;
+            font-size: 0.76rem;
         }
 
         .comparison-table, .monthly-report-table {
@@ -1913,6 +2026,108 @@ def render_page_heading(page_key: str) -> None:
     )
 
 
+def _format_report_period(start_date: date, end_date: date) -> str:
+    if start_date == end_date:
+        return start_date.strftime("%d.%m.%Y")
+    return f"{start_date:%d.%m.%Y} — {end_date:%d.%m.%Y}"
+
+
+def _normalise_date_range(value, min_date: date, max_date: date) -> tuple[date, date]:
+    if isinstance(value, (tuple, list)) and len(value) == 2:
+        start_date, end_date = value
+    elif isinstance(value, (tuple, list)) and len(value) == 1:
+        start_date = value[0]
+        end_date = value[0]
+    elif isinstance(value, date):
+        start_date = value
+        end_date = value
+    else:
+        start_date = min_date
+        end_date = max_date
+
+    start_date = max(min_date, min(start_date, max_date))
+    end_date = max(min_date, min(end_date, max_date))
+    if start_date > end_date:
+        start_date, end_date = end_date, start_date
+    return start_date, end_date
+
+
+def render_page_period_filter(
+    page_key: str,
+    min_date: date,
+    max_date: date,
+) -> tuple[date, date]:
+    preset_key = f"period_preset_{page_key}"
+    custom_key = f"period_custom_{page_key}"
+
+    if st.session_state.get(preset_key) not in PERIOD_PRESETS:
+        st.session_state[preset_key] = "За всё время"
+
+    stored_custom = st.session_state.get(custom_key, (min_date, max_date))
+    custom_start, custom_end = _normalise_date_range(stored_custom, min_date, max_date)
+    if stored_custom != (custom_start, custom_end):
+        st.session_state[custom_key] = (custom_start, custom_end)
+
+    with st.container(key="page_period_filter"):
+        st.markdown(
+            """
+            <div class="period-filter-header">
+                <div class="period-filter-icon material-symbols-rounded">date_range</div>
+                <div>
+                    <div class="period-filter-title">Период отчёта</div>
+                    <div class="period-filter-description">Выберите диапазон, который будет применён только к текущему разделу.</div>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        selected_preset = st.segmented_control(
+            "Период отчёта",
+            PERIOD_PRESETS,
+            key=preset_key,
+            label_visibility="collapsed",
+            width="stretch",
+        )
+
+        if selected_preset == "Последние 30 дней":
+            start_date = max(min_date, max_date - timedelta(days=29))
+            end_date = max_date
+        elif selected_preset == "Последние 90 дней":
+            start_date = max(min_date, max_date - timedelta(days=89))
+            end_date = max_date
+        elif selected_preset == "Свой диапазон":
+            selected_custom = st.date_input(
+                "Выберите начальную и конечную дату",
+                min_value=min_date,
+                max_value=max_date,
+                key=custom_key,
+                format="DD.MM.YYYY",
+            )
+            start_date, end_date = _normalise_date_range(
+                selected_custom,
+                min_date,
+                max_date,
+            )
+        else:
+            start_date = min_date
+            end_date = max_date
+
+        period_days = (end_date - start_date).days + 1
+        st.markdown(
+            f"""
+            <div class="period-filter-result">
+                <span>Выбран период</span>
+                <strong>{_format_report_period(start_date, end_date)}</strong>
+                <small>{period_days} календ. дн.</small>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+
+    return start_date, end_date
+
+
 def render_placeholder(page_key: str) -> None:
     title = PAGE_TITLES.get(page_key, "Новый раздел")
     st.markdown(
@@ -2087,8 +2302,6 @@ def prepare_analytics_context(
 
 
 def render_selected_analytics_page(page_key: str, context: dict[str, object]) -> None:
-    render_page_heading(page_key)
-
     for category_module in CATEGORY_MODULES:
         if category_module.render(page_key, context):
             return
@@ -2138,35 +2351,21 @@ def main() -> None:
     min_date = all_orders["order_date"].min().date()
     max_date = all_orders["order_date"].max().date()
 
-    selected_dates = (min_date, max_date)
     selected_statuses = list(ALLOWED_STATUSES)
 
     with st.sidebar:
         render_sidebar_brand()
-
-        st.markdown(
-            '<div class="sidebar-mode-label">Режим работы</div>',
-            unsafe_allow_html=True,
-        )
-        active_module = st.radio(
-            "Основной раздел",
-            options=[":material/monitoring: 01 Аналитика", ":material/rule: 02 CRO аудит"],
-            key="main_module",
-            label_visibility="collapsed",
-            horizontal=True,
-        )
-
-        if active_module == ":material/monitoring: 01 Аналитика":
-            selected_page = render_analytics_navigation()
-        else:
-            selected_page = "cro"
+        selected_page = render_analytics_navigation()
 
         with st.expander("Загруженные файлы", expanded=False):
             render_loaded_files_sidebar()
 
-    if active_module == ":material/rule: 02 CRO аудит":
-        cro_module.render_cro_page(LOGO_PATH)
-        return
+    render_page_heading(selected_page)
+    selected_dates = render_page_period_filter(
+        selected_page,
+        min_date,
+        max_date,
+    )
 
     context = prepare_analytics_context(
         parsed,
@@ -2175,8 +2374,7 @@ def main() -> None:
         selected_statuses,
     )
     if context is None:
-        render_page_heading(selected_page)
-        st.warning("По выбранным фильтрам нет заказов.")
+        st.warning("За выбранный период нет заказов с рабочими статусами.")
         return
 
     render_selected_analytics_page(selected_page, context)
