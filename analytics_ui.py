@@ -6,8 +6,6 @@ import numpy as np
 import plotly.graph_objects as go
 import streamlit as st
 
-from lead_mailer import LeadMailError, send_lead_email
-
 
 BRAND_BLACK = "#1F2937"
 BRAND_YELLOW = "#4285F4"
@@ -136,215 +134,23 @@ PRIORITY_LABELS = {
 }
 
 
-def _render_interest_dialog(
-    recommendation: dict[str, object],
-    lead_context: dict[str, object],
-    dialog_key: str,
-) -> None:
-    title = str(recommendation.get("title", "Рекомендация по сайту"))
-
-    @st.dialog("Обсудить доработку сайта", width="large")
-    def interest_dialog() -> None:
-        st.markdown(f"#### {escape(title)}")
-        st.caption(
-            "Оставьте проект и контакт. Заявка придёт специалисту I-PR вместе с выбранной рекомендацией."
-        )
-
-        with st.form(key=f"lead_form_{dialog_key}", clear_on_submit=False):
-            project = st.text_input(
-                "Проект или адрес сайта",
-                placeholder="https://example.com",
-            )
-            name = st.text_input(
-                "Ваше имя",
-                placeholder="Как к вам обращаться",
-            )
-            contact = st.text_input(
-                "Телефон, email или Telegram",
-                placeholder="Контакт для обратной связи",
-            )
-            comment = st.text_area(
-                "Комментарий",
-                placeholder="Что нужно учесть, какие есть вопросы или ограничения",
-                height=120,
-            )
-            consent = st.checkbox(
-                "Согласен на обработку данных для связи по заявке",
-                value=False,
-            )
-            submitted = st.form_submit_button(
-                "Отправить заявку",
-                type="primary",
-                use_container_width=True,
-            )
-
-        if submitted:
-            if not project.strip():
-                st.error("Укажите проект или адрес сайта.")
-                return
-            if not contact.strip():
-                st.error("Укажите контакт для обратной связи.")
-                return
-            if not consent:
-                st.error("Подтвердите согласие на обработку данных.")
-                return
-
-            recommendation_with_label = dict(recommendation)
-            recommendation_with_label["priority_label"] = PRIORITY_LABELS.get(
-                str(recommendation.get("priority", "recommendation")),
-                "Рекомендация",
-            )
-            try:
-                send_lead_email(
-                    recommendation=recommendation_with_label,
-                    project=project.strip(),
-                    name=name.strip(),
-                    contact=contact.strip(),
-                    comment=comment.strip(),
-                    context=lead_context,
-                )
-            except LeadMailError as exc:
-                st.error(str(exc))
-            else:
-                st.success("Заявка отправлена. Мы свяжемся с вами по указанному контакту.")
-
-    interest_dialog()
-
-
-def render_recommendations(
-    recommendations: list[dict[str, object]],
-    *,
-    lead_context: dict[str, object] | None = None,
-    key_prefix: str = "recommendations",
-) -> None:
-    lead_context = lead_context or {}
-
-    st.markdown(
-        """
-        <style>
-        [class*="st-key-rec_card_"] {
-            height: 100%;
-            padding: 18px 18px 16px;
-            border: 1px solid #E7EAF0;
-            border-left: 5px solid #CBD5E1;
-            border-radius: 18px;
-            background: #FFFFFF;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
-        }
-
-        [class*="st-key-rec_card_"] h4 {
-            margin: 0.1rem 0 0.45rem;
-            font-size: 1.02rem;
-            color: #111827 !important;
-        }
-
-        [class*="st-key-rec_card_"] p,
-        [class*="st-key-rec_card_"] li {
-            color: #4B5563 !important;
-            font-size: 0.91rem;
-            line-height: 1.5;
-        }
-
-        [class*="st-key-rec_card_"] ul {
-            margin: 0.55rem 0 0.8rem;
-            padding-left: 1.15rem;
-        }
-
-        [class*="st-key-rec_card_"] .stButton button {
-            margin-top: 0.35rem;
-            border-color: #F4C430 !important;
-            background: #FFF8D8 !important;
-            color: #111827 !important;
-        }
-
-        [class*="st-key-rec_card_"] .stButton button:hover {
-            background: #F4C430 !important;
-            color: #111827 !important;
-        }
-
-        .recommendation-priority {
-            display: inline-flex;
-            align-items: center;
-            min-height: 26px;
-            padding: 4px 8px;
-            margin-bottom: 8px;
-            border-radius: 999px;
-            background: #F3F4F6;
-            color: #374151 !important;
-            font-size: 0.7rem;
-            font-weight: 850;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-        }
-
-        .recommendation-priority.critical {
-            background: #FEECEC;
-            color: #B42318 !important;
-        }
-
-        .recommendation-priority.important {
-            background: #FFF2D8;
-            color: #A15C00 !important;
-        }
-
-        .recommendation-priority.recommendation {
-            background: #EAF2FF;
-            color: #245FA8 !important;
-        }
-
-        .recommendation-priority.idea {
-            background: #F1ECFF;
-            color: #6842A8 !important;
-        }
-
-        .recommendation-actions-title {
-            margin-top: 0.65rem;
-            color: #111827 !important;
-            font-size: 0.82rem;
-            font-weight: 800;
-        }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
+def render_recommendations(recommendations: list[dict[str, str]]) -> None:
     for start in range(0, len(recommendations), 2):
-        columns = st.columns(2, gap="large")
+        columns = st.columns(2)
         for index, recommendation in enumerate(recommendations[start:start + 2]):
-            global_index = start + index
-            priority = str(recommendation.get("priority", "recommendation"))
+            priority = recommendation.get("priority", "recommendation")
             priority_label = PRIORITY_LABELS.get(priority, "Рекомендация")
-            actions = recommendation.get("actions", [])
-
             with columns[index]:
-                with st.container(key=f"rec_card_{key_prefix}_{global_index}"):
-                    st.markdown(
-                        f'<div class="recommendation-priority {escape(priority)}">{escape(priority_label)}</div>',
-                        unsafe_allow_html=True,
-                    )
-                    st.markdown(f"#### {escape(str(recommendation['title']))}")
-                    st.markdown(str(recommendation["text"]))
-
-                    if isinstance(actions, list) and actions:
-                        st.markdown(
-                            '<div class="recommendation-actions-title">Что доработать на сайте</div>',
-                            unsafe_allow_html=True,
-                        )
-                        action_lines = "\n".join(
-                            f"- {escape(str(action))}" for action in actions
-                        )
-                        st.markdown(action_lines)
-
-                    if st.button(
-                        "Меня интересует",
-                        key=f"interest_{key_prefix}_{global_index}",
-                        use_container_width=True,
-                    ):
-                        _render_interest_dialog(
-                            recommendation,
-                            lead_context,
-                            f"{key_prefix}_{global_index}",
-                        )
+                st.markdown(
+                    f"""
+                    <div class="recommendation-card {escape(priority)}">
+                        <div class="recommendation-priority">{escape(priority_label)}</div>
+                        <h4>{escape(recommendation['title'])}</h4>
+                        <p>{escape(recommendation['text'])}</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
 
 
 def render_module_placeholder(title: str) -> None:

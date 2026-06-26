@@ -20,7 +20,6 @@ import orders as orders_module
 import products as products_module
 
 from analytics_ui import format_money, format_number, safe_percent
-from lead_mailer import LeadMailError, send_lead_email
 from xml_parser import (
     ALLOWED_STATUSES,
     parse_xml,
@@ -1939,11 +1938,8 @@ def calculate_business_metrics(
     }
 
 
-def build_recommendations(
-    metrics: dict[str, object],
-    products: pd.DataFrame,
-) -> list[dict[str, object]]:
-    recommendations: list[dict[str, object]] = []
+def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) -> list[dict[str, str]]:
+    recommendations: list[dict[str, str]] = []
 
     waiting_share = float(metrics["waiting_share"])
     waiting_count = int(metrics["waiting_count"])
@@ -1952,18 +1948,12 @@ def build_recommendations(
         recommendations.append(
             {
                 "priority": "critical" if waiting_share >= 8 else "important",
-                "title": "Снизить количество заказов в ожидании",
+                "title": "Отработать заказы в ожидании",
                 "text": (
                     f"В статусе «Очікування» находится {waiting_count} заказов на "
                     f"{format_money(waiting_revenue)}, это {waiting_share:.1f}% суммы. "
-                    "Часть клиентов может теряться на оплате или после оформления заказа."
+                    "Проверьте оплату и свяжитесь с клиентами по старым заказам."
                 ),
-                "actions": [
-                    "Добавить понятный экран успешного оформления с дальнейшими шагами.",
-                    "Показывать статус оплаты и кнопку повторной оплаты в кабинете и письме.",
-                    "Добавить автоматическое напоминание о незавершённой оплате.",
-                    "Проверить ошибки оплаты на мобильных устройствах.",
-                ],
             }
         )
 
@@ -1972,33 +1962,22 @@ def build_recommendations(
         recommendations.append(
             {
                 "priority": "critical" if repeat_share < 15 else "important",
-                "title": "Увеличить повторные покупки",
+                "title": "Увеличить повторные продажи",
                 "text": (
-                    f"Повторные клиенты формируют {repeat_share:.1f}% оборота. "
-                    "Сайт почти не возвращает покупателя после первой покупки."
+                    f"Повторные клиенты формируют {repeat_share:.1f}% суммы. "
+                    "Запустите сообщение после покупки, персональный промокод и напоминание о повторном заказе."
                 ),
-                "actions": [
-                    "Добавить кнопку «Повторить заказ» в личном кабинете.",
-                    "Показывать персональные рекомендации на основе прошлой покупки.",
-                    "Добавить блок повторной покупки расходных товаров с ориентировочным сроком.",
-                    "Запустить email или push-цепочку после заказа.",
-                ],
             }
         )
     else:
         recommendations.append(
             {
                 "priority": "recommendation",
-                "title": "Развивать персонализацию для постоянных клиентов",
+                "title": "Развивать сегмент повторных клиентов",
                 "text": (
-                    f"Повторные клиенты формируют {repeat_share:.1f}% оборота. "
-                    "Этот сегмент уже приносит заметную часть продаж."
+                    f"На повторных клиентов приходится {repeat_share:.1f}% суммы. "
+                    "Сохраните этот сегмент и подготовьте для него отдельные предложения."
                 ),
-                "actions": [
-                    "Добавить персональную подборку товаров в кабинете клиента.",
-                    "Показывать историю заказов и быстрое повторение покупки.",
-                    "Вывести индивидуальные предложения и бонусы для постоянных клиентов.",
-                ],
             }
         )
 
@@ -2007,17 +1986,11 @@ def build_recommendations(
         recommendations.append(
             {
                 "priority": "important",
-                "title": "Увеличить количество товаров в заказе",
+                "title": "Добавить комплекты и допродажи",
                 "text": (
                     f"{single_item_share:.1f}% заказов содержат только один товар. "
-                    "Сайт слабо помогает клиенту подобрать дополнения."
+                    "Добавьте блоки «С этим покупают», готовые комплекты и предложение второго товара в корзине."
                 ),
-                "actions": [
-                    "Добавить блок «С этим товаром покупают» в карточке товара.",
-                    "Показывать допродажи в корзине без перехода на отдельную страницу.",
-                    "Создать готовые комплекты с понятной выгодой.",
-                    "Показывать прогресс до бесплатной доставки.",
-                ],
             }
         )
 
@@ -2026,17 +1999,11 @@ def build_recommendations(
         recommendations.append(
             {
                 "priority": "recommendation",
-                "title": "Упростить выбор онлайн-оплаты",
+                "title": "Повысить долю онлайн-оплаты",
                 "text": (
-                    f"Онлайн-оплата используется примерно в {liqpay_share:.1f}% заказов. "
-                    "Причиной может быть слабая заметность или недостаток доверия."
+                    f"LiqPay используется примерно в {liqpay_share:.1f}% заказов. "
+                    "Проверьте заметность способа оплаты и протестируйте небольшую выгоду за оплату онлайн."
                 ),
-                "actions": [
-                    "Сделать онлайн-оплату первым и визуально заметным вариантом.",
-                    "Кратко объяснить безопасность оплаты рядом с выбором способа.",
-                    "Не скрывать итоговую сумму и условия возврата до оплаты.",
-                    "Проверить удобство платежного сценария на смартфонах.",
-                ],
             }
         )
 
@@ -2045,33 +2012,22 @@ def build_recommendations(
         recommendations.append(
             {
                 "priority": "critical",
-                "title": "Усилить главную страницу и категории",
+                "title": "Продажи во второй половине периода снизились",
                 "text": (
-                    f"Средняя дневная сумма во второй половине периода снизилась на {abs(trend):.1f}%. "
-                    "Стоит проверить, насколько быстро пользователь находит актуальные товары и предложения."
+                    f"Средняя дневная сумма снизилась на {abs(trend):.1f}%. "
+                    "Сравните наличие лидеров, рекламную активность и количество заказов по дням."
                 ),
-                "actions": [
-                    "Вывести на главной странице товары-лидеры и актуальные предложения.",
-                    "Проверить сортировку категорий, чтобы слабые товары не стояли первыми.",
-                    "Улучшить поиск, подсказки и фильтры по ключевым характеристикам.",
-                    "Проверить мобильную скорость и стабильность основных страниц.",
-                ],
             }
         )
     elif trend >= 12:
         recommendations.append(
             {
                 "priority": "recommendation",
-                "title": "Закрепить рост через витрину сайта",
+                "title": "Закрепить рост продаж",
                 "text": (
-                    f"Средняя дневная сумма выросла на {trend:.1f}%. "
-                    "Нужно закрепить товары и сценарии, которые дали рост."
+                    f"Средняя дневная сумма выросла на {trend:.1f}% во второй половине периода. "
+                    "Проверьте запас популярных товаров и источники, которые дали рост."
                 ),
-                "actions": [
-                    "Вывести растущие товары в заметные блоки главной страницы.",
-                    "Добавить на карточках товара связанные альтернативы.",
-                    "Сохранить удачные баннеры и порядок блоков на период роста.",
-                ],
             }
         )
 
@@ -2080,17 +2036,11 @@ def build_recommendations(
         recommendations.append(
             {
                 "priority": "critical" if top5_share >= 60 else "important",
-                "title": "Снизить зависимость от нескольких товаров",
+                "title": "Выручка зависит от нескольких товаров",
                 "text": (
-                    f"Топ-5 товаров формируют {top5_share:.1f}% оборота. "
-                    "Если один из лидеров выпадет из наличия, продажи заметно просядут."
+                    f"Топ-5 товаров формируют {top5_share:.1f}% суммы. "
+                    "Контролируйте их остатки и развивайте товары-замены, чтобы снизить риск просадки."
                 ),
-                "actions": [
-                    "Добавить блок аналогов и замен на карточках лидеров.",
-                    "Показывать альтернативы при отсутствии товара.",
-                    "Улучшить перелинковку между товарами одной задачи или категории.",
-                    "Вывести похожие товары в поиске и категориях.",
-                ],
             }
         )
     elif not products.empty:
@@ -2098,17 +2048,11 @@ def build_recommendations(
         recommendations.append(
             {
                 "priority": "recommendation",
-                "title": "Усилить карточку товара-лидера",
+                "title": "Поддерживать главный товар периода",
                 "text": (
-                    f"Лидер по обороту: «{top_product['product_name']}». "
-                    "Карточка этого товара влияет на заметную часть результата."
+                    f"Лидер по сумме: «{top_product['product_name']}». "
+                    "Проверьте остаток, рекламные объявления и видимость товара в каталоге."
                 ),
-                "actions": [
-                    "Проверить первый экран карточки, цену, наличие и главную кнопку.",
-                    "Добавить ответы на частые вопросы и условия доставки.",
-                    "Добавить отзывы, характеристики и понятные преимущества.",
-                    "Показать совместимые товары и более дорогие альтернативы.",
-                ],
             }
         )
 
@@ -2119,16 +2063,11 @@ def build_recommendations(
             recommendations.append(
                 {
                     "priority": "idea",
-                    "title": "Оформить популярную связку как комплект",
+                    "title": "Создать готовый комплект",
                     "text": (
                         f"«{top_pair['Товар 1']}» и «{top_pair['Товар 2']}» покупали вместе "
-                        f"в {int(top_pair['Совместных заказов'])} заказах."
+                        f"в {int(top_pair['Совместных заказов'])} заказах. Добавьте комплект или взаимную рекомендацию."
                     ),
-                    "actions": [
-                        "Создать отдельный комплект с общей ценой и выгодой.",
-                        "Добавить взаимные рекомендации в карточках обоих товаров.",
-                        "Показать комплект в корзине при добавлении одного из товаров.",
-                    ],
                 }
             )
 
@@ -2137,93 +2076,23 @@ def build_recommendations(
         recommendations.append(
             {
                 "priority": "important",
-                "title": "Переработать карточки слабых товаров",
+                "title": "Проверить слабые товары",
                 "text": (
                     f"Найдено {low_movers_count} товаров с низкими продажами и длительным перерывом. "
-                    "Проблема может быть в видимости, цене или качестве карточек."
+                    "Проверьте цену, карточку товара, наличие и целесообразность закупки."
                 ),
-                "actions": [
-                    "Проверить фото, заголовок, характеристики и описание.",
-                    "Добавить товар в подходящие категории и фильтры.",
-                    "Проверить индексацию и мета-данные карточки.",
-                    "Скрыть или перенести товары, которые больше неактуальны.",
-                ],
             }
         )
 
     recommendations.append(
         {
             "priority": "idea",
-            "title": "Улучшить мобильный сценарий покупки",
+            "title": f"Планировать активность на {metrics['best_weekday']}",
             "text": (
-                "Основная часть покупателей интернет-магазинов использует смартфоны. "
-                "Даже небольшие проблемы в карточке или корзине снижают конверсию."
+                "В этот день средняя дневная сумма выше остальных. "
+                "Планируйте рассылки, публикации и обновление рекламных кампаний перед этим днем."
             ),
-            "actions": [
-                "Добавить фиксированную кнопку покупки на мобильной карточке товара.",
-                "Сократить высоту первого экрана и быстрее показывать цену и наличие.",
-                "Упростить поля оформления и использовать правильные типы клавиатуры.",
-                "Проверить размеры кнопок, отступы и читаемость текста.",
-            ],
         }
-    )
-
-    recommendations.extend(
-        [
-            {
-                "priority": "recommendation",
-                "title": "Улучшить поиск и фильтры каталога",
-                "text": (
-                    "Часть покупателей знает, какой товар им нужен, но теряется при длинном каталоге. "
-                    "Быстрый поиск и понятные фильтры сокращают путь до покупки."
-                ),
-                "actions": [
-                    "Добавить подсказки и исправление опечаток в поиске.",
-                    "Вывести популярные фильтры первыми и показывать количество товаров.",
-                    "Сохранять выбранные фильтры при возврате из карточки товара.",
-                    "Добавить понятное пустое состояние с альтернативами.",
-                ],
-            },
-            {
-                "priority": "important",
-                "title": "Упростить корзину и оформление заказа",
-                "text": (
-                    "Чем больше лишних полей и шагов в оформлении, тем выше риск потери клиента перед заказом."
-                ),
-                "actions": [
-                    "Оставить только обязательные поля и объединить шаги оформления.",
-                    "Показывать итоговую стоимость, доставку и скидку без скрытых условий.",
-                    "Добавить оформление без обязательной регистрации.",
-                    "Сохранять корзину и введённые данные после ошибки.",
-                ],
-            },
-            {
-                "priority": "recommendation",
-                "title": "Повысить доверие на ключевых страницах",
-                "text": (
-                    "Покупателю нужны быстрые ответы о доставке, оплате, возврате и надёжности магазина."
-                ),
-                "actions": [
-                    "Разместить условия доставки и возврата рядом с кнопкой покупки.",
-                    "Добавить реальные отзывы, контакты и юридическую информацию.",
-                    "Показывать наличие и актуальный срок отправки.",
-                    "Убрать неподтверждённые обещания и устаревшие элементы.",
-                ],
-            },
-            {
-                "priority": "idea",
-                "title": "Настроить точное отслеживание воронки",
-                "text": (
-                    "Заказы показывают итог, но не объясняют, на каком шаге сайт теряет пользователей."
-                ),
-                "actions": [
-                    "Настроить события просмотра товара, корзины, оформления и оплаты.",
-                    "Отдельно отслеживать ошибки формы и платежа.",
-                    "Передавать товар, категорию, стоимость и источник заказа.",
-                    "Собрать отдельный отчёт по конверсии каждого шага.",
-                ],
-            },
-        ]
     )
 
     priority_order = {
@@ -2234,266 +2103,8 @@ def build_recommendations(
     }
     return sorted(
         recommendations,
-        key=lambda item: priority_order.get(str(item["priority"]), 9),
-    )[:12]
-
-
-
-def _recommendation_priority_label(priority: str) -> str:
-    return {
-        "critical": "Критично",
-        "important": "Важно",
-        "recommendation": "Рекомендация",
-        "idea": "Идея",
-    }.get(priority, "Рекомендация")
-
-
-def _render_direct_recommendation_form(
-    recommendation: dict[str, object],
-    context: dict[str, object],
-    form_key: str,
-) -> None:
-    title = str(recommendation.get("title", "Доработка сайта"))
-    text_value = str(recommendation.get("text", ""))
-    actions = recommendation.get("actions", [])
-    actions_list = [str(item) for item in actions] if isinstance(actions, list) else []
-
-    st.markdown(
-        f"""
-        <div style="margin:0 0 16px;padding:18px 20px;border:1px solid #E7EAF0;border-left:5px solid #F4C430;border-radius:18px;background:#FFFFFF;">
-            <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#8A94A6;">Вы выбрали рекомендацию</div>
-            <div style="margin-top:5px;font-size:18px;font-weight:850;color:#111827;">{escape(title)}</div>
-            <div style="margin-top:6px;color:#667085;line-height:1.5;">{escape(text_value)}</div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    with st.form(form_key, clear_on_submit=False):
-        first, second = st.columns(2, gap="large")
-        with first:
-            project = st.text_input(
-                "Проект или адрес сайта",
-                placeholder="https://example.com",
-            )
-            name = st.text_input(
-                "Ваше имя",
-                placeholder="Как к вам обращаться",
-            )
-        with second:
-            contact = st.text_input(
-                "Телефон, email или Telegram",
-                placeholder="Контакт для обратной связи",
-            )
-            comment = st.text_area(
-                "Комментарий",
-                placeholder="Что нужно учесть или уточнить",
-                height=104,
-            )
-
-        consent = st.checkbox(
-            "Согласен на обработку данных для связи по заявке",
-            value=False,
-        )
-        submitted = st.form_submit_button(
-            "Отправить заявку",
-            type="primary",
-            use_container_width=True,
-        )
-
-    if not submitted:
-        return
-    if not project.strip():
-        st.error("Укажите проект или адрес сайта.")
-        return
-    if not contact.strip():
-        st.error("Укажите контакт для обратной связи.")
-        return
-    if not consent:
-        st.error("Подтвердите согласие на обработку данных.")
-        return
-
-    payload = {
-        "priority": str(recommendation.get("priority", "recommendation")),
-        "priority_label": _recommendation_priority_label(
-            str(recommendation.get("priority", "recommendation"))
-        ),
-        "title": title,
-        "text": text_value,
-        "actions": actions_list,
-    }
-
-    try:
-        send_lead_email(
-            recommendation=payload,
-            project=project.strip(),
-            name=name.strip(),
-            contact=contact.strip(),
-            comment=comment.strip(),
-            context={
-                "start_date": context.get("start_date"),
-                "end_date": context.get("end_date"),
-                "revenue": format_money(float(context.get("revenue", 0.0))),
-                "order_count": format_number(int(context.get("order_count", 0))),
-            },
-        )
-    except LeadMailError as exc:
-        st.error(str(exc))
-    else:
-        st.success(
-            "Заявка отправлена. В письмо переданы название, полный текст рекомендации и список доработок."
-        )
-
-
-def render_recommendations_page_direct(context: dict[str, object]) -> None:
-    recommendations = list(context.get("recommendations", []))[:12]
-    if not recommendations:
-        st.info("За выбранный период рекомендации не сформированы.")
-        return
-
-    st.markdown(
-        """
-        <style>
-        [class*="st-key-direct_rec_card_"] {
-            height: 100%;
-            padding: 18px !important;
-            border: 1px solid #E7EAF0 !important;
-            border-radius: 18px !important;
-            background: #FFFFFF !important;
-            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
-        }
-        [class*="st-key-direct_rec_card_"] ul {
-            margin: 5px 0 14px;
-            padding-left: 20px;
-        }
-        [class*="st-key-direct_rec_card_"] li {
-            margin-bottom: 5px;
-            color: #4B5563 !important;
-            line-height: 1.45;
-        }
-        [class*="st-key-direct_rec_button_"] button,
-        .st-key-direct_general_cta button {
-            min-height: 44px !important;
-            background: #F4C430 !important;
-            color: #111827 !important;
-            border: 1px solid #D6A900 !important;
-            font-weight: 850 !important;
-            box-shadow: 0 7px 16px rgba(244, 196, 48, 0.22) !important;
-        }
-        [class*="st-key-direct_rec_button_"] button:hover,
-        .st-key-direct_general_cta button:hover {
-            background: #FFD84D !important;
-            border-color: #C99C00 !important;
-        }
-        .direct-rec-badge {
-            display:inline-flex;
-            padding:5px 9px;
-            border-radius:999px;
-            font-size:11px;
-            line-height:1;
-            font-weight:850;
-            text-transform:uppercase;
-            letter-spacing:.04em;
-        }
-        .direct-rec-badge.critical { background:#FEECEC; color:#B42318 !important; }
-        .direct-rec-badge.important { background:#FFF2D8; color:#A15C00 !important; }
-        .direct-rec-badge.recommendation { background:#EAF2FF; color:#245FA8 !important; }
-        .direct-rec-badge.idea { background:#F1ECFF; color:#6842A8 !important; }
-        .direct-rec-title { margin:10px 0 7px;font-size:16px;font-weight:850;color:#111827 !important; }
-        .direct-rec-text { margin-bottom:12px;color:#4B5563 !important;line-height:1.5; }
-        .direct-rec-actions-title { margin:8px 0 5px;font-size:13px;font-weight:850;color:#111827 !important; }
-        </style>
-        """,
-        unsafe_allow_html=True,
-    )
-
-    intro_left, intro_right = st.columns([3, 1], vertical_alignment="center")
-    with intro_left:
-        st.markdown(
-            f"""
-            <div style="padding:18px 20px;border:1px solid #E7EAF0;border-left:5px solid #F4C430;border-radius:18px;background:#FFFFFF;">
-                <div style="font-size:18px;font-weight:850;color:#111827;">{len(recommendations)} рекомендаций по доработке сайта</div>
-                <div style="margin-top:5px;color:#667085;">Под каждой рекомендацией есть кнопка «Меня интересует». Выбранный текст полностью попадёт в заявку.</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    with intro_right:
-        if st.button(
-            "Обсудить сайт",
-            key="direct_general_cta",
-            type="primary",
-            use_container_width=True,
-        ):
-            st.session_state["direct_selected_recommendation"] = "general"
-            st.rerun()
-
-    selected = st.session_state.get("direct_selected_recommendation")
-    if selected == "general":
-        _render_direct_recommendation_form(
-            {
-                "priority": "recommendation",
-                "title": "Комплексная доработка интернет-магазина",
-                "text": "Нужна консультация и план улучшения сайта на основе данных дашборда.",
-                "actions": [
-                    "Провести разбор сайта и ключевых сценариев.",
-                    "Сформировать приоритетный список доработок.",
-                    "Оценить сроки и бюджет реализации.",
-                ],
-            },
-            context,
-            "direct_general_lead_form",
-        )
-    elif isinstance(selected, int) and 0 <= selected < len(recommendations):
-        _render_direct_recommendation_form(
-            recommendations[selected],
-            context,
-            f"direct_recommendation_lead_form_{selected}",
-        )
-
-    for start in range(0, len(recommendations), 2):
-        columns = st.columns(2, gap="large")
-        for offset, recommendation in enumerate(recommendations[start:start + 2]):
-            index = start + offset
-            priority = str(recommendation.get("priority", "recommendation"))
-            label = _recommendation_priority_label(priority)
-            title = str(recommendation.get("title", "Рекомендация"))
-            text_value = str(recommendation.get("text", ""))
-            actions = recommendation.get("actions", [])
-            actions_list = [str(item) for item in actions] if isinstance(actions, list) else []
-
-            with columns[offset]:
-                with st.container(key=f"direct_rec_card_{index}", border=True):
-                    st.markdown(
-                        f'<span class="direct-rec-badge {escape(priority)}">{escape(label)}</span>',
-                        unsafe_allow_html=True,
-                    )
-                    st.markdown(
-                        f'<div class="direct-rec-title">{escape(title)}</div>',
-                        unsafe_allow_html=True,
-                    )
-                    st.markdown(
-                        f'<div class="direct-rec-text">{escape(text_value)}</div>',
-                        unsafe_allow_html=True,
-                    )
-                    st.markdown(
-                        '<div class="direct-rec-actions-title">Что доработать на сайте</div>',
-                        unsafe_allow_html=True,
-                    )
-                    if actions_list:
-                        for action in actions_list:
-                            st.markdown(f"- {action}")
-                    else:
-                        st.markdown("- Провести аудит страницы и подготовить план изменений.")
-
-                    if st.button(
-                        "Меня интересует",
-                        key=f"direct_rec_button_{index}",
-                        type="primary",
-                        use_container_width=True,
-                    ):
-                        st.session_state["direct_selected_recommendation"] = index
-                        st.rerun()
+        key=lambda item: priority_order.get(item["priority"], 9),
+    )[:8]
 
 
 
@@ -2811,10 +2422,6 @@ def prepare_analytics_context(
 
 
 def render_selected_analytics_page(page_key: str, context: dict[str, object]) -> None:
-    if page_key == "recommendations":
-        render_recommendations_page_direct(context)
-        return
-
     for category_module in CATEGORY_MODULES:
         if category_module.render(page_key, context):
             return
