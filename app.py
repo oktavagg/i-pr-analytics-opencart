@@ -378,33 +378,35 @@ def apply_theme() -> None:
 
         html, body, [data-testid="stAppViewContainer"],
         [data-testid="stMain"], .stApp {
-            background: #ffffff !important;
-            color: #111111 !important;
+            background: #F6F7FB !important;
+            color: #111827 !important;
         }
 
         body, p, span, label, div, h1, h2, h3, h4, h5, h6 {
-            color: #111111;
+            color: #111827;
         }
 
         [data-testid="stHeader"] {
-            background: rgba(255, 255, 255, 0.98) !important;
+            background: rgba(246, 247, 251, 0.92) !important; border-bottom: 1px solid #ECEFF5;
         }
 
         [data-testid="stSidebar"] {
-            background: #F5F5F2 !important;
-            border-right: 1px solid #E1E1DB;
+            background: #171B22 !important;
+            border-right: 1px solid #232A35;
+            min-width: 318px !important;
+            max-width: 318px !important;
         }
 
         [data-testid="stSidebar"] > div:first-child {
-            padding-top: 0.75rem;
+            padding-top: 0.9rem;
         }
 
         [data-testid="stSidebar"] * {
-            color: #171717;
+            color: #E7EDF6;
         }
 
         [data-testid="stSidebar"] hr {
-            border-color: #DFDFD8 !important;
+            border-color: #2B3340 !important;
         }
 
         [data-testid="stSidebar"] ::-webkit-scrollbar {
@@ -416,7 +418,7 @@ def apply_theme() -> None:
         }
 
         [data-testid="stSidebar"] ::-webkit-scrollbar-thumb {
-            background: #C9C9C1;
+            background: #434C5E;
             border-radius: 999px;
         }
 
@@ -438,15 +440,15 @@ def apply_theme() -> None:
             align-items: center !important;
             justify-content: center !important;
             background: #FFFFFF !important;
-            border: 1px solid #DADAD3 !important;
+            border: 1px solid #E7EAF0 !important;
             border-radius: 11px !important;
             box-shadow: 0 8px 24px rgba(17, 17, 17, 0.08) !important;
             transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease !important;
         }
 
         [data-testid="stSidebarCollapsedControl"]:hover {
-            background: #FBF560 !important;
-            border-color: #111111 !important;
+            background: #F4C430 !important;
+            border-color: #F4C430 !important;
             transform: translateY(-1px);
         }
 
@@ -467,10 +469,10 @@ def apply_theme() -> None:
             margin: 0 0 14px;
             padding: 15px;
             overflow: hidden;
-            background: #FFFFFF;
-            border: 1px solid #E1E1DB;
-            border-radius: 16px;
-            box-shadow: 0 10px 28px rgba(17, 17, 17, 0.055);
+            background: linear-gradient(180deg, #202631 0%, #1B212B 100%);
+            border: 1px solid #2B3340;
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
         }
 
         .sidebar-brand::before {
@@ -480,7 +482,7 @@ def apply_theme() -> None:
             left: 0;
             width: 100%;
             height: 4px;
-            background: #FBF560;
+            background: linear-gradient(90deg, #F4C430 0%, #F8E16A 100%);
         }
 
         .sidebar-brand-logo {
@@ -490,9 +492,9 @@ def apply_theme() -> None:
             min-height: 54px;
             margin-bottom: 12px;
             padding: 8px 10px;
-            background: #FAFAF7;
-            border: 1px solid #ECECE5;
-            border-radius: 11px;
+            background: #FFFFFF;
+            border: 1px solid #2F3746;
+            border-radius: 12px;
         }
 
         .sidebar-brand-logo img {
@@ -510,21 +512,21 @@ def apply_theme() -> None:
 
         .sidebar-brand h2 {
             margin: 0 0 5px;
-            color: #171717 !important;
+            color: #FFFFFF !important;
             font-size: 1rem;
             line-height: 1.25;
         }
 
         .sidebar-brand p {
             margin: 0;
-            color: #6A6A64 !important;
+            color: #AAB4C3 !important;
             font-size: 0.76rem;
             line-height: 1.45;
         }
 
         .sidebar-mode-label {
             margin: 2px 2px 7px;
-            color: #777770 !important;
+            color: #93A0B3 !important;
             font-size: 0.68rem;
             font-weight: 800;
             letter-spacing: 0.09em;
@@ -537,9 +539,9 @@ def apply_theme() -> None:
             gap: 5px;
             margin: 0 0 18px;
             padding: 5px;
-            background: #E9E9E4;
-            border: 1px solid #DDDDD6;
-            border-radius: 13px;
+            background: #11161D;
+            border: 1px solid #2B3340;
+            border-radius: 14px;
         }
 
         [data-testid="stSidebar"] [role="radio"] {
@@ -561,19 +563,19 @@ def apply_theme() -> None:
 
         [data-testid="stSidebar"] [role="radio"] p {
             margin: 0;
-            color: #4A4A45 !important;
-            font-size: 0.75rem !important;
-            font-weight: 750 !important;
+            color: #AAB4C3 !important;
+            font-size: 0.82rem !important;
+            font-weight: 700 !important;
             line-height: 1.15 !important;
         }
 
         [data-testid="stSidebar"] [role="radio"]:hover {
-            background: rgba(255, 255, 255, 0.72);
+            background: rgba(255, 255, 255, 0.06);
         }
 
         [data-testid="stSidebar"] [role="radio"][aria-checked="true"] {
             background: #171717;
-            border-color: #171717;
+            border-color: #E7EDF6;
             box-shadow: 0 6px 16px rgba(17, 17, 17, 0.16);
             transform: translateY(-1px);
         }
@@ -585,7 +587,7 @@ def apply_theme() -> None:
             right: 7px;
             width: 6px;
             height: 6px;
-            background: #FBF560;
+            background: linear-gradient(90deg, #F4C430 0%, #F8E16A 100%);
             border-radius: 50%;
         }
 
@@ -599,7 +601,7 @@ def apply_theme() -> None:
             align-items: center;
             gap: 9px;
             margin: 22px 4px 8px;
-            color: #75756F !important;
+            color: #98A3B5 !important;
             font-size: 0.7rem;
             font-weight: 850;
             letter-spacing: 0.085em;
@@ -611,16 +613,16 @@ def apply_theme() -> None:
             content: "";
             flex: 1;
             height: 1px;
-            background: #DCDCD5;
+            background: #313949;
         }
 
         [data-testid="stSidebar"] .stButton {
-            margin: 0 0 3px;
+            margin: 0 0 5px;
         }
 
         [data-testid="stSidebar"] .stButton > button {
             position: relative;
-            min-height: 2.35rem;
+            min-height: 2.7rem;
             padding: 0.48rem 0.72rem 0.48rem 0.86rem;
             justify-content: flex-start;
             text-align: left;
@@ -628,8 +630,8 @@ def apply_theme() -> None:
             border: 1px solid transparent !important;
             border-radius: 9px !important;
             box-shadow: none !important;
-            font-size: 0.84rem;
-            font-weight: 620 !important;
+            font-size: 0.93rem;
+            font-weight: 600 !important;
             line-height: 1.2;
             transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease !important;
         }
@@ -646,7 +648,7 @@ def apply_theme() -> None:
         [data-testid="stSidebar"] .stButton > button p,
         [data-testid="stSidebar"] .stButton > button span,
         [data-testid="stSidebar"] .stButton > button label {
-            color: #343431 !important;
+            color: #DDE6F2 !important;
             text-align: left !important;
         }
 
@@ -667,9 +669,9 @@ def apply_theme() -> None:
         }
 
         [data-testid="stSidebar"] .stButton > button:hover {
-            background: #FFFFFF !important;
-            border-color: #E2E2DC !important;
-            box-shadow: 0 5px 14px rgba(17, 17, 17, 0.055) !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+            border-color: #374152 !important;
+            box-shadow: 0 10px 22px rgba(0, 0, 0, 0.16) !important;
             transform: translateX(2px);
         }
 
@@ -677,7 +679,7 @@ def apply_theme() -> None:
         [data-testid="stSidebar"] [data-testid="stBaseButton-primary"] {
             padding-left: 1.15rem;
             background: #171717 !important;
-            border-color: #171717 !important;
+            border-color: #303A4B !important;
             box-shadow: 0 7px 18px rgba(17, 17, 17, 0.14) !important;
             font-weight: 760 !important;
         }
@@ -690,7 +692,7 @@ def apply_theme() -> None:
             top: 50%;
             width: 4px;
             height: 18px;
-            background: #FBF560;
+            background: linear-gradient(90deg, #F4C430 0%, #F8E16A 100%);
             border-radius: 999px;
             transform: translateY(-50%);
         }
@@ -706,68 +708,68 @@ def apply_theme() -> None:
 
         [data-testid="stSidebar"] button[kind="primary"]:hover,
         [data-testid="stSidebar"] [data-testid="stBaseButton-primary"]:hover {
-            background: #242424 !important;
-            border-color: #242424 !important;
+            background: #2B3544 !important;
+            border-color: #39465A !important;
             transform: translateX(2px);
         }
 
         [data-testid="stSidebar"] [data-testid="stExpander"] {
             margin-top: 18px;
-            border: 1px solid #DEDED7;
-            border-radius: 11px;
+            border: 1px solid #2B3340;
+            border-radius: 14px;
             overflow: hidden;
-            background: rgba(255, 255, 255, 0.58);
+            background: rgba(255, 255, 255, 0.03);
         }
 
         [data-testid="stSidebar"] [data-testid="stExpander"] summary {
             min-height: 2.6rem;
             padding: 0 0.75rem;
-            font-size: 0.78rem;
+            font-size: 0.84rem;
             font-weight: 750;
         }
 
         [data-testid="stSidebar"] [data-testid="stExpander"] .stButton > button {
-            background: #FFFFFF !important;
-            border: 1px solid #DCDCD5 !important;
-            border-radius: 8px !important;
+            background: rgba(255, 255, 255, 0.06) !important;
+            border: 1px solid #36404F !important;
+            border-radius: 14px !important;
             padding-left: 0.75rem;
             justify-content: center;
         }
 
         .page-heading {
-            margin: 4px 0 22px;
-            padding-bottom: 14px;
-            border-bottom: 1px solid #D9D267;
+            margin: 2px 0 18px;
+            padding-bottom: 0;
+            border-bottom: none;
         }
 
         .page-heading h2 {
             margin: 0 0 5px;
-            font-size: 1.75rem;
+            font-size: 1.95rem;
             line-height: 1.2;
         }
 
         .page-heading p {
             margin: 0;
-            color: #4B4B4B !important;
+            color: #6B7280 !important;
         }
 
         .module-placeholder {
-            min-height: 310px;
+            min-height: 280px;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: flex-start;
             padding: 38px;
-            background: #FFFEEE;
-            border: 1px solid #D9D267;
-            border-left: 6px solid #FBF560;
+            background: #FFFFFF;
+            border: 1px solid #E7EAF0;
+            border-left: 5px solid #F4C430;
         }
 
         .module-placeholder .module-status {
             display: inline-block;
             margin-bottom: 14px;
             padding: 5px 9px;
-            background: #FBF560;
+            background: linear-gradient(90deg, #F4C430 0%, #F8E16A 100%);
             border: 1px solid #111111;
             font-size: 0.75rem;
             font-weight: 800;
@@ -782,7 +784,7 @@ def apply_theme() -> None:
         .module-placeholder p {
             max-width: 680px;
             margin: 0;
-            color: #4B4B4B !important;
+            color: #6B7280 !important;
             line-height: 1.55;
         }
 
@@ -790,9 +792,9 @@ def apply_theme() -> None:
         .period-control-box {
             margin: 0 0 18px;
             padding: 18px 20px;
-            background: #FFFEEE;
-            border: 1px solid #D9D267;
-            border-left: 5px solid #FBF560;
+            background: #FFFFFF;
+            border: 1px solid #E7EAF0;
+            border-left: 4px solid #F4C430;
         }
 
         .period-control-box h3 {
@@ -802,19 +804,21 @@ def apply_theme() -> None:
 
         .period-control-box p {
             margin: 0;
-            color: #4B4B4B !important;
+            color: #6B7280 !important;
             font-size: 0.9rem;
         }
 
         .period-comparison-title {
             margin: 8px 0 14px;
-            padding: 17px 20px;
-            background: #FBF560;
-            color: #111111 !important;
-            border: 1px solid #111111;
-            font-size: 1.2rem;
+            padding: 16px 18px;
+            background: #FFFFFF;
+            color: #111827 !important;
+            border: 1px solid #E7EAF0;
+            border-radius: 16px;
+            font-size: 1.14rem;
             font-weight: 800;
             text-align: center;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
         }
 
         .period-comparison-title * {
@@ -825,7 +829,7 @@ def apply_theme() -> None:
             width: 100%;
             overflow-x: auto;
             margin-bottom: 14px;
-            border: 1px solid #D9D267;
+            border: 1px solid #E7EAF0;
         }
 
         .comparison-table {
@@ -838,10 +842,10 @@ def apply_theme() -> None:
 
         .comparison-table th {
             padding: 11px 12px;
-            background: #FBF560;
-            color: #111111 !important;
-            border-right: 1px solid #A49E23;
-            border-bottom: 1px solid #111111;
+            background: #F8FAFC;
+            color: #6B7280 !important;
+            border-right: 1px solid #EEF2F7;
+            border-bottom: 1px solid #EEF2F7;
             text-align: center;
             font-weight: 800;
         }
@@ -852,8 +856,8 @@ def apply_theme() -> None:
 
         .comparison-table td {
             padding: 10px 12px;
-            border-right: 1px solid #C5CCD6;
-            border-bottom: 1px solid #C5CCD6;
+            border-right: 1px solid #EEF2F7;
+            border-bottom: 1px solid #EEF2F7;
             color: #111111 !important;
             vertical-align: middle;
         }
@@ -880,15 +884,15 @@ def apply_theme() -> None:
         }
 
         .comparison-table tr.positive td {
-            background: #E8F3E4;
+            background: #F3F9F4;
         }
 
         .comparison-table tr.negative td {
-            background: #FCE8DE;
+            background: #FFF4F1;
         }
 
         .comparison-table tr.neutral td {
-            background: #F4F4F4;
+            background: #F8FAFC;
         }
 
         .comparison-table .change-positive,
@@ -905,7 +909,7 @@ def apply_theme() -> None:
 
         .comparison-table .change-neutral,
         .comparison-table .conclusion-neutral {
-            color: #4B4B4B !important;
+            color: #6B7280 !important;
             font-weight: 700;
         }
 
@@ -913,13 +917,15 @@ def apply_theme() -> None:
             margin: 8px 0 22px;
             color: #5B5B5B !important;
             font-size: 0.86rem;
-            font-style: italic;
+            font-style: normal;
         }
 
         .block-container {
-            padding-top: 1.25rem;
-            padding-bottom: 3rem;
-            max-width: 1480px;
+            padding-top: 1.1rem;
+            padding-bottom: 2.4rem;
+            padding-left: 1.35rem;
+            padding-right: 1.35rem;
+            max-width: none;
         }
 
         .brand-header {
@@ -929,11 +935,11 @@ def apply_theme() -> None:
             gap: 28px;
             min-height: 104px;
             padding: 22px 28px;
-            border: 1px solid #D9D267;
-            border-top: 4px solid #FBF560;
-            border-radius: 14px;
-            background: linear-gradient(120deg, #FFFFFF 0%, #FFFDF4 68%, #FFFBCB 100%);
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+            border: 1px solid #E7EAF0;
+            border-top: 1px solid #E7EAF0;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #FFFFFF 0%, #FCFCFD 70%, #FFF8D8 100%);
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
             margin-bottom: 22px;
             overflow: hidden;
         }
@@ -946,7 +952,7 @@ def apply_theme() -> None:
             width: 230px;
             height: 230px;
             border-radius: 28px;
-            background: rgba(251, 245, 96, 0.16);
+            background: rgba(244, 196, 48, 0.12);
             transform: rotate(12deg);
         }
 
@@ -959,9 +965,9 @@ def apply_theme() -> None:
             flex: 0 0 205px;
             min-height: 72px;
             padding: 8px 14px;
-            border-radius: 10px;
+            border-radius: 14px;
             background: #FFFFFF;
-            border: 1px solid #E2DDA5;
+            border: 1px solid #ECEFF5;
         }
 
         .brand-logo img {
@@ -972,7 +978,7 @@ def apply_theme() -> None:
         }
 
         .brand-logo-missing {
-            color: #111111;
+            color: #111827;
             font-size: 0.86rem;
             text-align: center;
         }
@@ -984,15 +990,15 @@ def apply_theme() -> None:
 
         .brand-copy h1 {
             margin: 0 0 7px 0;
-            color: #111111 !important;
-            font-size: 2rem;
+            color: #111827 !important;
+            font-size: 2.05rem;
             line-height: 1.12;
             font-weight: 750;
         }
 
         .brand-copy p {
             margin: 0;
-            color: #4B4B4B !important;
+            color: #6B7280 !important;
             font-size: 0.98rem;
         }
 
@@ -1000,10 +1006,10 @@ def apply_theme() -> None:
             position: relative;
             overflow: hidden;
             background: #FFFFFF;
-            border: 1px solid #D9D267;
+            border: 1px solid #E7EAF0;
             padding: 18px;
-            border-radius: 0;
-            box-shadow: none;
+            border-radius: 18px;
+            box-shadow: 0 10px 26px rgba(15, 23, 42, 0.05);
         }
 
         [data-testid="stMetric"]::before {
@@ -1013,17 +1019,17 @@ def apply_theme() -> None:
             top: 0;
             width: 100%;
             height: 3px;
-            background: #FBF560;
+            background: linear-gradient(90deg, #F4C430 0%, #F8E16A 100%);
         }
 
         [data-testid="stMetricLabel"] {
-            color: #4B4B4B !important;
+            color: #6B7280 !important;
             font-size: 0.86rem;
         }
 
         [data-testid="stMetricValue"] {
             color: #111111 !important;
-            font-size: 1.55rem;
+            font-size: 1.7rem;
             font-weight: 720;
         }
 
@@ -1032,19 +1038,20 @@ def apply_theme() -> None:
         }
 
         div[data-testid="stPlotlyChart"],
-        div[data-testid="stDataFrame"] {
+        div[data-testid="stDataFrame"],
+        .element-container:has(> div[data-testid="stDataFrame"]) {
             background: #FFFFFF;
-            border: 1px solid #D9D267;
-            border-radius: 0;
-            padding: 8px;
-            box-shadow: none;
+            border: 1px solid #E7EAF0;
+            border-radius: 18px;
+            padding: 10px 12px;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
         }
 
         .summary-box {
-            background: linear-gradient(120deg, #FFFEEE 0%, #FFFCD0 100%);
-            border: 1px solid #D9D267;
-            border-left: 4px solid #FBF560;
-            border-radius: 0;
+            background: #FFFFFF;
+            border: 1px solid #E7EAF0;
+            border-left: 4px solid #F4C430;
+            border-radius: 16px;
             padding: 18px 20px;
             margin: 12px 0 18px 0;
             color: #111111 !important;
@@ -1058,7 +1065,7 @@ def apply_theme() -> None:
         .monthly-table-wrap {
             width: 100%;
             overflow-x: auto;
-            border: 1px solid #D9D267;
+            border: 1px solid #E7EAF0;
             background: #FFFFFF;
         }
 
@@ -1071,10 +1078,10 @@ def apply_theme() -> None:
 
         .monthly-report-table th {
             padding: 11px 10px;
-            background: #FBF560;
-            color: #111111 !important;
-            border-right: 1px solid #A49E23;
-            border-bottom: 1px solid #111111;
+            background: #F8FAFC;
+            color: #6B7280 !important;
+            border-right: 1px solid #EEF2F7;
+            border-bottom: 1px solid #EEF2F7;
             text-align: center;
             font-weight: 800;
             white-space: nowrap;
@@ -1083,8 +1090,8 @@ def apply_theme() -> None:
         .monthly-report-table td {
             padding: 10px;
             color: #111111 !important;
-            border-right: 1px solid #E1DDA7;
-            border-bottom: 1px solid #E1DDA7;
+            border-right: 1px solid #EEF2F7;
+            border-bottom: 1px solid #EEF2F7;
             text-align: right;
             white-space: nowrap;
         }
@@ -1096,11 +1103,11 @@ def apply_theme() -> None:
         }
 
         .monthly-report-table tbody tr:nth-child(even) td {
-            background: #FFFEEE;
+            background: #FBFCFE;
         }
 
         .monthly-report-table tfoot td {
-            background: #FFF9B5;
+            background: #F8FAFC;
             border-top: 2px solid #111111;
             font-weight: 850;
         }
@@ -1108,31 +1115,31 @@ def apply_theme() -> None:
         .recommendation-card {
             height: 100%;
             background: #FFFFFF;
-            border: 1px solid #D9D267;
-            border-left: 5px solid #A49E23;
-            border-radius: 0;
-            padding: 17px 18px;
-            box-shadow: none;
+            border: 1px solid #E7EAF0;
+            border-left: 5px solid #CBD5E1;
+            border-radius: 18px;
+            padding: 18px 18px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
         }
 
         .recommendation-card.critical {
             border-left-color: #C40018;
-            background: #FFF1F1;
+            background: #FFF4F2;
         }
 
         .recommendation-card.important {
             border-left-color: #D86A00;
-            background: #FFF7E9;
+            background: #FFF8EE;
         }
 
         .recommendation-card.recommendation {
             border-left-color: #A49E23;
-            background: #FFFCD0;
+            background: #FFFBEB;
         }
 
         .recommendation-card.idea {
-            border-left-color: #111111;
-            background: #F5F5F5;
+            border-left-color: #111827;
+            background: #F8FAFC;
         }
 
         .recommendation-priority {
@@ -1140,7 +1147,7 @@ def apply_theme() -> None:
             margin: 0 0 10px;
             padding: 4px 8px;
             border: 1px solid #111111;
-            background: #FBF560;
+            background: linear-gradient(90deg, #F4C430 0%, #F8E16A 100%);
             color: #111111 !important;
             font-size: 0.72rem;
             font-weight: 850;
@@ -1161,7 +1168,7 @@ def apply_theme() -> None:
         }
 
         .recommendation-card.idea .recommendation-priority {
-            background: #111111;
+            background: #1F2937;
             color: #FFFFFF !important;
         }
 
@@ -1173,51 +1180,51 @@ def apply_theme() -> None:
 
         .recommendation-card p {
             margin: 0;
-            color: #4B4B4B !important;
+            color: #6B7280 !important;
             line-height: 1.45;
             font-size: 0.91rem;
         }
 
         .small-muted,
         [data-testid="stCaptionContainer"] {
-            color: #4B4B4B !important;
+            color: #6B7280 !important;
             font-size: 0.9rem;
         }
 
         .stTabs [data-baseweb="tab-list"] {
             gap: 8px;
-            border-bottom: 1px solid #D9D267;
+            border-bottom: 1px solid #E7EAF0;
         }
 
         .stTabs [data-baseweb="tab"] {
-            background: #FFFEEE;
-            border: 1px solid #D9D267;
+            background: #FBFCFE;
+            border: 1px solid #E7EAF0;
             border-bottom: 0;
-            border-radius: 0;
+            border-radius: 12px 12px 0 0;
             padding: 8px 14px;
             color: #111111 !important;
         }
 
         .stTabs [aria-selected="true"] {
-            background: #FBF560 !important;
+            background: #FFFFFF !important;
             color: #111111 !important;
             font-weight: 700;
         }
 
         .stButton > button,
         .stDownloadButton > button {
-            background: #FBF560 !important;
+            background: #FFFFFF !important;
             color: #111111 !important;
-            border: 1px solid #111111 !important;
-            border-radius: 0 !important;
+            border: 1px solid #D7DCE5 !important;
+            border-radius: 12px !important;
             box-shadow: none !important;
             font-weight: 700 !important;
         }
 
         .stButton > button:hover,
         .stDownloadButton > button:hover {
-            background: #FFF89A !important;
-            border-color: #111111 !important;
+            background: #F8FAFC !important;
+            border-color: #C8D0DB !important;
         }
 
         [data-baseweb="select"] > div,
@@ -1226,15 +1233,15 @@ def apply_theme() -> None:
         [data-baseweb="tag"] {
             background: #FFFFFF !important;
             color: #111111 !important;
-            border-color: #D9D267 !important;
-            border-radius: 0 !important;
+            border-color: #D8DEE8 !important;
+            border-radius: 12px !important;
             box-shadow: none !important;
         }
 
         [data-baseweb="tag"] {
-            background: #FBF560 !important;
+            background: #FFFFFF !important;
             color: #111111 !important;
-            border: 1px solid #111111 !important;
+            border: 1px solid #D7DCE5 !important;
         }
 
         [data-baseweb="tag"] span,
@@ -1246,27 +1253,27 @@ def apply_theme() -> None:
         [data-testid="stFileUploaderDropzone"] {
             background: #FFFFFF !important;
             color: #111111 !important;
-            border: 1px solid #DDD9B3 !important;
-            border-radius: 10px !important;
+            border: 1px dashed #D6DCE7 !important;
+            border-radius: 14px !important;
         }
 
         [data-testid="stFileUploaderDropzone"] button {
-            background: #FBF560 !important;
+            background: #FFFFFF !important;
             color: #111111 !important;
-            border: 1px solid #111111 !important;
-            border-radius: 8px !important;
+            border: 1px solid #D7DCE5 !important;
+            border-radius: 12px !important;
         }
 
         [data-testid="stFileUploader"] section {
             background: #FFFFFF !important;
-            border-radius: 10px !important;
+            border-radius: 14px !important;
         }
 
         [data-testid="stFileUploaderFile"] {
             background: #FFFFFF !important;
             color: #111111 !important;
             border: 1px solid #D8D8D8 !important;
-            border-radius: 8px !important;
+            border-radius: 12px !important;
             box-shadow: none !important;
         }
 
@@ -1280,9 +1287,9 @@ def apply_theme() -> None:
         }
 
         [data-testid="stFileUploaderFileDeleteBtn"] {
-            background: #FBF560 !important;
+            background: #FFFFFF !important;
             color: #111111 !important;
-            border: 1px solid #111111 !important;
+            border: 1px solid #D7DCE5 !important;
             border-radius: 7px !important;
         }
 
@@ -1295,7 +1302,7 @@ def apply_theme() -> None:
             background: #FFFCD0 !important;
             color: #111111 !important;
             border: 1px solid #D9D267 !important;
-            border-radius: 0 !important;
+            border-radius: 12px !important;
         }
 
 
@@ -1303,10 +1310,10 @@ def apply_theme() -> None:
             padding: 28px 30px;
             margin: 8px 0 24px;
             background: #FFFFFF;
-            border: 1px solid #E5E2CC;
-            border-left: 4px solid #FBF560;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(17, 17, 17, 0.035);
+            border: 1px solid #E7EAF0;
+            border-left: 4px solid #F4C430;
+            border-radius: 18px;
+            box-shadow: 0 14px 32px rgba(15, 23, 42, 0.05);
             transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
         }
 
@@ -1342,11 +1349,11 @@ def apply_theme() -> None:
         .st-key-demo_import_block {
             margin: 0 0 20px;
             padding: 18px 20px;
-            background: #F5FAF4;
-            border: 1px solid #C9DDC5;
-            border-left: 4px solid #74A96B;
-            border-radius: 12px;
-            box-shadow: 0 8px 22px rgba(70, 112, 61, 0.04);
+            background: #F6FBF6;
+            border: 1px solid #D7E8D7;
+            border-left: 4px solid #85B87B;
+            border-radius: 18px;
+            box-shadow: 0 14px 32px rgba(70, 112, 61, 0.05);
             transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
         }
 
@@ -1369,7 +1376,7 @@ def apply_theme() -> None:
 
         .st-key-demo_import_block .stButton > button {
             min-height: 3rem;
-            background: #DDF0D8 !important;
+            background: #ECF7E8 !important;
             color: #111111 !important;
             border: 1px solid #7FAA76 !important;
             border-radius: 9px !important;
@@ -1385,7 +1392,7 @@ def apply_theme() -> None:
 
         .st-key-demo_import_block .stButton > button:hover {
             transform: translateY(-1px);
-            background: #BFE2B6 !important;
+            background: #DDF0D8 !important;
             color: #111111 !important;
             border-color: #4F7D47 !important;
         }
@@ -1403,7 +1410,7 @@ def apply_theme() -> None:
             left: 0;
             right: 0;
             height: 1px;
-            background: #D9D267;
+            background: #E7EAF0;
         }
 
         .import-divider span {
@@ -1411,8 +1418,8 @@ def apply_theme() -> None:
             display: inline-block;
             padding: 0 12px;
             background: #FFFFFF;
-            color: #4B4B4B !important;
-            font-size: 0.84rem;
+            color: #6B7280 !important;
+            font-size: 0.93rem;
         }
 
         [data-testid="stFileUploaderDropzone"] {
@@ -1421,20 +1428,72 @@ def apply_theme() -> None:
 
         [data-testid="stFileUploaderDropzone"]:hover {
             transform: translateY(-1px);
-            border-color: #111111 !important;
+            border-color: #C8D0DB !important;
             background: #FFFEEE !important;
         }
 
         .import-intro h2 {
             margin: 0 0 8px;
-            font-size: 1.75rem;
+            font-size: 1.95rem;
         }
 
         .import-intro p {
             margin: 0;
-            color: #4B4B4B !important;
+            color: #6B7280 !important;
         }
 
+        [data-testid="stMainBlockContainer"] {
+            max-width: none !important;
+        }
+
+        .element-container {
+            margin-bottom: 0.65rem;
+        }
+
+        [data-testid="stMetric"]:hover,
+        div[data-testid="stPlotlyChart"]:hover,
+        div[data-testid="stDataFrame"]:hover,
+        .monthly-table-wrap:hover,
+        .comparison-table-wrap:hover,
+        .summary-box:hover {
+            box-shadow: 0 16px 34px rgba(15, 23, 42, 0.07);
+            border-color: #D7DDE7;
+        }
+
+        [data-testid="stMetricLabel"] p {
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            font-size: 0.76rem;
+            color: #8A94A6 !important;
+        }
+
+        [data-testid="stMetricDelta"] {
+            font-size: 0.82rem !important;
+        }
+
+        [data-testid="stSidebar"] .stRadio label {
+            cursor: pointer;
+        }
+
+        .page-heading p {
+            max-width: 760px;
+            font-size: 0.96rem;
+        }
+
+        .comparison-table, .monthly-report-table {
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .comparison-table th, .monthly-report-table th {
+            font-size: 0.78rem;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        .brand-copy p {
+            color: #667085 !important;
+        }
 
 
         @media (max-width: 800px) {
@@ -1450,7 +1509,7 @@ def apply_theme() -> None:
             }
 
             .brand-copy h1 {
-                font-size: 1.55rem;
+                font-size: 1.7rem;
             }
         }
         </style>

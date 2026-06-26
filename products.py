@@ -11,6 +11,7 @@ from analytics_ui import (
     BRAND_DARK_GOLD,
     BRAND_GOLD,
     BRAND_YELLOW,
+    add_trendline,
     configure_plot,
     format_money,
     format_number,

@@ -13,6 +13,7 @@ from analytics_ui import (
     BRAND_GOLD,
     BRAND_PALE,
     BRAND_YELLOW,
+    add_trendline,
     configure_plot,
     format_money,
     format_number,
@@ -46,41 +47,46 @@ def _apply_customer_styles() -> None:
         .customer-report-table-wrap {
             width: 100%;
             overflow-x: auto;
-            border: 1px solid #D9D267;
+            border: 1px solid #E7EAF0;
+            border-radius: 18px;
             background: #FFFFFF;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.05);
         }
 
         .customer-report-table {
             width: 100%;
             border-collapse: collapse;
-            font-size: 0.88rem;
+            font-size: 0.9rem;
         }
 
         .customer-report-table th {
-            padding: 10px 9px;
-            background: #FBF560;
-            color: #111111 !important;
-            border: 1px solid #111111;
+            padding: 11px 10px;
+            background: #F8FAFC;
+            color: #6B7280 !important;
+            border-bottom: 1px solid #EEF2F7;
             font-weight: 800;
             text-align: center;
             white-space: nowrap;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            font-size: 0.76rem;
         }
 
         .customer-report-table td {
-            padding: 9px;
-            border: 1px solid #D9D267;
-            color: #111111 !important;
+            padding: 10px;
+            border-bottom: 1px solid #EEF2F7;
+            color: #111827 !important;
             background: #FFFFFF;
             vertical-align: middle;
         }
 
         .customer-report-table tbody tr:nth-child(even) td {
-            background: #FFFEEE;
+            background: #FBFCFE;
         }
 
         .customer-report-table tfoot td {
-            background: #FFFCD0;
-            border-color: #111111;
+            background: #F8FAFC;
+            border-top: 1px solid #E7EAF0;
             font-weight: 800;
         }
 
@@ -98,32 +104,36 @@ def _apply_customer_styles() -> None:
         .sleeping-status {
             margin: 12px 0 18px;
             padding: 18px 20px;
-            border: 1px solid #85C88A;
-            background: #E8F8E9;
-            color: #174D1B !important;
+            border: 1px solid #D9EAD7;
+            border-radius: 16px;
+            background: #F6FBF6;
+            color: #235127 !important;
             font-size: 1rem;
             font-weight: 750;
             text-align: center;
         }
 
         .sleeping-status.has-data {
-            border-color: #D9D267;
-            background: #FFFCD0;
-            color: #111111 !important;
+            border-color: #E7EAF0;
+            background: #FFFFFF;
+            color: #111827 !important;
             text-align: left;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
         }
 
         .customer-insight {
             padding: 16px 18px;
-            border: 1px solid #D9D267;
-            border-left: 5px solid #FBF560;
-            background: #FFFEEE;
-            color: #111111 !important;
-            line-height: 1.5;
+            border: 1px solid #E7EAF0;
+            border-left: 4px solid #F4C430;
+            border-radius: 16px;
+            background: #FFFFFF;
+            color: #111827 !important;
+            line-height: 1.55;
+            box-shadow: 0 10px 28px rgba(15, 23, 42, 0.04);
         }
 
         .customer-insight strong {
-            color: #111111 !important;
+            color: #111827 !important;
         }
         </style>
         """,

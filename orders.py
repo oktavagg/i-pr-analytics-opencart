@@ -13,6 +13,7 @@ from analytics_ui import (
     BRAND_GOLD,
     BRAND_PALE,
     BRAND_YELLOW,
+    add_trendline,
     configure_plot,
     format_money,
     format_number,
@@ -179,8 +180,9 @@ def _render_revenue_chart(monthly: pd.DataFrame) -> None:
         color_discrete_sequence=[BRAND_YELLOW],
         category_orders={"month_label": monthly["month_label"].tolist()},
     )
-    chart.update_traces(marker_line_color=BRAND_BLACK, marker_line_width=0.7)
-    chart.update_layout(showlegend=False, bargap=0.28)
+    chart.update_traces(marker_line_color="#FFFFFF", marker_line_width=1.0)
+    chart.update_layout(showlegend=True, bargap=0.32)
+    add_trendline(chart, monthly["month_label"].tolist(), monthly["revenue"].tolist())
     st.plotly_chart(configure_plot(chart, 500), width="stretch")
 
 
@@ -196,8 +198,9 @@ def _render_orders_chart(monthly: pd.DataFrame) -> None:
         color_discrete_sequence=[BRAND_YELLOW],
         category_orders={"month_label": monthly["month_label"].tolist()},
     )
-    chart.update_traces(marker_line_color=BRAND_BLACK, marker_line_width=0.7)
-    chart.update_layout(showlegend=False, bargap=0.28)
+    chart.update_traces(marker_line_color="#FFFFFF", marker_line_width=1.0)
+    chart.update_layout(showlegend=True, bargap=0.32)
+    add_trendline(chart, monthly["month_label"].tolist(), monthly["orders"].tolist())
     st.plotly_chart(configure_plot(chart, 500), width="stretch")
 
 
@@ -236,8 +239,10 @@ def _render_segment_chart(
             "segment": ["Новые", "Повторные"],
         },
     )
-    chart.update_traces(marker_line_color=BRAND_GOLD, marker_line_width=0.5)
+    chart.update_traces(marker_line_color="#FFFFFF", marker_line_width=0.8)
     chart.update_layout(bargap=0.24, bargroupgap=0.08, legend_orientation="h")
+    total_by_month = monthly[value_columns].sum(axis=1).tolist()
+    add_trendline(chart, monthly["month_label"].tolist(), total_by_month, name="Общий тренд")
     st.plotly_chart(configure_plot(chart, 500), width="stretch")
 
 
@@ -504,8 +509,9 @@ def render_average_check_page(context: dict[str, object]) -> None:
             color_discrete_sequence=[BRAND_YELLOW],
             category_orders={"month_label": monthly["month_label"].tolist()},
         )
-        chart.update_traces(marker_line_color=BRAND_BLACK, marker_line_width=0.7)
-        chart.update_layout(showlegend=False, bargap=0.28)
+        chart.update_traces(marker_line_color="#FFFFFF", marker_line_width=1.0)
+        chart.update_layout(showlegend=True, bargap=0.32)
+        add_trendline(chart, monthly["month_label"].tolist(), monthly["average_check"].tolist())
         st.plotly_chart(configure_plot(chart, 500), width="stretch")
 
 
@@ -694,6 +700,7 @@ def render_items_per_order_page(context: dict[str, object]) -> None:
             },
         )
         chart.update_layout(legend_orientation="h", bargap=0.22, bargroupgap=0.06)
+        add_trendline(chart, monthly["month_label"].tolist(), monthly[bucket_order].sum(axis=1).tolist(), name="Общий тренд")
         st.plotly_chart(configure_plot(chart, 500), width="stretch")
 
     if one_item_share >= 50:
@@ -760,7 +767,7 @@ def render_order_statuses_page(context: dict[str, object]) -> None:
             text="orders",
             color_discrete_sequence=[BRAND_YELLOW],
         )
-        bar.update_traces(marker_line_color=BRAND_BLACK, marker_line_width=0.6)
+        bar.update_traces(marker_line_color="#FFFFFF", marker_line_width=1.0)
         bar.update_layout(showlegend=False, yaxis_title=None)
         st.plotly_chart(configure_plot(bar, 470), width="stretch")
     with right:
@@ -849,8 +856,9 @@ def render_order_frequency_page(context: dict[str, object]) -> None:
             color_discrete_sequence=[BRAND_YELLOW],
             category_orders={"interval_group": labels},
         )
-        chart.update_traces(marker_line_color=BRAND_BLACK, marker_line_width=0.6)
-        chart.update_layout(showlegend=False)
+        chart.update_traces(marker_line_color="#FFFFFF", marker_line_width=1.0)
+        chart.update_layout(showlegend=True)
+        add_trendline(chart, distribution["interval_group"].astype(str).tolist(), distribution["orders"].tolist())
         st.plotly_chart(configure_plot(chart, 470), width="stretch")
 
     reminder_start = max(1, int(round(median_interval * 0.70)))
@@ -915,7 +923,7 @@ def render_shipping_rating_page(context: dict[str, object]) -> None:
         text="orders",
         color_discrete_sequence=[BRAND_YELLOW],
     )
-    chart.update_traces(marker_line_color=BRAND_BLACK, marker_line_width=0.6)
+    chart.update_traces(marker_line_color="#FFFFFF", marker_line_width=1.0)
     chart.update_layout(showlegend=False, yaxis_title=None)
     st.plotly_chart(configure_plot(chart, max(450, 70 * len(stats))), width="stretch")
 
