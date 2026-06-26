@@ -12,6 +12,7 @@ from pathlib import Path
 import pandas as pd
 import streamlit as st
 
+import overview_module
 import conclusions
 import cro_module
 import customers as customers_module
@@ -67,6 +68,7 @@ WEEKDAY_ORDER = list(WEEKDAY_NAMES.values())
 
 
 CATEGORY_MODULES = (
+    overview_module,
     conclusions,
     orders_module,
     customers_module,
@@ -91,6 +93,7 @@ PAGE_DESCRIPTIONS = {
 }
 
 PAGE_ICONS = {
+    "overview": "home",
     "period_changes": "monitoring",
     "recommendations": "tips_and_updates",
     "revenue": "payments",
@@ -633,6 +636,18 @@ def apply_theme() -> None:
             flex: 1;
             height: 1px;
             background: #313949;
+        }
+
+        .st-key-nav_overview button {
+            border-color: rgba(244, 196, 48, 0.42) !important;
+            background: rgba(244, 196, 48, 0.08) !important;
+            color: #FFFFFF !important;
+            font-weight: 800 !important;
+        }
+
+        .st-key-nav_overview button:hover {
+            background: rgba(244, 196, 48, 0.15) !important;
+            border-color: rgba(244, 196, 48, 0.58) !important;
         }
 
         [data-testid="stSidebar"] .stButton {
@@ -2246,9 +2261,9 @@ def render_placeholder(page_key: str) -> None:
 
 
 def render_analytics_navigation() -> str:
-    selected_page = st.session_state.get("analytics_page", "period_changes")
+    selected_page = st.session_state.get("analytics_page", "overview")
     if selected_page not in PAGE_TITLES:
-        selected_page = "period_changes"
+        selected_page = "overview"
         st.session_state["analytics_page"] = selected_page
 
     for group_title, pages in ANALYTICS_NAVIGATION:
