@@ -254,73 +254,75 @@ def format_file_size(size: int) -> str:
 
 
 def render_import_screen() -> None:
-    render_header()
-    st.markdown(
-        """
-        <div class="import-intro">
-            <h2>Загрузите данные магазина</h2>
-            <p>Для запуска системы нужны два XML-файла: заказы и полный каталог товаров.</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+    _, center_column, _ = st.columns([1.15, 6, 1.15], gap="large")
+    with center_column:
+        render_import_logo()
+        st.markdown(
+            """
+            <div class="import-intro">
+                <h2>Загрузите данные магазина</h2>
+                <p>Для запуска системы нужны два XML-файла: заказы и полный каталог товаров.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-    orders_column, products_column = st.columns(2, gap="large")
-    with orders_column:
-        with st.container(key="orders_upload_card"):
-            st.markdown("### 01. Заказы")
-            st.caption("XML с заказами и товарами внутри каждого заказа")
-            orders_file = st.file_uploader(
-                "Файл заказов",
-                type=["xml"],
-                key="initial_orders_xml",
-                label_visibility="collapsed",
-            )
+        orders_column, products_column = st.columns(2, gap="large")
+        with orders_column:
+            with st.container(key="orders_upload_card"):
+                st.markdown("### 01. Заказы")
+                st.caption("XML с заказами и товарами внутри каждого заказа")
+                orders_file = st.file_uploader(
+                    "Файл заказов",
+                    type=["xml"],
+                    key="initial_orders_xml",
+                    label_visibility="collapsed",
+                )
 
-    with products_column:
-        with st.container(key="products_upload_card"):
-            st.markdown("### 02. Товары")
-            st.caption("XML со всеми товарами интернет-магазина")
-            products_file = st.file_uploader(
-                "Файл товаров",
-                type=["xml"],
-                key="initial_products_xml",
-                label_visibility="collapsed",
-            )
+        with products_column:
+            with st.container(key="products_upload_card"):
+                st.markdown("### 02. Товары")
+                st.caption("XML со всеми товарами интернет-магазина")
+                products_file = st.file_uploader(
+                    "Файл товаров",
+                    type=["xml"],
+                    key="initial_products_xml",
+                    label_visibility="collapsed",
+                )
 
-    st.markdown("### 03. Демо-данные")
-    st.caption("Быстрый запуск системы без загрузки собственных файлов")
+        st.markdown("### 03. Демо-данные")
+        st.caption("Быстрый запуск системы без загрузки собственных файлов")
 
-    with st.container(key="demo_import_block"):
-        demo_copy, demo_action = st.columns([2.2, 1], vertical_alignment="center")
-        with demo_copy:
-            st.markdown(
-                """
-                <div class="demo-import-copy">
-                    <h3>Посмотреть систему на готовом примере</h3>
-                    <p>Будут загружены тестовые заказы и каталог из папки <b>files_test</b>.</p>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-        with demo_action:
-            if st.button(
-                "Использовать демо-данные",
-                key="use_demo_data",
-                type="secondary",
-                width="stretch",
-            ):
-                try:
-                    load_demo_files()
-                except (OSError, ValueError, RuntimeError) as exc:
-                    st.error(str(exc))
-                else:
-                    st.rerun()
+        with st.container(key="demo_import_block"):
+            demo_copy, demo_action = st.columns([1.8, 1], vertical_alignment="center")
+            with demo_copy:
+                st.markdown(
+                    """
+                    <div class="demo-import-copy">
+                        <h3>Посмотреть систему на готовом примере</h3>
+                        <p>Будут загружены тестовые заказы и каталог из папки <b>files_test</b>.</p>
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+            with demo_action:
+                if st.button(
+                    "Использовать демо-данные",
+                    key="use_demo_data",
+                    type="secondary",
+                    width="stretch",
+                ):
+                    try:
+                        load_demo_files()
+                    except (OSError, ValueError, RuntimeError) as exc:
+                        st.error(str(exc))
+                    else:
+                        st.rerun()
 
-    files_ready = orders_file is not None and products_file is not None
-    if not files_ready:
-        st.caption("Продолжение откроется после загрузки обоих файлов или выбора демо-данных.")
-        return
+        files_ready = orders_file is not None and products_file is not None
+        if not files_ready:
+            st.caption("Продолжение откроется после загрузки обоих файлов или выбора демо-данных.")
+            return
 
     try:
         orders_bytes = orders_file.getvalue()
@@ -531,6 +533,14 @@ def apply_theme() -> None:
             color: #AAB4C3 !important;
             font-size: 0.76rem;
             line-height: 1.45;
+        }
+
+        .sidebar-brand--compact {
+            padding: 14px;
+        }
+
+        .sidebar-brand--compact .sidebar-brand-logo {
+            margin-bottom: 0;
         }
 
         .sidebar-mode-label {
@@ -1561,10 +1571,17 @@ def apply_theme() -> None:
 
         .st-key-page_period_filter [data-testid="stSegmentedControl"] button[aria-pressed="true"],
         .st-key-page_period_filter [data-baseweb="button-group"] button[aria-pressed="true"],
-        .st-key-page_period_filter [data-testid="stSegmentedControl"] button[data-active="true"] {
-            background: #FFFFFF !important;
+        .st-key-page_period_filter [data-testid="stSegmentedControl"] button[data-active="true"],
+        .st-key-page_period_filter [data-baseweb="button-group"] button[data-active="true"] {
+            background: #FFF7D6 !important;
             color: #111827 !important;
-            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08) !important;
+            border: 1px solid #F4C430 !important;
+            box-shadow: 0 6px 14px rgba(244, 196, 48, 0.22) !important;
+        }
+
+        .st-key-page_period_filter [data-testid="stSegmentedControl"] button:hover,
+        .st-key-page_period_filter [data-baseweb="button-group"] button:hover {
+            background: rgba(255, 255, 255, 0.82) !important;
         }
 
         .st-key-page_period_filter [data-testid="stDateInput"] {
@@ -1623,6 +1640,41 @@ def apply_theme() -> None:
         }
 
 
+        .import-logo-wrap {
+            display: flex;
+            justify-content: center;
+            margin: 2rem 0 1.1rem;
+        }
+
+        .import-logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 220px;
+            padding: 16px 22px;
+            background: #FFFFFF;
+            border: 1px solid #E7EAF0;
+            border-radius: 18px;
+            box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
+        }
+
+        .import-logo img {
+            display: block;
+            width: 176px;
+            max-height: 62px;
+            object-fit: contain;
+        }
+
+        .import-intro {
+            text-align: center;
+            margin-bottom: 1.35rem;
+        }
+
+        .import-intro p {
+            max-width: 620px;
+            margin: 0.55rem auto 0;
+        }
+
         @media (max-width: 800px) {
             .brand-header {
                 flex-direction: column;
@@ -1677,6 +1729,26 @@ def render_header() -> None:
     )
 
 
+def render_import_logo() -> None:
+    if LOGO_PATH.exists():
+        logo_base64 = base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
+        logo_html = (
+            f'<img src="data:image/jpeg;base64,{logo_base64}" '
+            'alt="IPR ecommerce agency">'
+        )
+    else:
+        logo_html = '<div class="brand-logo-missing">I-PR</div>'
+
+    st.markdown(
+        f"""
+        <div class="import-logo-wrap">
+            <div class="import-logo">{logo_html}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
 def render_sidebar_brand() -> None:
     if LOGO_PATH.exists():
         logo_base64 = base64.b64encode(LOGO_PATH.read_bytes()).decode("ascii")
@@ -1689,10 +1761,8 @@ def render_sidebar_brand() -> None:
 
     st.markdown(
         f"""
-        <div class="sidebar-brand">
+        <div class="sidebar-brand sidebar-brand--compact">
             <div class="sidebar-brand-logo">{logo_html}</div>
-            <h2>Аналитика магазина</h2>
-            <p>Продажи, товары, покупатели и бизнес-рекомендации</p>
         </div>
         """,
         unsafe_allow_html=True,
