@@ -20,6 +20,7 @@ import orders as orders_module
 import products as products_module
 
 from analytics_ui import format_money, format_number, safe_percent
+from lead_mailer import LeadMailError, send_lead_email
 from xml_parser import (
     ALLOWED_STATUSES,
     parse_xml,
@@ -2238,6 +2239,264 @@ def build_recommendations(
 
 
 
+def _recommendation_priority_label(priority: str) -> str:
+    return {
+        "critical": "Критично",
+        "important": "Важно",
+        "recommendation": "Рекомендация",
+        "idea": "Идея",
+    }.get(priority, "Рекомендация")
+
+
+def _render_direct_recommendation_form(
+    recommendation: dict[str, object],
+    context: dict[str, object],
+    form_key: str,
+) -> None:
+    title = str(recommendation.get("title", "Доработка сайта"))
+    text_value = str(recommendation.get("text", ""))
+    actions = recommendation.get("actions", [])
+    actions_list = [str(item) for item in actions] if isinstance(actions, list) else []
+
+    st.markdown(
+        f"""
+        <div style="margin:0 0 16px;padding:18px 20px;border:1px solid #E7EAF0;border-left:5px solid #F4C430;border-radius:18px;background:#FFFFFF;">
+            <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#8A94A6;">Вы выбрали рекомендацию</div>
+            <div style="margin-top:5px;font-size:18px;font-weight:850;color:#111827;">{escape(title)}</div>
+            <div style="margin-top:6px;color:#667085;line-height:1.5;">{escape(text_value)}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    with st.form(form_key, clear_on_submit=False):
+        first, second = st.columns(2, gap="large")
+        with first:
+            project = st.text_input(
+                "Проект или адрес сайта",
+                placeholder="https://example.com",
+            )
+            name = st.text_input(
+                "Ваше имя",
+                placeholder="Как к вам обращаться",
+            )
+        with second:
+            contact = st.text_input(
+                "Телефон, email или Telegram",
+                placeholder="Контакт для обратной связи",
+            )
+            comment = st.text_area(
+                "Комментарий",
+                placeholder="Что нужно учесть или уточнить",
+                height=104,
+            )
+
+        consent = st.checkbox(
+            "Согласен на обработку данных для связи по заявке",
+            value=False,
+        )
+        submitted = st.form_submit_button(
+            "Отправить заявку",
+            type="primary",
+            use_container_width=True,
+        )
+
+    if not submitted:
+        return
+    if not project.strip():
+        st.error("Укажите проект или адрес сайта.")
+        return
+    if not contact.strip():
+        st.error("Укажите контакт для обратной связи.")
+        return
+    if not consent:
+        st.error("Подтвердите согласие на обработку данных.")
+        return
+
+    payload = {
+        "priority": str(recommendation.get("priority", "recommendation")),
+        "priority_label": _recommendation_priority_label(
+            str(recommendation.get("priority", "recommendation"))
+        ),
+        "title": title,
+        "text": text_value,
+        "actions": actions_list,
+    }
+
+    try:
+        send_lead_email(
+            recommendation=payload,
+            project=project.strip(),
+            name=name.strip(),
+            contact=contact.strip(),
+            comment=comment.strip(),
+            context={
+                "start_date": context.get("start_date"),
+                "end_date": context.get("end_date"),
+                "revenue": format_money(float(context.get("revenue", 0.0))),
+                "order_count": format_number(int(context.get("order_count", 0))),
+            },
+        )
+    except LeadMailError as exc:
+        st.error(str(exc))
+    else:
+        st.success(
+            "Заявка отправлена. В письмо переданы название, полный текст рекомендации и список доработок."
+        )
+
+
+def render_recommendations_page_direct(context: dict[str, object]) -> None:
+    recommendations = list(context.get("recommendations", []))[:12]
+    if not recommendations:
+        st.info("За выбранный период рекомендации не сформированы.")
+        return
+
+    st.markdown(
+        """
+        <style>
+        [class*="st-key-direct_rec_card_"] {
+            height: 100%;
+            padding: 18px !important;
+            border: 1px solid #E7EAF0 !important;
+            border-radius: 18px !important;
+            background: #FFFFFF !important;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+        }
+        [class*="st-key-direct_rec_card_"] ul {
+            margin: 5px 0 14px;
+            padding-left: 20px;
+        }
+        [class*="st-key-direct_rec_card_"] li {
+            margin-bottom: 5px;
+            color: #4B5563 !important;
+            line-height: 1.45;
+        }
+        [class*="st-key-direct_rec_button_"] button,
+        .st-key-direct_general_cta button {
+            min-height: 44px !important;
+            background: #F4C430 !important;
+            color: #111827 !important;
+            border: 1px solid #D6A900 !important;
+            font-weight: 850 !important;
+            box-shadow: 0 7px 16px rgba(244, 196, 48, 0.22) !important;
+        }
+        [class*="st-key-direct_rec_button_"] button:hover,
+        .st-key-direct_general_cta button:hover {
+            background: #FFD84D !important;
+            border-color: #C99C00 !important;
+        }
+        .direct-rec-badge {
+            display:inline-flex;
+            padding:5px 9px;
+            border-radius:999px;
+            font-size:11px;
+            line-height:1;
+            font-weight:850;
+            text-transform:uppercase;
+            letter-spacing:.04em;
+        }
+        .direct-rec-badge.critical { background:#FEECEC; color:#B42318 !important; }
+        .direct-rec-badge.important { background:#FFF2D8; color:#A15C00 !important; }
+        .direct-rec-badge.recommendation { background:#EAF2FF; color:#245FA8 !important; }
+        .direct-rec-badge.idea { background:#F1ECFF; color:#6842A8 !important; }
+        .direct-rec-title { margin:10px 0 7px;font-size:16px;font-weight:850;color:#111827 !important; }
+        .direct-rec-text { margin-bottom:12px;color:#4B5563 !important;line-height:1.5; }
+        .direct-rec-actions-title { margin:8px 0 5px;font-size:13px;font-weight:850;color:#111827 !important; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    intro_left, intro_right = st.columns([3, 1], vertical_alignment="center")
+    with intro_left:
+        st.markdown(
+            f"""
+            <div style="padding:18px 20px;border:1px solid #E7EAF0;border-left:5px solid #F4C430;border-radius:18px;background:#FFFFFF;">
+                <div style="font-size:18px;font-weight:850;color:#111827;">{len(recommendations)} рекомендаций по доработке сайта</div>
+                <div style="margin-top:5px;color:#667085;">Под каждой рекомендацией есть кнопка «Меня интересует». Выбранный текст полностью попадёт в заявку.</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with intro_right:
+        if st.button(
+            "Обсудить сайт",
+            key="direct_general_cta",
+            type="primary",
+            use_container_width=True,
+        ):
+            st.session_state["direct_selected_recommendation"] = "general"
+            st.rerun()
+
+    selected = st.session_state.get("direct_selected_recommendation")
+    if selected == "general":
+        _render_direct_recommendation_form(
+            {
+                "priority": "recommendation",
+                "title": "Комплексная доработка интернет-магазина",
+                "text": "Нужна консультация и план улучшения сайта на основе данных дашборда.",
+                "actions": [
+                    "Провести разбор сайта и ключевых сценариев.",
+                    "Сформировать приоритетный список доработок.",
+                    "Оценить сроки и бюджет реализации.",
+                ],
+            },
+            context,
+            "direct_general_lead_form",
+        )
+    elif isinstance(selected, int) and 0 <= selected < len(recommendations):
+        _render_direct_recommendation_form(
+            recommendations[selected],
+            context,
+            f"direct_recommendation_lead_form_{selected}",
+        )
+
+    for start in range(0, len(recommendations), 2):
+        columns = st.columns(2, gap="large")
+        for offset, recommendation in enumerate(recommendations[start:start + 2]):
+            index = start + offset
+            priority = str(recommendation.get("priority", "recommendation"))
+            label = _recommendation_priority_label(priority)
+            title = str(recommendation.get("title", "Рекомендация"))
+            text_value = str(recommendation.get("text", ""))
+            actions = recommendation.get("actions", [])
+            actions_list = [str(item) for item in actions] if isinstance(actions, list) else []
+
+            with columns[offset]:
+                with st.container(key=f"direct_rec_card_{index}", border=True):
+                    st.markdown(
+                        f'<span class="direct-rec-badge {escape(priority)}">{escape(label)}</span>',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        f'<div class="direct-rec-title">{escape(title)}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        f'<div class="direct-rec-text">{escape(text_value)}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        '<div class="direct-rec-actions-title">Что доработать на сайте</div>',
+                        unsafe_allow_html=True,
+                    )
+                    if actions_list:
+                        for action in actions_list:
+                            st.markdown(f"- {action}")
+                    else:
+                        st.markdown("- Провести аудит страницы и подготовить план изменений.")
+
+                    if st.button(
+                        "Меня интересует",
+                        key=f"direct_rec_button_{index}",
+                        type="primary",
+                        use_container_width=True,
+                    ):
+                        st.session_state["direct_selected_recommendation"] = index
+                        st.rerun()
+
+
+
 def render_page_heading(page_key: str) -> None:
     title = PAGE_TITLES.get(page_key, "Аналитика")
     description = PAGE_DESCRIPTIONS.get(
@@ -2552,6 +2811,10 @@ def prepare_analytics_context(
 
 
 def render_selected_analytics_page(page_key: str, context: dict[str, object]) -> None:
+    if page_key == "recommendations":
+        render_recommendations_page_direct(context)
+        return
+
     for category_module in CATEGORY_MODULES:
         if category_module.render(page_key, context):
             return
