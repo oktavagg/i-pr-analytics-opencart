@@ -6,7 +6,8 @@ from html import escape
 import pandas as pd
 import streamlit as st
 
-from analytics_ui import format_money, format_number, render_recommendations
+from analytics_ui import format_money, format_number
+from lead_mailer import LeadMailError, send_lead_email
 from xml_parser import ALLOWED_STATUSES
 
 
@@ -261,19 +262,258 @@ def render_period_changes_page(context: dict[str, object]) -> None:
     )
 
 
+
+def _render_recommendation_lead_form(
+    recommendation: dict[str, object],
+    context: dict[str, object],
+    form_key: str,
+) -> None:
+    priority_labels = {
+        "critical": "Критично",
+        "important": "Важно",
+        "recommendation": "Рекомендация",
+        "idea": "Идея",
+    }
+    priority = str(recommendation.get("priority", "recommendation"))
+    priority_label = priority_labels.get(priority, "Рекомендация")
+
+    st.markdown(
+        f"""
+        <div class="lead-form-heading">
+            <div class="lead-form-heading__label">Выбранная рекомендация</div>
+            <div class="lead-form-heading__title">{escape(str(recommendation.get('title', 'Доработка сайта')))}</div>
+            <div class="lead-form-heading__text">Заполните проект и контакт. Заявка будет отправлена на oktavagg@gmail.com.</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    with st.form(key=form_key, clear_on_submit=False):
+        first, second = st.columns(2, gap="large")
+        with first:
+            project = st.text_input(
+                "Проект или адрес сайта",
+                placeholder="https://example.com",
+            )
+            name = st.text_input(
+                "Ваше имя",
+                placeholder="Как к вам обращаться",
+            )
+        with second:
+            contact = st.text_input(
+                "Телефон, email или Telegram",
+                placeholder="Контакт для обратной связи",
+            )
+            comment = st.text_area(
+                "Комментарий",
+                placeholder="Что нужно учесть или уточнить",
+                height=104,
+            )
+
+        consent = st.checkbox(
+            "Согласен на обработку данных для связи по заявке",
+            value=False,
+        )
+        submitted = st.form_submit_button(
+            "Отправить заявку",
+            type="primary",
+            use_container_width=True,
+        )
+
+    if submitted:
+        if not project.strip():
+            st.error("Укажите проект или адрес сайта.")
+            return
+        if not contact.strip():
+            st.error("Укажите контакт для обратной связи.")
+            return
+        if not consent:
+            st.error("Подтвердите согласие на обработку данных.")
+            return
+
+        payload = dict(recommendation)
+        payload["priority_label"] = priority_label
+        try:
+            send_lead_email(
+                recommendation=payload,
+                project=project.strip(),
+                name=name.strip(),
+                contact=contact.strip(),
+                comment=comment.strip(),
+                context={
+                    "start_date": context.get("start_date"),
+                    "end_date": context.get("end_date"),
+                    "revenue": format_money(float(context.get("revenue", 0.0))),
+                    "order_count": format_number(int(context.get("order_count", 0))),
+                },
+            )
+        except LeadMailError as exc:
+            st.error(str(exc))
+        else:
+            st.success("Заявка отправлена. Мы свяжемся с вами по указанному контакту.")
+
+
+def render_site_recommendations(context: dict[str, object]) -> None:
+    recommendations = context.get("recommendations", [])
+    if not recommendations:
+        st.info("За выбранный период рекомендации не сформированы.")
+        return
+
+    priority_labels = {
+        "critical": "Критично",
+        "important": "Важно",
+        "recommendation": "Рекомендация",
+        "idea": "Идея",
+    }
+
+    st.markdown(
+        """
+        <style>
+        [class*="st-key-site_rec_"] {
+            height: 100%;
+            padding: 18px;
+            border: 1px solid #E7EAF0;
+            border-left: 5px solid #CBD5E1;
+            border-radius: 18px;
+            background: #FFFFFF;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+        }
+
+        [class*="st-key-site_rec_"] h4 {
+            margin: 0.25rem 0 0.45rem;
+            color: #111827 !important;
+            font-size: 1.04rem;
+        }
+
+        [class*="st-key-site_rec_"] p,
+        [class*="st-key-site_rec_"] li {
+            color: #4B5563 !important;
+            font-size: 0.92rem;
+            line-height: 1.5;
+        }
+
+        [class*="st-key-site_rec_"] ul {
+            margin: 0.45rem 0 0.8rem;
+            padding-left: 1.1rem;
+        }
+
+        [class*="st-key-site_rec_"] .stButton button {
+            margin-top: 0.3rem;
+            background: #FFF7D6 !important;
+            border-color: #F4C430 !important;
+            color: #111827 !important;
+            font-weight: 800 !important;
+        }
+
+        [class*="st-key-site_rec_"] .stButton button:hover {
+            background: #F4C430 !important;
+        }
+
+        .site-rec-priority {
+            display: inline-flex;
+            align-items: center;
+            padding: 5px 9px;
+            border-radius: 999px;
+            font-size: 0.7rem;
+            font-weight: 850;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .site-rec-priority.critical { background: #FEECEC; color: #B42318 !important; }
+        .site-rec-priority.important { background: #FFF2D8; color: #A15C00 !important; }
+        .site-rec-priority.recommendation { background: #EAF2FF; color: #245FA8 !important; }
+        .site-rec-priority.idea { background: #F1ECFF; color: #6842A8 !important; }
+
+        .site-rec-actions-title {
+            margin-top: 0.7rem;
+            color: #111827 !important;
+            font-size: 0.82rem;
+            font-weight: 850;
+        }
+
+        .lead-form-heading {
+            margin: 1.6rem 0 1rem;
+            padding: 18px 20px;
+            border: 1px solid #E7EAF0;
+            border-left: 5px solid #F4C430;
+            border-radius: 18px;
+            background: #FFFFFF;
+        }
+
+        .lead-form-heading__label {
+            margin-bottom: 5px;
+            color: #8A94A6 !important;
+            font-size: 0.72rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .lead-form-heading__title {
+            color: #111827 !important;
+            font-size: 1.08rem;
+            font-weight: 850;
+        }
+
+        .lead-form-heading__text {
+            margin-top: 5px;
+            color: #6B7280 !important;
+            font-size: 0.9rem;
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    selected_key = "selected_site_recommendation"
+    selected_index = st.session_state.get(selected_key)
+
+    for start in range(0, len(recommendations), 2):
+        columns = st.columns(2, gap="large")
+        for offset, recommendation in enumerate(recommendations[start:start + 2]):
+            index = start + offset
+            priority = str(recommendation.get("priority", "recommendation"))
+            label = priority_labels.get(priority, "Рекомендация")
+            actions = recommendation.get("actions", [])
+
+            with columns[offset]:
+                with st.container(key=f"site_rec_{index}"):
+                    st.markdown(
+                        f'<div class="site-rec-priority {escape(priority)}">{escape(label)}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(f"#### {escape(str(recommendation.get('title', 'Рекомендация')))}")
+                    st.write(str(recommendation.get("text", "")))
+
+                    if isinstance(actions, list) and actions:
+                        st.markdown(
+                            '<div class="site-rec-actions-title">Что доработать на сайте</div>',
+                            unsafe_allow_html=True,
+                        )
+                        for action in actions:
+                            st.markdown(f"- {escape(str(action))}")
+
+                    if st.button(
+                        "Меня интересует",
+                        key=f"site_interest_{index}",
+                        use_container_width=True,
+                    ):
+                        st.session_state[selected_key] = index
+                        st.rerun()
+
+    if isinstance(selected_index, int) and 0 <= selected_index < len(recommendations):
+        _render_recommendation_lead_form(
+            recommendations[selected_index],
+            context,
+            form_key=f"site_lead_form_{selected_index}",
+        )
+
+
 def render(page_key: str, context: dict[str, object]) -> bool:
     renderers = {
         "period_changes": render_period_changes_page,
-        "recommendations": lambda data: render_recommendations(
-            data["recommendations"],
-            lead_context={
-                "start_date": data.get("start_date"),
-                "end_date": data.get("end_date"),
-                "revenue": format_money(float(data.get("revenue", 0.0))),
-                "order_count": format_number(int(data.get("order_count", 0))),
-            },
-            key_prefix="recommendations",
-        ),
+        "recommendations": render_site_recommendations,
     }
     renderer = renderers.get(page_key)
     if renderer is None:
