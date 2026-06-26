@@ -354,7 +354,7 @@ def _render_recommendation_lead_form(
 
 
 def render_site_recommendations(context: dict[str, object]) -> None:
-    recommendations = context.get("recommendations", [])
+    recommendations = list(context.get("recommendations", []))[:12]
     if not recommendations:
         st.info("За выбранный период рекомендации не сформированы.")
         return
@@ -369,50 +369,37 @@ def render_site_recommendations(context: dict[str, object]) -> None:
     st.markdown(
         """
         <style>
-        [class*="st-key-site_rec_"] {
-            height: 100%;
-            padding: 18px;
+        .recommendations-intro {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            margin: 0 0 18px;
+            padding: 18px 20px;
             border: 1px solid #E7EAF0;
-            border-left: 5px solid #CBD5E1;
+            border-left: 5px solid #F4C430;
             border-radius: 18px;
             background: #FFFFFF;
             box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
         }
 
-        [class*="st-key-site_rec_"] h4 {
-            margin: 0.25rem 0 0.45rem;
+        .recommendations-intro h3 {
+            margin: 0 0 5px;
             color: #111827 !important;
-            font-size: 1.04rem;
+            font-size: 1.08rem;
         }
 
-        [class*="st-key-site_rec_"] p,
-        [class*="st-key-site_rec_"] li {
-            color: #4B5563 !important;
-            font-size: 0.92rem;
-            line-height: 1.5;
-        }
-
-        [class*="st-key-site_rec_"] ul {
-            margin: 0.45rem 0 0.8rem;
-            padding-left: 1.1rem;
-        }
-
-        [class*="st-key-site_rec_"] .stButton button {
-            margin-top: 0.3rem;
-            background: #FFF7D6 !important;
-            border-color: #F4C430 !important;
-            color: #111827 !important;
-            font-weight: 800 !important;
-        }
-
-        [class*="st-key-site_rec_"] .stButton button:hover {
-            background: #F4C430 !important;
+        .recommendations-intro p {
+            margin: 0;
+            color: #667085 !important;
+            font-size: 0.91rem;
         }
 
         .site-rec-priority {
             display: inline-flex;
             align-items: center;
             padding: 5px 9px;
+            margin-bottom: 8px;
             border-radius: 999px;
             font-size: 0.7rem;
             font-weight: 850;
@@ -425,15 +412,63 @@ def render_site_recommendations(context: dict[str, object]) -> None:
         .site-rec-priority.recommendation { background: #EAF2FF; color: #245FA8 !important; }
         .site-rec-priority.idea { background: #F1ECFF; color: #6842A8 !important; }
 
+        .site-rec-title {
+            margin: 0 0 8px;
+            color: #111827 !important;
+            font-size: 1.03rem;
+            font-weight: 850;
+        }
+
+        .site-rec-text {
+            min-height: 54px;
+            margin-bottom: 12px;
+            color: #4B5563 !important;
+            font-size: 0.91rem;
+            line-height: 1.5;
+        }
+
         .site-rec-actions-title {
-            margin-top: 0.7rem;
+            margin: 8px 0 5px;
             color: #111827 !important;
             font-size: 0.82rem;
             font-weight: 850;
         }
 
+        [class*="st-key-site_rec_card_"] {
+            height: 100%;
+            padding: 18px !important;
+            border: 1px solid #E7EAF0 !important;
+            border-radius: 18px !important;
+            background: #FFFFFF !important;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+        }
+
+        [class*="st-key-site_rec_card_"] li {
+            margin-bottom: 4px;
+            color: #4B5563 !important;
+            font-size: 0.89rem;
+            line-height: 1.45;
+        }
+
+        [class*="st-key-site_interest_"] button,
+        .st-key-recommendation_contact_cta button {
+            min-height: 42px;
+            background: #F4C430 !important;
+            border: 1px solid #D8A900 !important;
+            color: #111827 !important;
+            font-weight: 850 !important;
+            box-shadow: 0 7px 16px rgba(244, 196, 48, 0.2) !important;
+        }
+
+        [class*="st-key-site_interest_"] button:hover,
+        .st-key-recommendation_contact_cta button:hover {
+            background: #FFD84D !important;
+            border-color: #C99C00 !important;
+            transform: translateY(-1px);
+        }
+
         .lead-form-heading {
-            margin: 1.6rem 0 1rem;
+            margin: 0 0 1rem;
             padding: 18px 20px;
             border: 1px solid #E7EAF0;
             border-left: 5px solid #F4C430;
@@ -466,48 +501,95 @@ def render_site_recommendations(context: dict[str, object]) -> None:
         unsafe_allow_html=True,
     )
 
-    selected_key = "selected_site_recommendation"
-    selected_index = st.session_state.get(selected_key)
+    intro_copy, intro_action = st.columns([3, 1], vertical_alignment="center")
+    with intro_copy:
+        st.markdown(
+            f"""
+            <div class="recommendations-intro">
+                <div>
+                    <h3>{len(recommendations)} рекомендаций по доработке сайта</h3>
+                    <p>Каждая карточка содержит конкретные изменения. Выберите интересующую задачу или отправьте общий запрос.</p>
+                </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with intro_action:
+        if st.button(
+            "Обсудить доработку сайта",
+            key="recommendation_contact_cta",
+            type="primary",
+            use_container_width=True,
+        ):
+            st.session_state["selected_site_recommendation"] = "general"
+            st.rerun()
 
-    for start in range(0, len(recommendations), 2):
+    selected_key = "selected_site_recommendation"
+    selected_value = st.session_state.get(selected_key)
+
+    if selected_value == "general":
+        _render_recommendation_lead_form(
+            {
+                "priority": "recommendation",
+                "title": "Комплексная доработка интернет-магазина",
+                "text": "Нужна консультация по улучшению сайта и показателей магазина.",
+                "actions": [
+                    "Разобрать текущие проблемы сайта.",
+                    "Сформировать приоритетный план доработок.",
+                    "Оценить сроки и бюджет реализации.",
+                ],
+            },
+            context,
+            form_key="site_lead_form_general",
+        )
+    elif isinstance(selected_value, int) and 0 <= selected_value < len(recommendations):
+        _render_recommendation_lead_form(
+            recommendations[selected_value],
+            context,
+            form_key=f"site_lead_form_{selected_value}",
+        )
+
+    for start_index in range(0, len(recommendations), 2):
         columns = st.columns(2, gap="large")
-        for offset, recommendation in enumerate(recommendations[start:start + 2]):
-            index = start + offset
+        for offset, recommendation in enumerate(recommendations[start_index:start_index + 2]):
+            index = start_index + offset
             priority = str(recommendation.get("priority", "recommendation"))
             label = priority_labels.get(priority, "Рекомендация")
             actions = recommendation.get("actions", [])
 
             with columns[offset]:
-                with st.container(key=f"site_rec_{index}"):
+                with st.container(key=f"site_rec_card_{index}", border=True):
                     st.markdown(
                         f'<div class="site-rec-priority {escape(priority)}">{escape(label)}</div>',
                         unsafe_allow_html=True,
                     )
-                    st.markdown(f"#### {escape(str(recommendation.get('title', 'Рекомендация')))}")
-                    st.write(str(recommendation.get("text", "")))
+                    st.markdown(
+                        f'<div class="site-rec-title">{escape(str(recommendation.get("title", "Рекомендация")))}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        f'<div class="site-rec-text">{escape(str(recommendation.get("text", "")))}</div>',
+                        unsafe_allow_html=True,
+                    )
 
+                    st.markdown(
+                        '<div class="site-rec-actions-title">Что доработать на сайте</div>',
+                        unsafe_allow_html=True,
+                    )
                     if isinstance(actions, list) and actions:
-                        st.markdown(
-                            '<div class="site-rec-actions-title">Что доработать на сайте</div>',
-                            unsafe_allow_html=True,
-                        )
                         for action in actions:
                             st.markdown(f"- {escape(str(action))}")
+                    else:
+                        st.markdown("- Провести аудит страницы и подготовить план изменений.")
 
                     if st.button(
                         "Меня интересует",
                         key=f"site_interest_{index}",
+                        type="primary",
                         use_container_width=True,
                     ):
                         st.session_state[selected_key] = index
                         st.rerun()
-
-    if isinstance(selected_index, int) and 0 <= selected_index < len(recommendations):
-        _render_recommendation_lead_form(
-            recommendations[selected_index],
-            context,
-            form_key=f"site_lead_form_{selected_index}",
-        )
 
 
 def render(page_key: str, context: dict[str, object]) -> bool:
