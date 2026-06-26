@@ -117,10 +117,11 @@ PAGE_ICONS = {
 
 
 PERIOD_PRESETS = (
-    "За всё время",
-    "Последние 30 дней",
-    "Последние 90 дней",
-    "Свой диапазон",
+    "День",
+    "Неделя",
+    "Месяц",
+    "Всё время",
+    "Кастомный",
 )
 
 
@@ -1508,13 +1509,19 @@ def apply_theme() -> None:
             display: flex;
             align-items: center;
             justify-content: center;
-            flex: 0 0 38px;
-            width: 38px;
-            height: 38px;
+            flex: 0 0 40px;
+            width: 40px;
+            height: 40px;
             border-radius: 12px;
             background: #FFF7D6;
             color: #9A7300 !important;
-            font-size: 1.2rem !important;
+        }
+
+        .period-filter-icon svg {
+            width: 21px;
+            height: 21px;
+            display: block;
+            color: #9A7300 !important;
         }
 
         .period-filter-title {
@@ -1548,7 +1555,7 @@ def apply_theme() -> None:
             background: transparent !important;
             color: #667085 !important;
             box-shadow: none !important;
-            font-size: 0.84rem !important;
+            font-size: 0.82rem !important;
             font-weight: 700 !important;
         }
 
@@ -1567,12 +1574,19 @@ def apply_theme() -> None:
         .period-filter-result {
             display: flex;
             align-items: center;
-            gap: 9px;
+            gap: 14px;
             margin-top: 12px;
             padding-top: 12px;
             border-top: 1px solid #EEF1F5;
             color: #667085 !important;
             font-size: 0.84rem;
+        }
+
+        .period-filter-result-copy {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            min-width: 0;
         }
 
         .period-filter-result span,
@@ -2061,7 +2075,7 @@ def render_page_period_filter(
     custom_key = f"period_custom_{page_key}"
 
     if st.session_state.get(preset_key) not in PERIOD_PRESETS:
-        st.session_state[preset_key] = "За всё время"
+        st.session_state[preset_key] = "Всё время"
 
     stored_custom = st.session_state.get(custom_key, (min_date, max_date))
     custom_start, custom_end = _normalise_date_range(stored_custom, min_date, max_date)
@@ -2072,7 +2086,12 @@ def render_page_period_filter(
         st.markdown(
             """
             <div class="period-filter-header">
-                <div class="period-filter-icon material-symbols-rounded">date_range</div>
+                <div class="period-filter-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" role="img" focusable="false">
+                        <path d="M7 2v3M17 2v3M4.5 8.5h15M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M8 12h3v3H8z" fill="currentColor"/>
+                    </svg>
+                </div>
                 <div>
                     <div class="period-filter-title">Период отчёта</div>
                     <div class="period-filter-description">Выберите диапазон, который будет применён только к текущему разделу.</div>
@@ -2090,35 +2109,46 @@ def render_page_period_filter(
             width="stretch",
         )
 
-        if selected_preset == "Последние 30 дней":
+        if selected_preset == "День":
+            start_date = max_date
+            end_date = max_date
+            preset_explanation = "Последний день с данными"
+        elif selected_preset == "Неделя":
+            start_date = max(min_date, max_date - timedelta(days=6))
+            end_date = max_date
+            preset_explanation = "Последние 7 календарных дней"
+        elif selected_preset == "Месяц":
             start_date = max(min_date, max_date - timedelta(days=29))
             end_date = max_date
-        elif selected_preset == "Последние 90 дней":
-            start_date = max(min_date, max_date - timedelta(days=89))
-            end_date = max_date
-        elif selected_preset == "Свой диапазон":
+            preset_explanation = "Последние 30 календарных дней"
+        elif selected_preset == "Кастомный":
             selected_custom = st.date_input(
-                "Выберите начальную и конечную дату",
+                "Начальная и конечная дата",
                 min_value=min_date,
                 max_value=max_date,
                 key=custom_key,
                 format="DD.MM.YYYY",
+                help="Выберите две даты. Первая дата будет началом периода, вторая — окончанием.",
             )
             start_date, end_date = _normalise_date_range(
                 selected_custom,
                 min_date,
                 max_date,
             )
+            preset_explanation = "Выбранный вручную диапазон"
         else:
             start_date = min_date
             end_date = max_date
+            preset_explanation = "Полный период загруженного XML"
 
         period_days = (end_date - start_date).days + 1
         st.markdown(
             f"""
             <div class="period-filter-result">
-                <span>Выбран период</span>
-                <strong>{_format_report_period(start_date, end_date)}</strong>
+                <div class="period-filter-result-copy">
+                    <span>{escape(preset_explanation)}</span>
+                    <strong>{_format_report_period(start_date, end_date)}</strong>
+                </div>
                 <small>{period_days} календ. дн.</small>
             </div>
             """,
