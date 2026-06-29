@@ -12,15 +12,13 @@ PAGES = [
     ("customers_count", "Кількість (нові/старі)"),
     ("orders_per_customer", "Замовлень на покупця"),
     ("sleeping_customers", "Сплячі покупці"),
-    ("top_customers_revenue", "ТОП-10 покупців за оборотом"),
-    ("top_customers_orders", "ТОП-10 покупців за замовленнями"),
+    ("top_customers", "ТОП-10 покупців"),
 ]
 PAGE_DESCRIPTIONS = {
     "customers_count": "Кількість нових і старих покупців за вибраний період.",
     "orders_per_customer": "Середня кількість замовлень на покупця і розподіл покупців за частотою.",
     "sleeping_customers": "Покупці з двома і більше замовленнями, які давно не купували.",
-    "top_customers_revenue": "Покупці з найбільшим оборотом.",
-    "top_customers_orders": "Покупці з найбільшою кількістю замовлень.",
+    "top_customers": "ТОП-10 покупців за оборотом і кількістю замовлень за вибраний період.",
 }
 
 
@@ -50,7 +48,8 @@ def _customer_rollup(orders: pd.DataFrame) -> pd.DataFrame:
         revenue=("order_total", "sum"),
         last_order=("order_date", "max"),
     )
-    summary["average_check"] = summary["revenue"] / summary["orders"].replace(0, pd.NA)
+    summary["average_check"] = (summary["revenue"] / summary["orders"].replace(0, pd.NA)).fillna(0).round(0)
+    summary["revenue"] = summary["revenue"].round(0)
     return summary
 
 
@@ -80,7 +79,7 @@ def render_customers_count_page(context: dict[str, object]) -> None:
     configure_plot(fig, 430)
     st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
     table = data.rename(columns={"segment": "Сегмент", "customers": "Покупці", "orders": "Замовлення", "revenue": "Оборот"})
-    _table(table[["Сегмент", "Покупці", "Замовлення", "Оборот", "% покупців"]], {"Оборот": st.column_config.NumberColumn(format="%.2f грн"), "% покупців": st.column_config.NumberColumn(format="%.1f%%")})
+    _table(table[["Сегмент", "Покупці", "Замовлення", "Оборот", "% покупців"]], {"Оборот": st.column_config.NumberColumn(format="%.0f грн"), "% покупців": st.column_config.NumberColumn(format="%.1f%%")})
 
 
 def render_orders_per_customer_page(context: dict[str, object]) -> None:
@@ -105,7 +104,7 @@ def render_orders_per_customer_page(context: dict[str, object]) -> None:
     monthly = grouped.groupby(["period_start", "period_label"], as_index=False).agg(orders=("order_id", "nunique"), customers=("customer_key", "nunique")).sort_values("period_start")
     monthly["orders_per_customer"] = monthly["orders"] / monthly["customers"].replace(0, pd.NA)
     fig = px.line(monthly, x="period_label", y="orders_per_customer", markers=True, title="Замовлень на покупця в динаміці", labels={"period_label": "Період", "orders_per_customer": "Замовлень на покупця"})
-    add_trendline(fig, monthly["period_label"].tolist(), monthly["orders_per_customer"].astype(float).tolist())
+    add_trendline(fig, monthly["period_label"].tolist(), monthly["orders_per_customer"].fillna(0).astype(float).tolist())
     configure_plot(fig, 430)
     st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
 
@@ -114,7 +113,7 @@ def render_orders_per_customer_page(context: dict[str, object]) -> None:
     distribution = rollup.copy()
     distribution["Група"] = distribution["orders"].apply(lambda value: "2" if value == 2 else "3" if value == 3 else "3+" if value >= 3 else "1")
     dist = distribution.groupby("Група", as_index=False).agg(Покупці=("customer_key", "nunique"), Оборот=("revenue", "sum"))
-    _table(dist, {"Оборот": st.column_config.NumberColumn(format="%.2f грн")})
+    _table(dist, {"Оборот": st.column_config.NumberColumn(format="%.0f грн")})
 
 
 def render_sleeping_customers_page(context: dict[str, object]) -> None:
@@ -128,7 +127,6 @@ def render_sleeping_customers_page(context: dict[str, object]) -> None:
     sleeping = rollup[(rollup["orders"] >= 2) & (rollup["last_order"] <= cutoff)].copy() if not rollup.empty else pd.DataFrame()
     st.metric("Кількість сплячих", format_number(len(sleeping)))
 
-    # Dynamics by month: snapshot count at every month end.
     if not history.empty:
         min_month = history["order_date"].min().to_period("M").to_timestamp()
         max_month = pd.Timestamp(context["end_date"]).to_period("M").to_timestamp()
@@ -152,31 +150,39 @@ def render_sleeping_customers_page(context: dict[str, object]) -> None:
 
     if not sleeping.empty:
         table = sleeping.rename(columns={"customer_name": "Покупець", "phone": "Телефон", "email": "Email", "orders": "Замовлення", "revenue": "Оборот", "last_order": "Останнє замовлення", "average_check": "Середній чек"})
-        _table(table[["Покупець", "Телефон", "Email", "Замовлення", "Оборот", "Середній чек", "Останнє замовлення"]], {"Оборот": st.column_config.NumberColumn(format="%.2f грн"), "Середній чек": st.column_config.NumberColumn(format="%.2f грн")})
+        _table(table[["Покупець", "Телефон", "Email", "Замовлення", "Оборот", "Середній чек", "Останнє замовлення"]], {"Оборот": st.column_config.NumberColumn(format="%.0f грн"), "Середній чек": st.column_config.NumberColumn(format="%.0f грн")})
 
 
-def _top_customers(context: dict[str, object], by: str) -> None:
+def render_top_customers_page(context: dict[str, object]) -> None:
     rollup = _customer_rollup(context["orders"])
     if rollup.empty:
         st.info("За вибраний період немає покупців.")
         return
-    ranked = rollup.sort_values([by, "revenue"], ascending=False).head(10).copy()
-    chart_col, table_col = st.columns([1.05, 1.25], gap="large")
-    with chart_col:
-        fig = px.bar(ranked.sort_values(by), x=by, y="customer_name", orientation="h", title="ТОП-10 покупців", labels={by: "Оборот" if by == "revenue" else "Замовлення", "customer_name": "Покупець"})
-        configure_plot(fig, 500)
+
+    chart_left, chart_right = st.columns(2, gap="large")
+    with chart_left:
+        by_revenue = rollup.sort_values(["revenue", "orders"], ascending=False).head(10).sort_values("revenue")
+        fig = px.bar(by_revenue, x="revenue", y="customer_name", orientation="h", title="ТОП-10 за оборотом", labels={"revenue": "Оборот, грн", "customer_name": "Покупець"}, color_discrete_sequence=["#D4A91F"])
+        configure_plot(fig, 430)
         st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
-    with table_col:
-        table = ranked.rename(columns={"customer_name": "Покупець", "phone": "Телефон", "email": "Email", "orders": "Замовлення", "revenue": "Оборот", "average_check": "Середній чек"})
-        _table(table[["Покупець", "Телефон", "Email", "Замовлення", "Оборот", "Середній чек"]], {"Оборот": st.column_config.NumberColumn(format="%.2f грн"), "Середній чек": st.column_config.NumberColumn(format="%.2f грн")})
+    with chart_right:
+        by_orders = rollup.sort_values(["orders", "revenue"], ascending=False).head(10).sort_values("orders")
+        fig = px.bar(by_orders, x="orders", y="customer_name", orientation="h", title="ТОП-10 за замовленнями", labels={"orders": "Замовлення", "customer_name": "Покупець"}, color_discrete_sequence=["#4285F4"])
+        configure_plot(fig, 430)
+        st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
+
+    ranked = rollup.sort_values(["revenue", "orders"], ascending=False).head(10).copy()
+    ranked.insert(0, "#", range(1, len(ranked) + 1))
+    table = ranked.rename(columns={"customer_name": "Клієнт", "phone": "Телефон", "email": "Email", "orders": "Замовл.", "revenue": "Виторг", "average_check": "Середній чек"})
+    _table(table[["#", "Клієнт", "Телефон", "Email", "Замовл.", "Виторг", "Середній чек"]], {"Виторг": st.column_config.NumberColumn(format="%.0f грн"), "Середній чек": st.column_config.NumberColumn(format="%.0f грн")})
 
 
 def render_top_customers_revenue_page(context: dict[str, object]) -> None:
-    _top_customers(context, "revenue")
+    render_top_customers_page(context)
 
 
 def render_top_customers_orders_page(context: dict[str, object]) -> None:
-    _top_customers(context, "orders")
+    render_top_customers_page(context)
 
 
 def render(page_key: str, context: dict[str, object]) -> bool:
@@ -184,6 +190,7 @@ def render(page_key: str, context: dict[str, object]) -> bool:
         "customers_count": render_customers_count_page,
         "orders_per_customer": render_orders_per_customer_page,
         "sleeping_customers": render_sleeping_customers_page,
+        "top_customers": render_top_customers_page,
         "top_customers_revenue": render_top_customers_revenue_page,
         "top_customers_orders": render_top_customers_orders_page,
     }

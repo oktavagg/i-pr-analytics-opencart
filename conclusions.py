@@ -139,16 +139,16 @@ def format_change(change: float | None) -> str:
 
 def comparison_conclusion(change: float | None) -> tuple[str, str]:
     if change is None:
-        return "Новый показатель", "positive"
+        return "Новий показник", "positive"
     if change <= -25:
-        return f"● Значительное падение {change:.1f}%", "negative"
+        return f"● Значне падіння {change:.1f}%", "negative"
     if change < -5:
-        return f"▼ Снижение {change:.1f}%", "negative"
+        return f"▼ Зниження {change:.1f}%", "negative"
     if change < 5:
-        return f"● Без существенных изменений {change:+.1f}%", "neutral"
+        return f"● Без суттєвих змін {change:+.1f}%", "neutral"
     if change < 25:
-        return f"▲ Рост {change:+.1f}%", "positive"
-    return f"● Значительный рост {change:+.1f}%", "positive"
+        return f"▲ Зростання {change:+.1f}%", "positive"
+    return f"● Значне зростання {change:+.1f}%", "positive"
 
 def render_period_comparison_table(
     previous_snapshot: dict[str, float],
@@ -183,13 +183,18 @@ def render_period_comparison_table(
         conclusion, state = comparison_conclusion(change)
         value_formatter = format_money if value_type == "money" else (lambda value: f"{value:.2f}" if value_type == "decimal" else format_number)
 
+        previous_text = str(value_formatter(previous_value))
+        current_text = str(value_formatter(current_value))
+        change_text = str(format_change(change))
+        conclusion_text = str(conclusion)
+
         body_rows.append(
             f'''<tr class="{state}">
-                <td>{escape(title)}</td>
-                <td>{escape(value_formatter(previous_value))}</td>
-                <td>{escape(value_formatter(current_value))}</td>
-                <td class="change-{state}">{escape(format_change(change))}</td>
-                <td class="conclusion-{state}">{escape(conclusion)}</td>
+                <td>{escape(str(title))}</td>
+                <td>{escape(previous_text)}</td>
+                <td>{escape(current_text)}</td>
+                <td class="change-{state}">{escape(change_text)}</td>
+                <td class="conclusion-{state}">{escape(conclusion_text)}</td>
             </tr>'''
         )
 

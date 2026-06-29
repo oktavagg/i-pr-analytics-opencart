@@ -4,14 +4,13 @@ import pandas as pd
 import plotly.express as px
 import streamlit as st
 
-from analytics_ui import add_trendline, configure_plot, format_money, format_number, safe_percent
+from analytics_ui import configure_plot, format_number, safe_percent
 
 
 CATEGORY_TITLE = "Товари"
 PAGES = [
     ("active_products_stock", "Активні товари в наявності"),
-    ("top_products_revenue", "Топ товарів за виручкою"),
-    ("top_products_units", "Топ товарів за кількістю продажів"),
+    ("top_products", "Топ товарів"),
     ("products_no_sales", "Товари без продажів"),
     ("products_no_views", "Товари без переглядів"),
     ("product_conversion", "Конверсія по товарах"),
@@ -19,8 +18,7 @@ PAGES = [
 ]
 PAGE_DESCRIPTIONS = {
     "active_products_stock": "Кількість активних товарів у наявності та структура каталогу.",
-    "top_products_revenue": "Товари, які формують найбільший оборот.",
-    "top_products_units": "Товари, які найчастіше купують.",
+    "top_products": "ТОП-10 товарів за виручкою та кількістю продажів за вибраний період.",
     "products_no_sales": "Товари каталогу без продажів за вибраний період.",
     "products_no_views": "Активні товари без переглядів у каталозі.",
     "product_conversion": "Співвідношення продажів і переглядів товарів.",
@@ -77,30 +75,36 @@ def render_active_products_stock_page(context: dict[str, object]) -> None:
     st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
 
 
-def render_top_products_revenue_page(context: dict[str, object]) -> None:
+def render_top_products_page(context: dict[str, object]) -> None:
     products = _sales_frame(context)
     if products.empty:
         st.info("За вибраний період немає продажів товарів.")
         return
+
+    left, right = st.columns(2, gap="large")
+    with left:
+        by_revenue = products.sort_values(["revenue", "orders"], ascending=False).head(10).sort_values("revenue")
+        fig = px.bar(by_revenue, x="revenue", y="product_name", orientation="h", title="ТОП-10 за виручкою", labels={"revenue": "Виручка, грн", "product_name": "Товар"}, color_discrete_sequence=["#D4A91F"])
+        configure_plot(fig, 430)
+        st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
+    with right:
+        by_orders = products.sort_values(["orders", "revenue"], ascending=False).head(10).sort_values("orders")
+        fig = px.bar(by_orders, x="orders", y="product_name", orientation="h", title="ТОП-10 за замовленнями", labels={"orders": "Замовлення", "product_name": "Товар"}, color_discrete_sequence=["#24B47E"])
+        configure_plot(fig, 430)
+        st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
+
     ranked = products.sort_values(["revenue", "orders"], ascending=False).head(10).copy()
-    fig = px.bar(ranked.sort_values("revenue"), x="revenue", y="product_name", orientation="h", title="Топ товарів за виручкою", labels={"revenue": "Виручка, грн", "product_name": "Товар"})
-    configure_plot(fig, 520)
-    st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
-    table = ranked.rename(columns={"product_name": "Товар", "orders": "Замовлення", "sold_units": "Шт.", "revenue": "Виручка"})
-    _table(table[["Товар", "Замовлення", "Шт.", "Виручка"]], {"Виручка": st.column_config.NumberColumn(format="%.2f грн")})
+    ranked.insert(0, "#", range(1, len(ranked) + 1))
+    table = ranked.rename(columns={"product_name": "Товар", "orders": "Замовл.", "sold_units": "Шт.", "revenue": "Виторг"})
+    _table(table[["#", "Товар", "Замовл.", "Шт.", "Виторг"]], {"Виторг": st.column_config.NumberColumn(format="%.0f грн")})
+
+
+def render_top_products_revenue_page(context: dict[str, object]) -> None:
+    render_top_products_page(context)
 
 
 def render_top_products_units_page(context: dict[str, object]) -> None:
-    products = _sales_frame(context)
-    if products.empty:
-        st.info("За вибраний період немає продажів товарів.")
-        return
-    ranked = products.sort_values(["sold_units", "orders"], ascending=False).head(10).copy()
-    fig = px.bar(ranked.sort_values("sold_units"), x="sold_units", y="product_name", orientation="h", title="Топ товарів за кількістю продажів", labels={"sold_units": "Шт.", "product_name": "Товар"})
-    configure_plot(fig, 520)
-    st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
-    table = ranked.rename(columns={"product_name": "Товар", "orders": "Замовлення", "sold_units": "Шт.", "revenue": "Виручка"})
-    _table(table[["Товар", "Замовлення", "Шт.", "Виручка"]], {"Виручка": st.column_config.NumberColumn(format="%.2f грн")})
+    render_top_products_page(context)
 
 
 def render_products_no_sales_page(context: dict[str, object]) -> None:
@@ -111,13 +115,9 @@ def render_products_no_sales_page(context: dict[str, object]) -> None:
     active = data[data["status"] == True].copy()
     no_sales = active[active["sold_units"] <= 0].copy()
     st.metric("Товарів без продажів", format_number(len(no_sales)))
-    monthly = pd.DataFrame({"Період": [f"{context['start_date']:%d.%m}–{context['end_date']:%d.%m}"], "Товари без продажів": [len(no_sales)]})
-    fig = px.bar(monthly, x="Період", y="Товари без продажів", text="Товари без продажів", title="Товари без продажів")
-    configure_plot(fig, 380)
-    st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
     table = no_sales.rename(columns={"product_name": "Товар", "quantity": "Залишок", "effective_price": "Ціна", "viewed": "Перегляди", "manufacturer": "Виробник", "link": "Посилання"})
     cols = [c for c in ["Товар", "Виробник", "Ціна", "Залишок", "Перегляди", "Посилання"] if c in table.columns]
-    _table(table[cols], {"Ціна": st.column_config.NumberColumn(format="%.2f грн")})
+    _table(table[cols], {"Ціна": st.column_config.NumberColumn(format="%.0f грн")})
 
 
 def render_products_no_views_page(context: dict[str, object]) -> None:
@@ -133,7 +133,7 @@ def render_products_no_views_page(context: dict[str, object]) -> None:
     st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
     table = no_views.rename(columns={"product_name": "Товар", "quantity": "Залишок", "effective_price": "Ціна", "viewed": "Перегляди", "manufacturer": "Виробник", "link": "Посилання"})
     cols = [c for c in ["Товар", "Виробник", "Ціна", "Залишок", "Перегляди", "Посилання"] if c in table.columns]
-    _table(table[cols], {"Ціна": st.column_config.NumberColumn(format="%.2f грн")})
+    _table(table[cols], {"Ціна": st.column_config.NumberColumn(format="%.0f грн")})
 
 
 def render_product_conversion_page(context: dict[str, object]) -> None:
@@ -145,7 +145,7 @@ def render_product_conversion_page(context: dict[str, object]) -> None:
     data["conversion"] = data.apply(lambda row: row["orders"] / row["viewed"] * 100 if row["viewed"] else 0.0, axis=1)
     ranked = data[data["viewed"] > 0].sort_values(["conversion", "orders"], ascending=False).copy()
     table = ranked.rename(columns={"product_name": "Товар", "viewed": "Перегляди", "orders": "Замовлення", "sold_units": "Шт.", "revenue": "Виручка", "conversion": "Конверсія"})
-    _table(table[["Товар", "Перегляди", "Замовлення", "Шт.", "Виручка", "Конверсія"]], {"Виручка": st.column_config.NumberColumn(format="%.2f грн"), "Конверсія": st.column_config.NumberColumn(format="%.2f%%")})
+    _table(table[["Товар", "Перегляди", "Замовлення", "Шт.", "Виручка", "Конверсія"]], {"Виручка": st.column_config.NumberColumn(format="%.0f грн"), "Конверсія": st.column_config.NumberColumn(format="%.2f%%")})
 
 
 def render_products_together_page(context: dict[str, object]) -> None:
@@ -177,6 +177,7 @@ def render_products_together_page(context: dict[str, object]) -> None:
 def render(page_key: str, context: dict[str, object]) -> bool:
     renderers = {
         "active_products_stock": render_active_products_stock_page,
+        "top_products": render_top_products_page,
         "top_products_revenue": render_top_products_revenue_page,
         "top_products_units": render_top_products_units_page,
         "products_no_sales": render_products_no_sales_page,

@@ -110,12 +110,14 @@ PAGE_ICONS = {
     "repeat_share": "autorenew",
     "orders_per_customer": "person_search",
     "sleeping_customers": "bedtime",
+    "top_customers": "military_tech",
     "top_customers_revenue": "military_tech",
     "top_customers_orders": "emoji_events",
     "active_products_stock": "inventory_2",
     "products_no_sales": "inventory",
     "products_no_views": "visibility_off",
     "product_conversion": "percent",
+    "top_products": "sell",
     "top_products_revenue": "sell",
     "top_products_units": "bar_chart",
     "products_together": "device_hub",
@@ -1540,10 +1542,26 @@ def apply_theme() -> None:
         }
 
         .date-filter-current {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 10px;
+            width: 100%;
             color: #8A8F98 !important;
             font-size: 0.95rem;
             text-align: right;
             white-space: nowrap;
+        }
+
+        .date-filter-current strong {
+            display: inline-flex;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #FFF7D6;
+            border: 1px solid #F4C430;
+            color: #111827 !important;
+            font-size: 0.86rem;
+            font-weight: 800;
         }
 
         .st-key-page_period_filter [data-testid="stDateInput"] input {
@@ -2583,9 +2601,11 @@ VIEW_PAGES = {
     "items_per_order",
     "orders_per_customer",
     "sleeping_customers",
+    "top_customers",
     "top_customers_revenue",
     "top_customers_orders",
     "active_products_stock",
+    "top_products",
     "top_products_revenue",
     "top_products_units",
     "products_no_sales",
@@ -2661,8 +2681,9 @@ def render_page_period_filter(
                 st.session_state[view_key] = "month"
                 st.session_state[f"view_selector_{page_key}"] = "За місяць"
                 st.rerun()
+        applied_days = (st.session_state[end_key] - st.session_state[start_key]).days + 1
         row[6].markdown(
-            f'<div class="date-filter-current">{st.session_state[start_key]:%Y-%m-%d} → {st.session_state[end_key]:%Y-%m-%d}</div>',
+            f'<div class="date-filter-current"><span>{st.session_state[start_key]:%Y-%m-%d} → {st.session_state[end_key]:%Y-%m-%d}</span><strong>Статистика за {applied_days} дн.</strong></div>',
             unsafe_allow_html=True,
         )
 
@@ -2709,7 +2730,7 @@ def render_placeholder(page_key: str) -> None:
 
 
 def render_analytics_navigation() -> str:
-    navigation_version = "ua_rework_v31"
+    navigation_version = "ua_rework_v32"
     if st.session_state.get("analytics_navigation_version") != navigation_version:
         st.session_state["analytics_navigation_version"] = navigation_version
         st.session_state["analytics_page"] = "overview"

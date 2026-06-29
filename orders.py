@@ -81,7 +81,7 @@ def _bar_chart(df: pd.DataFrame, y: str, title: str, y_label: str) -> None:
         df,
         x="period_label",
         y=y,
-        text=y,
+        text=df[y].round(0),
         title=title,
         labels={"period_label": "Період", y: y_label},
         color_discrete_sequence=["#4285F4"],
@@ -117,12 +117,12 @@ def render_revenue_page(context: dict[str, object]) -> None:
     monthly = grouped.groupby(["period_start", "period_label"], as_index=False).agg(
         revenue=("order_total", "sum"), orders=("order_id", "nunique")
     ).sort_values("period_start")
-    monthly["average_check"] = monthly["revenue"] / monthly["orders"].replace(0, pd.NA)
+    monthly["average_check"] = (monthly["revenue"] / monthly["orders"].replace(0, pd.NA)).fillna(0).round(0)
     _bar_chart(monthly, "revenue", "Оборот за періодами", "Оборот, грн")
     table = monthly.rename(columns={"period_label": "Період", "revenue": "Оборот", "orders": "Замовлення", "average_check": "Середній чек"})
     _table(table[["Період", "Оборот", "Замовлення", "Середній чек"]], {
-        "Оборот": st.column_config.NumberColumn(format="%.2f грн"),
-        "Середній чек": st.column_config.NumberColumn(format="%.2f грн"),
+        "Оборот": st.column_config.NumberColumn(format="%.0f грн"),
+        "Середній чек": st.column_config.NumberColumn(format="%.0f грн"),
     })
 
 
@@ -133,7 +133,7 @@ def render_revenue_segments_page(context: dict[str, object]) -> None:
     ).sort_values("period_start")
     _segmented_chart(data, "value", "Оборот нових і старих покупців", "Оборот, грн", "Оборот")
     table = data.rename(columns={"period_label": "Період", "segment": "Сегмент", "value": "Оборот", "orders": "Замовлення"})
-    _table(table[["Період", "Сегмент", "Оборот", "Замовлення"]], {"Оборот": st.column_config.NumberColumn(format="%.2f грн")})
+    _table(table[["Період", "Сегмент", "Оборот", "Замовлення"]], {"Оборот": st.column_config.NumberColumn(format="%.0f грн")})
 
 
 def render_orders_count_page(context: dict[str, object]) -> None:
@@ -153,24 +153,24 @@ def render_orders_segments_page(context: dict[str, object]) -> None:
 def render_average_check_page(context: dict[str, object]) -> None:
     grouped = _group_time(context["orders"])
     data = grouped.groupby(["period_start", "period_label"], as_index=False).agg(revenue=("order_total", "sum"), orders=("order_id", "nunique")).sort_values("period_start")
-    data["average_check"] = data["revenue"] / data["orders"].replace(0, pd.NA)
+    data["average_check"] = (data["revenue"] / data["orders"].replace(0, pd.NA)).fillna(0).round(0)
     _bar_chart(data, "average_check", "Середній чек за періодами", "Середній чек, грн")
     table = data.rename(columns={"period_label": "Період", "average_check": "Середній чек", "orders": "Замовлення", "revenue": "Оборот"})
     _table(table[["Період", "Середній чек", "Замовлення", "Оборот"]], {
-        "Середній чек": st.column_config.NumberColumn(format="%.2f грн"),
-        "Оборот": st.column_config.NumberColumn(format="%.2f грн"),
+        "Середній чек": st.column_config.NumberColumn(format="%.0f грн"),
+        "Оборот": st.column_config.NumberColumn(format="%.0f грн"),
     })
 
 
 def render_check_segments_page(context: dict[str, object]) -> None:
     orders = _group_time(_classify_orders(context))
     data = orders.groupby(["period_start", "period_label", "segment"], as_index=False).agg(revenue=("order_total", "sum"), orders=("order_id", "nunique")).sort_values("period_start")
-    data["value"] = data["revenue"] / data["orders"].replace(0, pd.NA)
+    data["value"] = (data["revenue"] / data["orders"].replace(0, pd.NA)).fillna(0).round(0)
     _segmented_chart(data, "value", "Середній чек нових і старих покупців", "Середній чек, грн", "Середній чек")
     table = data.rename(columns={"period_label": "Період", "segment": "Сегмент", "value": "Середній чек", "orders": "Замовлення", "revenue": "Оборот"})
     _table(table[["Період", "Сегмент", "Середній чек", "Замовлення", "Оборот"]], {
-        "Середній чек": st.column_config.NumberColumn(format="%.2f грн"),
-        "Оборот": st.column_config.NumberColumn(format="%.2f грн"),
+        "Середній чек": st.column_config.NumberColumn(format="%.0f грн"),
+        "Оборот": st.column_config.NumberColumn(format="%.0f грн"),
     })
 
 
@@ -199,7 +199,7 @@ def render_order_statuses_page(context: dict[str, object]) -> None:
     data["% замовлень"] = data["orders"].apply(lambda value: safe_percent(float(value), total_orders))
     data["% обороту"] = data["revenue"].apply(lambda value: safe_percent(float(value), total_revenue))
     table = data.rename(columns={"status": "Статус", "orders": "Замовлення", "revenue": "Оборот"})
-    _table(table[["Статус", "Замовлення", "Оборот", "% замовлень", "% обороту"]], {"Оборот": st.column_config.NumberColumn(format="%.2f грн"), "% замовлень": st.column_config.NumberColumn(format="%.1f%%"), "% обороту": st.column_config.NumberColumn(format="%.1f%%")})
+    _table(table[["Статус", "Замовлення", "Оборот", "% замовлень", "% обороту"]], {"Оборот": st.column_config.NumberColumn(format="%.0f грн"), "% замовлень": st.column_config.NumberColumn(format="%.1f%%"), "% обороту": st.column_config.NumberColumn(format="%.1f%%")})
 
 
 def render_shipping_rating_page(context: dict[str, object]) -> None:
@@ -216,7 +216,7 @@ def render_shipping_rating_page(context: dict[str, object]) -> None:
     data["% замовлень"] = data["orders"].apply(lambda value: safe_percent(float(value), total_orders))
     data["% обороту"] = data["revenue"].apply(lambda value: safe_percent(float(value), total_revenue))
     table = data.rename(columns={"shipping_method": "Доставка", "orders": "Замовлення", "revenue": "Оборот"})
-    _table(table[["Доставка", "Замовлення", "Оборот", "% замовлень", "% обороту"]], {"Оборот": st.column_config.NumberColumn(format="%.2f грн"), "% замовлень": st.column_config.NumberColumn(format="%.1f%%"), "% обороту": st.column_config.NumberColumn(format="%.1f%%")})
+    _table(table[["Доставка", "Замовлення", "Оборот", "% замовлень", "% обороту"]], {"Оборот": st.column_config.NumberColumn(format="%.0f грн"), "% замовлень": st.column_config.NumberColumn(format="%.1f%%"), "% обороту": st.column_config.NumberColumn(format="%.1f%%")})
     missing = int(data.loc[data["shipping_method"].str.contains("Не", case=False, na=False), "orders"].sum())
     if missing:
         st.warning(f"У {missing} замовленнях спосіб доставки не вказано. Це варто перевірити в оформленні замовлення та XML-експорті.")
@@ -247,7 +247,7 @@ def render_order_frequency_page(context: dict[str, object]) -> None:
     col3.metric("Покупців з повтором", format_number(repeat_customers))
     table = intervals[["customer_name", "phone", "email", "order_date", "previous_order_date", "interval_days", "order_total"]].copy()
     table = table.rename(columns={"customer_name": "Покупець", "phone": "Телефон", "email": "Email", "order_date": "Дата замовлення", "previous_order_date": "Попереднє замовлення", "interval_days": "Днів між замовленнями", "order_total": "Оборот"})
-    _table(table, {"Оборот": st.column_config.NumberColumn(format="%.2f грн")})
+    _table(table, {"Оборот": st.column_config.NumberColumn(format="%.0f грн")})
 
 
 def render(page_key: str, context: dict[str, object]) -> bool:

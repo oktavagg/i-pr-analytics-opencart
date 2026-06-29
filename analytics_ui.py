@@ -29,7 +29,7 @@ TREND_COLOR = "#374151"
 
 
 def format_money(value: float) -> str:
-    return f"{value:,.2f} грн".replace(",", " ")
+    return f"{round(float(value)):,.0f} грн".replace(",", " ")
 
 
 def format_number(value: float | int) -> str:
