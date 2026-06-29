@@ -20,6 +20,7 @@ import orders as orders_module
 import products as products_module
 
 from analytics_ui import format_money, format_number, safe_percent
+from lead_mailer import LeadMailError, send_lead_email
 from xml_parser import (
     ALLOWED_STATUSES,
     parse_xml,
@@ -69,10 +70,10 @@ WEEKDAY_ORDER = list(WEEKDAY_NAMES.values())
 
 CATEGORY_MODULES = (
     overview_module,
-    conclusions,
     orders_module,
     customers_module,
     products_module,
+    conclusions,
 )
 
 ANALYTICS_NAVIGATION = [
@@ -93,9 +94,8 @@ PAGE_DESCRIPTIONS = {
 }
 
 PAGE_ICONS = {
-    "overview": "home",
+    "overview": "dashboard",
     "period_changes": "monitoring",
-    "recommendations": "tips_and_updates",
     "revenue": "payments",
     "revenue_segments": "pie_chart",
     "orders_count": "shopping_bag",
@@ -112,7 +112,10 @@ PAGE_ICONS = {
     "sleeping_customers": "bedtime",
     "top_customers_revenue": "military_tech",
     "top_customers_orders": "emoji_events",
+    "active_products_stock": "inventory_2",
     "products_no_sales": "inventory",
+    "products_no_views": "visibility_off",
+    "product_conversion": "percent",
     "top_products_revenue": "sell",
     "top_products_units": "bar_chart",
     "products_together": "device_hub",
@@ -263,8 +266,8 @@ def render_import_screen() -> None:
         st.markdown(
             """
             <div class="import-intro">
-                <h2>Загрузите данные магазина</h2>
-                <p>Для запуска системы нужны два XML-файла: заказы и полный каталог товаров.</p>
+                <h2>Завантажте дані магазину</h2>
+                <p>Для запуску системи потрібні два XML-файли: замовлення і повний каталог товарів.</p>
             </div>
             """,
             unsafe_allow_html=True,
@@ -273,10 +276,10 @@ def render_import_screen() -> None:
         orders_column, products_column = st.columns(2, gap="large")
         with orders_column:
             with st.container(key="orders_upload_card"):
-                st.markdown("### 01. Заказы")
-                st.caption("XML с заказами и товарами внутри каждого заказа")
+                st.markdown("### 01. Замовлення")
+                st.caption("XML із замовленнями та товарами всередині кожного замовлення")
                 orders_file = st.file_uploader(
-                    "Файл заказов",
+                    "Файл замовлень",
                     type=["xml"],
                     key="initial_orders_xml",
                     label_visibility="collapsed",
@@ -284,17 +287,17 @@ def render_import_screen() -> None:
 
         with products_column:
             with st.container(key="products_upload_card"):
-                st.markdown("### 02. Товары")
-                st.caption("XML со всеми товарами интернет-магазина")
+                st.markdown("### 02. Товари")
+                st.caption("XML з усіма товарами інтернет-магазину")
                 products_file = st.file_uploader(
-                    "Файл товаров",
+                    "Файл товарів",
                     type=["xml"],
                     key="initial_products_xml",
                     label_visibility="collapsed",
                 )
 
-        st.markdown("### 03. Демо-данные")
-        st.caption("Быстрый запуск системы без загрузки собственных файлов")
+        st.markdown("### 03. Демо-дані")
+        st.caption("Швидкий запуск системи без завантаження власних файлів")
 
         with st.container(key="demo_import_block"):
             demo_copy, demo_action = st.columns([1.8, 1], vertical_alignment="center")
@@ -302,15 +305,15 @@ def render_import_screen() -> None:
                 st.markdown(
                     """
                     <div class="demo-import-copy">
-                        <h3>Посмотреть систему на готовом примере</h3>
-                        <p>Будут загружены тестовые заказы и каталог из папки <b>files_test</b>.</p>
+                        <h3>Подивитися систему на готовому прикладі</h3>
+                        <p>Будуть завантажені тестові замовлення і каталог з папки <b>files_test</b>.</p>
                     </div>
                     """,
                     unsafe_allow_html=True,
                 )
             with demo_action:
                 if st.button(
-                    "Использовать демо-данные",
+                    "Використати демо-дані",
                     key="use_demo_data",
                     type="secondary",
                     width="stretch",
@@ -324,7 +327,7 @@ def render_import_screen() -> None:
 
         files_ready = orders_file is not None and products_file is not None
         if not files_ready:
-            st.caption("Продолжение откроется после загрузки обоих файлов или выбора демо-данных.")
+            st.caption("Продовження відкриється після завантаження обох файлів або вибору демо-даних.")
             return
 
     try:
@@ -338,18 +341,18 @@ def render_import_screen() -> None:
 
     if order_summary.supported_orders == 0:
         st.error(
-            "В XML заказов нет заказов с поддерживаемыми статусами: "
+            "В XML замовлень нет замовлень с поддерживаемыми статусами: "
             + ", ".join(ALLOWED_STATUSES)
             + "."
         )
         return
 
     st.success(
-        f"Файлы проверены: {order_summary.total_orders} заказов и "
-        f"{product_summary.total_products} товаров."
+        f"Файли перевірено: {order_summary.total_orders} замовлень и "
+        f"{product_summary.total_products} товарів."
     )
 
-    if st.button("Сохранить файлы и открыть систему", width="stretch"):
+    if st.button("Зберегти файли і відкрити систему", width="stretch"):
         try:
             save_uploaded_files(orders_file, products_file)
         except (ValueError, RuntimeError) as exc:
@@ -364,10 +367,10 @@ def render_loaded_files_sidebar() -> None:
     orders_size = int(metadata.get("orders_size", ORDERS_XML_PATH.stat().st_size))
     products_size = int(metadata.get("products_size", PRODUCTS_XML_PATH.stat().st_size))
 
-    st.header("Загруженные данные")
-    st.caption(f"Заказы: {orders_name}, {format_file_size(orders_size)}")
-    st.caption(f"Товары: {products_name}, {format_file_size(products_size)}")
-    if st.button("Удалить загруженные файлы", width="stretch"):
+    st.header("Завантажені дані")
+    st.caption(f"Замовлення: {orders_name}, {format_file_size(orders_size)}")
+    st.caption(f"Товари: {products_name}, {format_file_size(products_size)}")
+    if st.button("Видалити завантажені файли", width="stretch"):
         delete_uploaded_files()
         st.rerun()
 
@@ -1523,6 +1526,37 @@ def apply_theme() -> None:
             box-shadow: 0 10px 28px rgba(15, 23, 42, 0.045);
         }
 
+        .date-filter-label {
+            color: #8A94A6 !important;
+            font-size: 0.96rem;
+            font-weight: 750;
+            white-space: nowrap;
+        }
+
+        .date-filter-arrow {
+            color: #B3BBC8 !important;
+            font-size: 1.4rem;
+            text-align: center;
+        }
+
+        .date-filter-current {
+            color: #8A8F98 !important;
+            font-size: 0.95rem;
+            text-align: right;
+            white-space: nowrap;
+        }
+
+        .st-key-page_period_filter [data-testid="stDateInput"] input {
+            min-height: 2.6rem;
+            font-weight: 700;
+            font-size: 0.96rem;
+        }
+
+        .st-key-page_period_filter .stButton > button[kind="primary"],
+        .st-key-page_period_filter .stButton > button {
+            min-height: 2.6rem;
+        }
+
         .period-filter-header {
             display: flex;
             align-items: center;
@@ -1834,7 +1868,7 @@ def product_analytics(items: pd.DataFrame, start_date: date, end_date: date) -> 
 
 def product_pairs(items: pd.DataFrame) -> pd.DataFrame:
     if items.empty:
-        return pd.DataFrame(columns=["Товар 1", "Товар 2", "Совместных заказов"])
+        return pd.DataFrame(columns=["Товар 1", "Товар 2", "Совместных замовлень"])
 
     names = (
         items.drop_duplicates("product_id")
@@ -1852,7 +1886,7 @@ def product_pairs(items: pd.DataFrame) -> pd.DataFrame:
         {
             "Товар 1": names.get(first, first),
             "Товар 2": names.get(second, second),
-            "Совместных заказов": count,
+            "Совместных замовлень": count,
         }
         for (first, second), count in counter.most_common(10)
     ]
@@ -1938,8 +1972,11 @@ def calculate_business_metrics(
     }
 
 
-def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) -> list[dict[str, str]]:
-    recommendations: list[dict[str, str]] = []
+def build_recommendations(
+    metrics: dict[str, object],
+    products: pd.DataFrame,
+) -> list[dict[str, object]]:
+    recommendations: list[dict[str, object]] = []
 
     waiting_share = float(metrics["waiting_share"])
     waiting_count = int(metrics["waiting_count"])
@@ -1948,12 +1985,18 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
         recommendations.append(
             {
                 "priority": "critical" if waiting_share >= 8 else "important",
-                "title": "Отработать заказы в ожидании",
+                "title": "Снизить количество замовлень в ожидании",
                 "text": (
-                    f"В статусе «Очікування» находится {waiting_count} заказов на "
+                    f"В статусе «Очікування» находится {waiting_count} замовлень на "
                     f"{format_money(waiting_revenue)}, это {waiting_share:.1f}% суммы. "
-                    "Проверьте оплату и свяжитесь с клиентами по старым заказам."
+                    "Часть клиентов может теряться на оплате или после оформления заказа."
                 ),
+                "actions": [
+                    "Добавить понятный экран успешного оформления с дальнейшими шагами.",
+                    "Показывать статус оплаты и кнопку повторной оплаты в кабинете и письме.",
+                    "Добавить автоматическое напоминание о незавершённой оплате.",
+                    "Проверить ошибки оплаты на мобильных устройствах.",
+                ],
             }
         )
 
@@ -1962,22 +2005,33 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
         recommendations.append(
             {
                 "priority": "critical" if repeat_share < 15 else "important",
-                "title": "Увеличить повторные продажи",
+                "title": "Увеличить повторные покупки",
                 "text": (
-                    f"Повторные клиенты формируют {repeat_share:.1f}% суммы. "
-                    "Запустите сообщение после покупки, персональный промокод и напоминание о повторном заказе."
+                    f"Повторные клиенты формируют {repeat_share:.1f}% оборота. "
+                    "Сайт почти не возвращает покупателя после первой покупки."
                 ),
+                "actions": [
+                    "Добавить кнопку «Повторить заказ» в личном кабинете.",
+                    "Показывать персональные рекомендации на основе прошлой покупки.",
+                    "Добавить блок повторной покупки расходных товарів с ориентировочным сроком.",
+                    "Запустить email или push-цепочку после заказа.",
+                ],
             }
         )
     else:
         recommendations.append(
             {
                 "priority": "recommendation",
-                "title": "Развивать сегмент повторных клиентов",
+                "title": "Развивать персонализацию для постоянных клиентов",
                 "text": (
-                    f"На повторных клиентов приходится {repeat_share:.1f}% суммы. "
-                    "Сохраните этот сегмент и подготовьте для него отдельные предложения."
+                    f"Повторные клиенты формируют {repeat_share:.1f}% оборота. "
+                    "Этот сегмент уже приносит заметную часть продаж."
                 ),
+                "actions": [
+                    "Добавить персональную подборку товарів в кабинете клиента.",
+                    "Показывать историю замовлень и быстрое повторение покупки.",
+                    "Вывести индивидуальные предложения и бонусы для постоянных клиентов.",
+                ],
             }
         )
 
@@ -1986,11 +2040,17 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
         recommendations.append(
             {
                 "priority": "important",
-                "title": "Добавить комплекты и допродажи",
+                "title": "Увеличить количество товарів в заказе",
                 "text": (
-                    f"{single_item_share:.1f}% заказов содержат только один товар. "
-                    "Добавьте блоки «С этим покупают», готовые комплекты и предложение второго товара в корзине."
+                    f"{single_item_share:.1f}% замовлень содержат только один товар. "
+                    "Сайт слабо помогает клиенту подобрать дополнения."
                 ),
+                "actions": [
+                    "Добавить блок «С этим товаром покупают» в карточке товара.",
+                    "Показывать допродажи в корзине без перехода на отдельную страницу.",
+                    "Создать готовые комплекты с понятной выгодой.",
+                    "Показывать прогресс до бесплатной доставки.",
+                ],
             }
         )
 
@@ -1999,11 +2059,17 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
         recommendations.append(
             {
                 "priority": "recommendation",
-                "title": "Повысить долю онлайн-оплаты",
+                "title": "Упростить выбор онлайн-оплаты",
                 "text": (
-                    f"LiqPay используется примерно в {liqpay_share:.1f}% заказов. "
-                    "Проверьте заметность способа оплаты и протестируйте небольшую выгоду за оплату онлайн."
+                    f"Онлайн-оплата используется примерно в {liqpay_share:.1f}% замовлень. "
+                    "Причиной может быть слабая заметность или недостаток доверия."
                 ),
+                "actions": [
+                    "Сделать онлайн-оплату первым и визуально заметным вариантом.",
+                    "Кратко объяснить безопасность оплаты рядом с выбором способа.",
+                    "Не скрывать итоговую сумму и условия возврата до оплаты.",
+                    "Проверить удобство платежного сценария на смартфонах.",
+                ],
             }
         )
 
@@ -2012,22 +2078,33 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
         recommendations.append(
             {
                 "priority": "critical",
-                "title": "Продажи во второй половине периода снизились",
+                "title": "Усилить главную страницу и категории",
                 "text": (
-                    f"Средняя дневная сумма снизилась на {abs(trend):.1f}%. "
-                    "Сравните наличие лидеров, рекламную активность и количество заказов по дням."
+                    f"Средняя дневная сумма во второй половине периода снизилась на {abs(trend):.1f}%. "
+                    "Стоит проверить, насколько быстро пользователь находит актуальные товары и предложения."
                 ),
+                "actions": [
+                    "Вывести на главной странице товары-лидеры и актуальные предложения.",
+                    "Проверить сортировку категорий, чтобы слабые товары не стояли первыми.",
+                    "Улучшить поиск, подсказки и фильтры по ключевым характеристикам.",
+                    "Проверить мобильную скорость и стабильность основных страниц.",
+                ],
             }
         )
     elif trend >= 12:
         recommendations.append(
             {
                 "priority": "recommendation",
-                "title": "Закрепить рост продаж",
+                "title": "Закрепить рост через витрину сайта",
                 "text": (
-                    f"Средняя дневная сумма выросла на {trend:.1f}% во второй половине периода. "
-                    "Проверьте запас популярных товаров и источники, которые дали рост."
+                    f"Средняя дневная сумма выросла на {trend:.1f}%. "
+                    "Нужно закрепить товары и сценарии, которые дали рост."
                 ),
+                "actions": [
+                    "Вывести растущие товары в заметные блоки главной страницы.",
+                    "Добавить на карточках товара связанные альтернативы.",
+                    "Сохранить удачные баннеры и порядок блоков на период роста.",
+                ],
             }
         )
 
@@ -2036,11 +2113,17 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
         recommendations.append(
             {
                 "priority": "critical" if top5_share >= 60 else "important",
-                "title": "Выручка зависит от нескольких товаров",
+                "title": "Снизить зависимость от нескольких товарів",
                 "text": (
-                    f"Топ-5 товаров формируют {top5_share:.1f}% суммы. "
-                    "Контролируйте их остатки и развивайте товары-замены, чтобы снизить риск просадки."
+                    f"Топ-5 товарів формируют {top5_share:.1f}% оборота. "
+                    "Если один из лидеров выпадет из наличия, продажи заметно просядут."
                 ),
+                "actions": [
+                    "Добавить блок аналогов и замен на карточках лидеров.",
+                    "Показывать альтернативы при отсутствии товара.",
+                    "Улучшить перелинковку между товарами одной задачи или категории.",
+                    "Вывести похожие товары в поиске и категориях.",
+                ],
             }
         )
     elif not products.empty:
@@ -2048,26 +2131,37 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
         recommendations.append(
             {
                 "priority": "recommendation",
-                "title": "Поддерживать главный товар периода",
+                "title": "Усилить карточку товара-лидера",
                 "text": (
-                    f"Лидер по сумме: «{top_product['product_name']}». "
-                    "Проверьте остаток, рекламные объявления и видимость товара в каталоге."
+                    f"Лидер по обороту: «{top_product['product_name']}». "
+                    "Карточка этого товара влияет на заметную часть результата."
                 ),
+                "actions": [
+                    "Проверить первый экран карточки, цену, наличие и главную кнопку.",
+                    "Добавить ответы на частые вопросы и условия доставки.",
+                    "Добавить отзывы, характеристики и понятные преимущества.",
+                    "Показать совместимые товары и более дорогие альтернативы.",
+                ],
             }
         )
 
     pairs = metrics["pairs"]
     if isinstance(pairs, pd.DataFrame) and not pairs.empty:
         top_pair = pairs.iloc[0]
-        if int(top_pair["Совместных заказов"]) >= 3:
+        if int(top_pair["Совместных замовлень"]) >= 3:
             recommendations.append(
                 {
                     "priority": "idea",
-                    "title": "Создать готовый комплект",
+                    "title": "Оформить популярную связку как комплект",
                     "text": (
                         f"«{top_pair['Товар 1']}» и «{top_pair['Товар 2']}» покупали вместе "
-                        f"в {int(top_pair['Совместных заказов'])} заказах. Добавьте комплект или взаимную рекомендацию."
+                        f"в {int(top_pair['Совместных замовлень'])} заказах."
                     ),
+                    "actions": [
+                        "Создать отдельный комплект с общей ценой и выгодой.",
+                        "Добавить взаимные рекомендации в карточках обоих товарів.",
+                        "Показать комплект в корзине при добавлении одного из товарів.",
+                    ],
                 }
             )
 
@@ -2076,23 +2170,93 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
         recommendations.append(
             {
                 "priority": "important",
-                "title": "Проверить слабые товары",
+                "title": "Переработать карточки слабых товарів",
                 "text": (
-                    f"Найдено {low_movers_count} товаров с низкими продажами и длительным перерывом. "
-                    "Проверьте цену, карточку товара, наличие и целесообразность закупки."
+                    f"Найдено {low_movers_count} товарів с низкими продажами и длительным перерывом. "
+                    "Проблема может быть в видимости, цене или качестве карточек."
                 ),
+                "actions": [
+                    "Проверить фото, заголовок, характеристики и описание.",
+                    "Добавить товар в подходящие категории и фильтры.",
+                    "Проверить индексацию и мета-данные карточки.",
+                    "Скрыть или перенести товары, которые больше неактуальны.",
+                ],
             }
         )
 
     recommendations.append(
         {
             "priority": "idea",
-            "title": f"Планировать активность на {metrics['best_weekday']}",
+            "title": "Улучшить мобильный сценарий покупки",
             "text": (
-                "В этот день средняя дневная сумма выше остальных. "
-                "Планируйте рассылки, публикации и обновление рекламных кампаний перед этим днем."
+                "Основная часть покупателей интернет-магазинов использует смартфоны. "
+                "Даже небольшие проблемы в карточке или корзине снижают конверсию."
             ),
+            "actions": [
+                "Добавить фиксированную кнопку покупки на мобильной карточке товара.",
+                "Сократить высоту первого экрана и быстрее показывать цену и наличие.",
+                "Упростить поля оформления и использовать правильные типы клавиатуры.",
+                "Проверить размеры кнопок, отступы и читаемость текста.",
+            ],
         }
+    )
+
+    recommendations.extend(
+        [
+            {
+                "priority": "recommendation",
+                "title": "Улучшить поиск и фильтры каталога",
+                "text": (
+                    "Часть покупателей знает, какой товар им нужен, но теряется при длинном каталоге. "
+                    "Быстрый поиск и понятные фильтры сокращают путь до покупки."
+                ),
+                "actions": [
+                    "Добавить подсказки и исправление опечаток в поиске.",
+                    "Вывести популярные фильтры первыми и показывать количество товарів.",
+                    "Сохранять выбранные фильтры при возврате из карточки товара.",
+                    "Добавить понятное пустое состояние с альтернативами.",
+                ],
+            },
+            {
+                "priority": "important",
+                "title": "Упростить корзину и оформление заказа",
+                "text": (
+                    "Чем больше лишних полей и шагов в оформлении, тем выше риск потери клиента перед заказом."
+                ),
+                "actions": [
+                    "Оставить только обязательные поля и объединить шаги оформления.",
+                    "Показывать итоговую стоимость, доставку и скидку без скрытых условий.",
+                    "Добавить оформление без обязательной регистрации.",
+                    "Сохранять корзину и введённые данные после ошибки.",
+                ],
+            },
+            {
+                "priority": "recommendation",
+                "title": "Повысить доверие на ключевых страницах",
+                "text": (
+                    "Покупателю нужны быстрые ответы о доставке, оплате, возврате и надёжности магазина."
+                ),
+                "actions": [
+                    "Разместить условия доставки и возврата рядом с кнопкой покупки.",
+                    "Добавить реальные отзывы, контакты и юридическую информацию.",
+                    "Показывать наличие и актуальный срок отправки.",
+                    "Убрать неподтверждённые обещания и устаревшие элементы.",
+                ],
+            },
+            {
+                "priority": "idea",
+                "title": "Настроить точное отслеживание воронки",
+                "text": (
+                    "Заказы показывают итог, но не объясняют, на каком шаге сайт теряет пользователей."
+                ),
+                "actions": [
+                    "Настроить события просмотра товара, корзины, оформления и оплаты.",
+                    "Отдельно отслеживать ошибки формы и платежа.",
+                    "Передавать товар, категорию, стоимость и источник заказа.",
+                    "Собрать отдельный отчёт по конверсии каждого шага.",
+                ],
+            },
+        ]
     )
 
     priority_order = {
@@ -2103,16 +2267,274 @@ def build_recommendations(metrics: dict[str, object], products: pd.DataFrame) ->
     }
     return sorted(
         recommendations,
-        key=lambda item: priority_order.get(item["priority"], 9),
-    )[:8]
+        key=lambda item: priority_order.get(str(item["priority"]), 9),
+    )[:12]
+
+
+
+def _recommendation_priority_label(priority: str) -> str:
+    return {
+        "critical": "Критично",
+        "important": "Важно",
+        "recommendation": "Рекомендация",
+        "idea": "Идея",
+    }.get(priority, "Рекомендация")
+
+
+def _render_direct_recommendation_form(
+    recommendation: dict[str, object],
+    context: dict[str, object],
+    form_key: str,
+) -> None:
+    title = str(recommendation.get("title", "Доработка сайта"))
+    text_value = str(recommendation.get("text", ""))
+    actions = recommendation.get("actions", [])
+    actions_list = [str(item) for item in actions] if isinstance(actions, list) else []
+
+    st.markdown(
+        f"""
+        <div style="margin:0 0 16px;padding:18px 20px;border:1px solid #E7EAF0;border-left:5px solid #F4C430;border-radius:18px;background:#FFFFFF;">
+            <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#8A94A6;">Вы выбрали рекомендацию</div>
+            <div style="margin-top:5px;font-size:18px;font-weight:850;color:#111827;">{escape(title)}</div>
+            <div style="margin-top:6px;color:#667085;line-height:1.5;">{escape(text_value)}</div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    with st.form(form_key, clear_on_submit=False):
+        first, second = st.columns(2, gap="large")
+        with first:
+            project = st.text_input(
+                "Проект или адрес сайта",
+                placeholder="https://example.com",
+            )
+            name = st.text_input(
+                "Ваше имя",
+                placeholder="Как к вам обращаться",
+            )
+        with second:
+            contact = st.text_input(
+                "Телефон, email или Telegram",
+                placeholder="Контакт для обратной связи",
+            )
+            comment = st.text_area(
+                "Комментарий",
+                placeholder="Что нужно учесть или уточнить",
+                height=104,
+            )
+
+        consent = st.checkbox(
+            "Согласен на обработку данных для связи по заявке",
+            value=False,
+        )
+        submitted = st.form_submit_button(
+            "Отправить заявку",
+            type="primary",
+            use_container_width=True,
+        )
+
+    if not submitted:
+        return
+    if not project.strip():
+        st.error("Укажите проект или адрес сайта.")
+        return
+    if not contact.strip():
+        st.error("Укажите контакт для обратной связи.")
+        return
+    if not consent:
+        st.error("Подтвердите согласие на обработку данных.")
+        return
+
+    payload = {
+        "priority": str(recommendation.get("priority", "recommendation")),
+        "priority_label": _recommendation_priority_label(
+            str(recommendation.get("priority", "recommendation"))
+        ),
+        "title": title,
+        "text": text_value,
+        "actions": actions_list,
+    }
+
+    try:
+        send_lead_email(
+            recommendation=payload,
+            project=project.strip(),
+            name=name.strip(),
+            contact=contact.strip(),
+            comment=comment.strip(),
+            context={
+                "start_date": context.get("start_date"),
+                "end_date": context.get("end_date"),
+                "revenue": format_money(float(context.get("revenue", 0.0))),
+                "order_count": format_number(int(context.get("order_count", 0))),
+            },
+        )
+    except LeadMailError as exc:
+        st.error(str(exc))
+    else:
+        st.success(
+            "Заявка отправлена. В письмо переданы название, полный текст рекомендации и список доработок."
+        )
+
+
+def render_recommendations_page_direct(context: dict[str, object]) -> None:
+    recommendations = list(context.get("recommendations", []))[:12]
+    if not recommendations:
+        st.info("За выбранный период рекомендации не сформированы.")
+        return
+
+    st.markdown(
+        """
+        <style>
+        [class*="st-key-direct_rec_card_"] {
+            height: 100%;
+            padding: 18px !important;
+            border: 1px solid #E7EAF0 !important;
+            border-radius: 18px !important;
+            background: #FFFFFF !important;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
+        }
+        [class*="st-key-direct_rec_card_"] ul {
+            margin: 5px 0 14px;
+            padding-left: 20px;
+        }
+        [class*="st-key-direct_rec_card_"] li {
+            margin-bottom: 5px;
+            color: #4B5563 !important;
+            line-height: 1.45;
+        }
+        [class*="st-key-direct_rec_button_"] button,
+        .st-key-direct_general_cta button {
+            min-height: 44px !important;
+            background: #F4C430 !important;
+            color: #111827 !important;
+            border: 1px solid #D6A900 !important;
+            font-weight: 850 !important;
+            box-shadow: 0 7px 16px rgba(244, 196, 48, 0.22) !important;
+        }
+        [class*="st-key-direct_rec_button_"] button:hover,
+        .st-key-direct_general_cta button:hover {
+            background: #FFD84D !important;
+            border-color: #C99C00 !important;
+        }
+        .direct-rec-badge {
+            display:inline-flex;
+            padding:5px 9px;
+            border-radius:999px;
+            font-size:11px;
+            line-height:1;
+            font-weight:850;
+            text-transform:uppercase;
+            letter-spacing:.04em;
+        }
+        .direct-rec-badge.critical { background:#FEECEC; color:#B42318 !important; }
+        .direct-rec-badge.important { background:#FFF2D8; color:#A15C00 !important; }
+        .direct-rec-badge.recommendation { background:#EAF2FF; color:#245FA8 !important; }
+        .direct-rec-badge.idea { background:#F1ECFF; color:#6842A8 !important; }
+        .direct-rec-title { margin:10px 0 7px;font-size:16px;font-weight:850;color:#111827 !important; }
+        .direct-rec-text { margin-bottom:12px;color:#4B5563 !important;line-height:1.5; }
+        .direct-rec-actions-title { margin:8px 0 5px;font-size:13px;font-weight:850;color:#111827 !important; }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    intro_left, intro_right = st.columns([3, 1], vertical_alignment="center")
+    with intro_left:
+        st.markdown(
+            f"""
+            <div style="padding:18px 20px;border:1px solid #E7EAF0;border-left:5px solid #F4C430;border-radius:18px;background:#FFFFFF;">
+                <div style="font-size:18px;font-weight:850;color:#111827;">{len(recommendations)} рекомендаций по доработке сайта</div>
+                <div style="margin-top:5px;color:#667085;">Под каждой рекомендацией есть кнопка «Меня интересует». Выбранный текст полностью попадёт в заявку.</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+    with intro_right:
+        if st.button(
+            "Обсудить сайт",
+            key="direct_general_cta",
+            type="primary",
+            use_container_width=True,
+        ):
+            st.session_state["direct_selected_recommendation"] = "general"
+            st.rerun()
+
+    selected = st.session_state.get("direct_selected_recommendation")
+    if selected == "general":
+        _render_direct_recommendation_form(
+            {
+                "priority": "recommendation",
+                "title": "Комплексная доработка интернет-магазина",
+                "text": "Нужна консультация и план улучшения сайта на основе данных дашборда.",
+                "actions": [
+                    "Провести разбор сайта и ключевых сценариев.",
+                    "Сформировать приоритетный список доработок.",
+                    "Оценить сроки и бюджет реализации.",
+                ],
+            },
+            context,
+            "direct_general_lead_form",
+        )
+    elif isinstance(selected, int) and 0 <= selected < len(recommendations):
+        _render_direct_recommendation_form(
+            recommendations[selected],
+            context,
+            f"direct_recommendation_lead_form_{selected}",
+        )
+
+    for start in range(0, len(recommendations), 2):
+        columns = st.columns(2, gap="large")
+        for offset, recommendation in enumerate(recommendations[start:start + 2]):
+            index = start + offset
+            priority = str(recommendation.get("priority", "recommendation"))
+            label = _recommendation_priority_label(priority)
+            title = str(recommendation.get("title", "Рекомендация"))
+            text_value = str(recommendation.get("text", ""))
+            actions = recommendation.get("actions", [])
+            actions_list = [str(item) for item in actions] if isinstance(actions, list) else []
+
+            with columns[offset]:
+                with st.container(key=f"direct_rec_card_{index}", border=True):
+                    st.markdown(
+                        f'<span class="direct-rec-badge {escape(priority)}">{escape(label)}</span>',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        f'<div class="direct-rec-title">{escape(title)}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        f'<div class="direct-rec-text">{escape(text_value)}</div>',
+                        unsafe_allow_html=True,
+                    )
+                    st.markdown(
+                        '<div class="direct-rec-actions-title">Что доработать на сайте</div>',
+                        unsafe_allow_html=True,
+                    )
+                    if actions_list:
+                        for action in actions_list:
+                            st.markdown(f"- {action}")
+                    else:
+                        st.markdown("- Провести аудит страницы и подготовить план изменений.")
+
+                    if st.button(
+                        "Меня интересует",
+                        key=f"direct_rec_button_{index}",
+                        type="primary",
+                        use_container_width=True,
+                    ):
+                        st.session_state["direct_selected_recommendation"] = index
+                        st.rerun()
 
 
 
 def render_page_heading(page_key: str) -> None:
-    title = PAGE_TITLES.get(page_key, "Аналитика")
+    title = PAGE_TITLES.get(page_key, "Аналітика")
     description = PAGE_DESCRIPTIONS.get(
         page_key,
-        "Раздел подключен к навигации. Аналитический модуль будет добавлен отдельно.",
+        "Розділ підключено до навігації.",
     )
     st.markdown(
         f"""
@@ -2128,7 +2550,7 @@ def render_page_heading(page_key: str) -> None:
 def _format_report_period(start_date: date, end_date: date) -> str:
     if start_date == end_date:
         return start_date.strftime("%d.%m.%Y")
-    return f"{start_date:%d.%m.%Y} — {end_date:%d.%m.%Y}"
+    return f"{start_date:%d.%m.%Y} → {end_date:%d.%m.%Y}"
 
 
 def _normalise_date_range(value, min_date: date, max_date: date) -> tuple[date, date]:
@@ -2151,96 +2573,122 @@ def _normalise_date_range(value, min_date: date, max_date: date) -> tuple[date, 
     return start_date, end_date
 
 
+VIEW_PAGES = {
+    "revenue",
+    "revenue_segments",
+    "orders_count",
+    "orders_segments",
+    "average_check",
+    "check_segments",
+    "items_per_order",
+    "orders_per_customer",
+    "sleeping_customers",
+    "top_customers_revenue",
+    "top_customers_orders",
+    "active_products_stock",
+    "top_products_revenue",
+    "top_products_units",
+    "products_no_sales",
+    "products_no_views",
+    "product_conversion",
+    "products_together",
+}
+NO_FILTER_PAGES = set()
+
+
 def render_page_period_filter(
     page_key: str,
     min_date: date,
     max_date: date,
-) -> tuple[date, date]:
-    preset_key = f"period_preset_{page_key}"
-    custom_key = f"period_custom_{page_key}"
+) -> tuple[date, date, str]:
+    start_key = f"period_start_{page_key}"
+    end_key = f"period_end_{page_key}"
+    temp_start_key = f"period_temp_start_{page_key}"
+    temp_end_key = f"period_temp_end_{page_key}"
+    view_key = f"view_granularity_{page_key}"
 
-    if st.session_state.get(preset_key) not in PERIOD_PRESETS:
-        st.session_state[preset_key] = "Всё время"
+    for key, default in ((start_key, min_date), (end_key, max_date), (temp_start_key, min_date), (temp_end_key, max_date)):
+        if key not in st.session_state or not isinstance(st.session_state.get(key), date):
+            st.session_state[key] = default
+        st.session_state[key] = max(min_date, min(st.session_state[key], max_date))
 
-    stored_custom = st.session_state.get(custom_key, (min_date, max_date))
-    custom_start, custom_end = _normalise_date_range(stored_custom, min_date, max_date)
-    if stored_custom != (custom_start, custom_end):
-        st.session_state[custom_key] = (custom_start, custom_end)
+    if st.session_state[start_key] > st.session_state[end_key]:
+        st.session_state[start_key], st.session_state[end_key] = st.session_state[end_key], st.session_state[start_key]
+    if st.session_state[temp_start_key] > st.session_state[temp_end_key]:
+        st.session_state[temp_start_key], st.session_state[temp_end_key] = st.session_state[temp_end_key], st.session_state[temp_start_key]
+
+    if st.session_state.get(view_key) not in ("day", "week", "month"):
+        st.session_state[view_key] = "month"
 
     with st.container(key="page_period_filter"):
-        st.markdown(
-            """
-            <div class="period-filter-header">
-                <div class="period-filter-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" role="img" focusable="false">
-                        <path d="M7 2v3M17 2v3M4.5 8.5h15M6 4h12a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-                        <path d="M8 12h3v3H8z" fill="currentColor"/>
-                    </svg>
-                </div>
-                <div>
-                    <div class="period-filter-title">Период отчёта</div>
-                    <div class="period-filter-description">Выберите диапазон, который будет применён только к текущему разделу.</div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        selected_preset = st.segmented_control(
-            "Период отчёта",
-            PERIOD_PRESETS,
-            key=preset_key,
-            label_visibility="collapsed",
-            width="stretch",
-        )
-
-        if selected_preset == "День":
-            start_date = max_date
-            end_date = max_date
-            preset_explanation = "Последний день с данными"
-        elif selected_preset == "Неделя":
-            start_date = max(min_date, max_date - timedelta(days=6))
-            end_date = max_date
-            preset_explanation = "Последние 7 календарных дней"
-        elif selected_preset == "Месяц":
-            start_date = max(min_date, max_date - timedelta(days=29))
-            end_date = max_date
-            preset_explanation = "Последние 30 календарных дней"
-        elif selected_preset == "Кастомный":
-            selected_custom = st.date_input(
-                "Начальная и конечная дата",
+        row = st.columns([0.78, 1.0, 0.12, 1.0, 0.72, 0.6, 4.2], vertical_alignment="center")
+        row[0].markdown('<div class="date-filter-label">Діапазон дат:</div>', unsafe_allow_html=True)
+        with row[1]:
+            st.date_input(
+                "Початкова дата",
                 min_value=min_date,
                 max_value=max_date,
-                key=custom_key,
+                key=temp_start_key,
                 format="DD.MM.YYYY",
-                help="Выберите две даты. Первая дата будет началом периода, вторая — окончанием.",
+                label_visibility="collapsed",
             )
-            start_date, end_date = _normalise_date_range(
-                selected_custom,
-                min_date,
-                max_date,
+        row[2].markdown('<div class="date-filter-arrow">—</div>', unsafe_allow_html=True)
+        with row[3]:
+            st.date_input(
+                "Кінцева дата",
+                min_value=min_date,
+                max_value=max_date,
+                key=temp_end_key,
+                format="DD.MM.YYYY",
+                label_visibility="collapsed",
             )
-            preset_explanation = "Выбранный вручную диапазон"
-        else:
-            start_date = min_date
-            end_date = max_date
-            preset_explanation = "Полный период загруженного XML"
-
-        period_days = (end_date - start_date).days + 1
-        st.markdown(
-            f"""
-            <div class="period-filter-result">
-                <div class="period-filter-result-copy">
-                    <span>{escape(preset_explanation)}</span>
-                    <strong>{_format_report_period(start_date, end_date)}</strong>
-                </div>
-                <small>{period_days} календ. дн.</small>
-            </div>
-            """,
+        with row[4]:
+            if st.button("Застосувати", key=f"period_apply_{page_key}", type="primary", width="stretch"):
+                start_date, end_date = _normalise_date_range(
+                    (st.session_state[temp_start_key], st.session_state[temp_end_key]),
+                    min_date,
+                    max_date,
+                )
+                st.session_state[start_key] = start_date
+                st.session_state[end_key] = end_date
+                st.rerun()
+        with row[5]:
+            if st.button("Скинути", key=f"period_reset_{page_key}", width="stretch"):
+                st.session_state[start_key] = min_date
+                st.session_state[end_key] = max_date
+                st.session_state[temp_start_key] = min_date
+                st.session_state[temp_end_key] = max_date
+                st.session_state[view_key] = "month"
+                st.session_state[f"view_selector_{page_key}"] = "За місяць"
+                st.rerun()
+        row[6].markdown(
+            f'<div class="date-filter-current">{st.session_state[start_key]:%Y-%m-%d} → {st.session_state[end_key]:%Y-%m-%d}</div>',
             unsafe_allow_html=True,
         )
 
-    return start_date, end_date
+        if page_key in VIEW_PAGES:
+            view_row = st.columns([0.78, 2.1, 5.46], vertical_alignment="center")
+            view_row[0].markdown('<div class="date-filter-label">Представлення:</div>', unsafe_allow_html=True)
+            with view_row[1]:
+                view_labels = {"day": "За день", "week": "За тиждень", "month": "За місяць"}
+                widget_key = f"view_selector_{page_key}"
+                if st.session_state.get(widget_key) not in view_labels.values():
+                    st.session_state[widget_key] = view_labels[st.session_state[view_key]]
+                selected_label = st.segmented_control(
+                    "Представлення",
+                    list(view_labels.values()),
+                    key=widget_key,
+                    label_visibility="collapsed",
+                    width="stretch",
+                )
+                reverse = {value: key for key, value in view_labels.items()}
+                st.session_state[view_key] = reverse.get(selected_label, "month")
+
+    start_date = st.session_state[start_key]
+    end_date = st.session_state[end_key]
+    view = st.session_state[view_key]
+    st.session_state["current_view_granularity"] = view
+    return start_date, end_date, view
 
 
 def render_placeholder(page_key: str) -> None:
@@ -2261,7 +2709,7 @@ def render_placeholder(page_key: str) -> None:
 
 
 def render_analytics_navigation() -> str:
-    navigation_version = "overview_default_v1"
+    navigation_version = "ua_rework_v31"
     if st.session_state.get("analytics_navigation_version") != navigation_version:
         st.session_state["analytics_navigation_version"] = navigation_version
         st.session_state["analytics_page"] = "overview"
@@ -2422,6 +2870,10 @@ def prepare_analytics_context(
 
 
 def render_selected_analytics_page(page_key: str, context: dict[str, object]) -> None:
+    if page_key == "recommendations":
+        render_recommendations_page_direct(context)
+        return
+
     for category_module in CATEGORY_MODULES:
         if category_module.render(page_key, context):
             return
@@ -2431,7 +2883,7 @@ def render_selected_analytics_page(page_key: str, context: dict[str, object]) ->
 
 def main() -> None:
     st.set_page_config(
-        page_title="I-PR Store Analytics",
+        page_title="I-PR Аналітика магазину",
         page_icon="📊",
         layout="wide",
         initial_sidebar_state="expanded",
@@ -2450,8 +2902,8 @@ def main() -> None:
         validate_product_xml_cached(stored_products_bytes)
     except (OSError, ValueError) as exc:
         render_header()
-        st.error(f"Сохраненные данные повреждены: {exc}")
-        if st.button("Удалить поврежденные файлы и загрузить заново"):
+        st.error(f"Збережені дані пошкоджені: {exc}")
+        if st.button("Видалити пошкоджені файли і завантажити знову"):
             delete_uploaded_files()
             st.rerun()
         st.stop()
@@ -2464,7 +2916,7 @@ def main() -> None:
         st.stop()
 
     if parsed.orders.empty:
-        st.warning("В XML нет заказов с разрешенными статусами.")
+        st.warning("В XML нет замовлень с разрешенными статусами.")
         st.stop()
 
     all_orders = parsed.orders.copy()
@@ -2477,11 +2929,11 @@ def main() -> None:
         render_sidebar_brand()
         selected_page = render_analytics_navigation()
 
-        with st.expander("Загруженные файлы", expanded=False):
+        with st.expander("Завантажені файли", expanded=False):
             render_loaded_files_sidebar()
 
     render_page_heading(selected_page)
-    selected_dates = render_page_period_filter(
+    selected_start, selected_end, selected_view = render_page_period_filter(
         selected_page,
         min_date,
         max_date,
@@ -2490,19 +2942,20 @@ def main() -> None:
     context = prepare_analytics_context(
         parsed,
         catalog_data.products,
-        selected_dates,
+        (selected_start, selected_end),
         selected_statuses,
     )
     if context is None:
-        st.warning("За выбранный период нет заказов с рабочими статусами.")
+        st.warning("За вибраний період немає замовлень з робочими статусами.")
         return
 
+    context["view_granularity"] = selected_view
     render_selected_analytics_page(selected_page, context)
 
     st.caption(
-        f"В XML найдено {parsed.total_xml_orders} заказов. "
-        f"Исключено по статусу: {parsed.skipped_by_status}. "
-        f"В аналитике учтено: {int(context['order_count'])}."
+        f"В XML знайдено {parsed.total_xml_orders} замовлень. "
+        f"Виключено за статусом: {parsed.skipped_by_status}. "
+        f"В аналітиці враховано: {int(context['order_count'])}."
     )
 
 
