@@ -87,9 +87,16 @@ def _bar_chart(df: pd.DataFrame, y: str, title: str, y_label: str) -> None:
         color_discrete_sequence=["#4285F4"],
         category_orders={"period_label": df["period_label"].tolist()},
     )
-    fig.update_traces(marker_line_color="#FFFFFF", marker_line_width=1.0)
+    fig.update_traces(
+        marker_line_color="#FFFFFF",
+        marker_line_width=1.0,
+        texttemplate="%{text:.0f}",
+        textposition="inside",
+        selector=dict(type="bar"),
+    )
     add_trendline(fig, df["period_label"].tolist(), df[y].astype(float).tolist())
     configure_plot(fig, 470)
+    fig.update_yaxes(tickformat=",.0f")
     st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
 
 
@@ -105,10 +112,12 @@ def _segmented_chart(df: pd.DataFrame, value_col: str, title: str, y_label: str,
         color_discrete_sequence=["#4285F4", "#F4B400"],
         category_orders={"period_label": df["period_label"].drop_duplicates().tolist(), "segment": ["Нові", "Старі"]},
     )
+    fig.update_traces(marker_line_color="#FFFFFF", marker_line_width=1.0, selector=dict(type="bar"))
     for segment, segment_df in df.groupby("segment"):
         ordered = segment_df.sort_values("period_start")
         add_trendline(fig, ordered["period_label"].tolist(), ordered[value_col].astype(float).tolist(), name=f"Тренд: {segment}")
     configure_plot(fig, 470)
+    fig.update_yaxes(tickformat=",.0f")
     st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
 
 
@@ -242,7 +251,7 @@ def render_order_frequency_page(context: dict[str, object]) -> None:
     repeat_orders = int(intervals["order_id"].nunique())
     repeat_customers = int(intervals["customer_key"].nunique())
     col1, col2, col3 = st.columns(3)
-    col1.metric("Середній інтервал", f"{average_interval:.1f} дн.")
+    col1.metric("Середній інтервал", f"{average_interval:.0f} дн.")
     col2.metric("Повторних замовлень", format_number(repeat_orders))
     col3.metric("Покупців з повтором", format_number(repeat_customers))
     table = intervals[["customer_name", "phone", "email", "order_date", "previous_order_date", "interval_days", "order_total"]].copy()

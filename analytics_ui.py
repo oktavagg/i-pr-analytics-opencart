@@ -101,6 +101,7 @@ def configure_plot(fig: go.Figure, height: int | None = None) -> go.Figure:
         textfont=dict(color=BRAND_BLACK),
         selector=dict(type="bar"),
     )
+    fig.update_yaxes(tickformat=",.0f")
 
     if height:
         fig.update_layout(height=height)

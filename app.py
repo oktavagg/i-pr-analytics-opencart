@@ -1545,7 +1545,7 @@ def apply_theme() -> None:
             display: inline-flex;
             align-items: center;
             justify-content: flex-end;
-            gap: 10px;
+            gap: 12px;
             width: 100%;
             color: #8A8F98 !important;
             font-size: 0.95rem;
@@ -1553,15 +1553,24 @@ def apply_theme() -> None:
             white-space: nowrap;
         }
 
+        .date-filter-current span {
+            color: #8A8F98 !important;
+        }
+
         .date-filter-current strong {
             display: inline-flex;
-            padding: 6px 10px;
+            align-items: center;
+            justify-content: center;
+            min-width: 74px;
+            padding: 8px 12px;
             border-radius: 999px;
-            background: #FFF7D6;
+            background: #FFF2B8;
             border: 1px solid #F4C430;
             color: #111827 !important;
-            font-size: 0.86rem;
-            font-weight: 800;
+            font-size: 0.92rem;
+            font-weight: 850;
+            line-height: 1.2;
+            box-shadow: 0 6px 14px rgba(244, 196, 48, 0.18);
         }
 
         .st-key-page_period_filter [data-testid="stDateInput"] input {
@@ -2600,19 +2609,8 @@ VIEW_PAGES = {
     "check_segments",
     "items_per_order",
     "orders_per_customer",
-    "sleeping_customers",
-    "top_customers",
-    "top_customers_revenue",
-    "top_customers_orders",
-    "active_products_stock",
-    "top_products",
-    "top_products_revenue",
-    "top_products_units",
-    "products_no_sales",
-    "products_no_views",
-    "product_conversion",
-    "products_together",
 }
+
 NO_FILTER_PAGES = set()
 
 
@@ -2683,7 +2681,7 @@ def render_page_period_filter(
                 st.rerun()
         applied_days = (st.session_state[end_key] - st.session_state[start_key]).days + 1
         row[6].markdown(
-            f'<div class="date-filter-current"><span>{st.session_state[start_key]:%Y-%m-%d} → {st.session_state[end_key]:%Y-%m-%d}</span><strong>Статистика за {applied_days} дн.</strong></div>',
+            f'<div class="date-filter-current"><span>Період: {st.session_state[start_key]:%Y-%m-%d} → {st.session_state[end_key]:%Y-%m-%d}</span><strong>{applied_days} днів</strong></div>',
             unsafe_allow_html=True,
         )
 

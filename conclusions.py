@@ -181,12 +181,19 @@ def render_period_comparison_table(
         current_value = float(current_snapshot[key])
         change = comparison_change(current_value, previous_value)
         conclusion, state = comparison_conclusion(change)
-        value_formatter = format_money if value_type == "money" else (lambda value: f"{value:.2f}" if value_type == "decimal" else format_number)
 
-        previous_text = str(value_formatter(previous_value))
-        current_text = str(value_formatter(current_value))
-        change_text = str(format_change(change))
-        conclusion_text = str(conclusion)
+        if value_type == "money":
+            previous_text = format_money(previous_value)
+            current_text = format_money(current_value)
+        elif value_type == "decimal":
+            previous_text = f"{previous_value:.2f}"
+            current_text = f"{current_value:.2f}"
+        else:
+            previous_text = format_number(int(round(previous_value)))
+            current_text = format_number(int(round(current_value)))
+
+        change_text = format_change(change)
+        conclusion_text = conclusion
 
         body_rows.append(
             f'''<tr class="{state}">
