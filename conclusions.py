@@ -404,7 +404,7 @@ def render_site_recommendations(context: dict[str, object]) -> None:
             margin: 0 0 18px;
             padding: 18px 20px;
             border: 1px solid #E7EAF0;
-            border-left: 5px solid #F4C430;
+            border-left: 5px solid #007FC5;
             border-radius: 18px;
             background: #FFFFFF;
             box-shadow: 0 10px 24px rgba(15, 23, 42, 0.04);
@@ -435,7 +435,7 @@ def render_site_recommendations(context: dict[str, object]) -> None:
         }
 
         .site-rec-priority.critical { background: #FEECEC; color: #B42318 !important; }
-        .site-rec-priority.important { background: #FFF2D8; color: #A15C00 !important; }
+        .site-rec-priority.important { background: #EAF7FD; color: #006CA8 !important; }
         .site-rec-priority.recommendation { background: #EAF2FF; color: #245FA8 !important; }
         .site-rec-priority.idea { background: #F1ECFF; color: #6842A8 !important; }
 
@@ -480,7 +480,7 @@ def render_site_recommendations(context: dict[str, object]) -> None:
         [class*="st-key-site_interest_"] button,
         .st-key-recommendation_contact_cta button {
             min-height: 42px;
-            background: #F4C430 !important;
+            background: #007FC5 !important;
             border: 1px solid #D8A900 !important;
             color: #111827 !important;
             font-weight: 850 !important;
@@ -489,8 +489,8 @@ def render_site_recommendations(context: dict[str, object]) -> None:
 
         [class*="st-key-site_interest_"] button:hover,
         .st-key-recommendation_contact_cta button:hover {
-            background: #FFD84D !important;
-            border-color: #C99C00 !important;
+            background: #007FC5 !important;
+            border-color: #005F95 !important;
             transform: translateY(-1px);
         }
 
@@ -498,7 +498,7 @@ def render_site_recommendations(context: dict[str, object]) -> None:
             margin: 0 0 1rem;
             padding: 18px 20px;
             border: 1px solid #E7EAF0;
-            border-left: 5px solid #F4C430;
+            border-left: 5px solid #007FC5;
             border-radius: 18px;
             background: #FFFFFF;
         }

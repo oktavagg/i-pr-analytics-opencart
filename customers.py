@@ -162,7 +162,7 @@ def render_top_customers_page(context: dict[str, object]) -> None:
     chart_left, chart_right = st.columns(2, gap="large")
     with chart_left:
         by_revenue = rollup.sort_values(["revenue", "orders"], ascending=False).head(10).sort_values("revenue")
-        fig = px.bar(by_revenue, x="revenue", y="customer_name", orientation="h", title="ТОП-10 за оборотом", labels={"revenue": "Оборот, грн", "customer_name": "Покупець"}, color_discrete_sequence=["#D4A91F"])
+        fig = px.bar(by_revenue, x="revenue", y="customer_name", orientation="h", title="ТОП-10 за оборотом", labels={"revenue": "Оборот, грн", "customer_name": "Покупець"}, color_discrete_sequence=["#007FC5"])
         configure_plot(fig, 430)
         st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
     with chart_right:

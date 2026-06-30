@@ -109,7 +109,7 @@ def _segmented_chart(df: pd.DataFrame, value_col: str, title: str, y_label: str,
         barmode="group",
         title=title,
         labels={"period_label": "Період", value_col: y_label, "segment": "Сегмент"},
-        color_discrete_sequence=["#4285F4", "#F4B400"],
+        color_discrete_sequence=["#4285F4", "#007FC5"],
         category_orders={"period_label": df["period_label"].drop_duplicates().tolist(), "segment": ["Нові", "Старі"]},
     )
     fig.update_traces(marker_line_color="#FFFFFF", marker_line_width=1.0, selector=dict(type="bar"))

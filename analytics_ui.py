@@ -11,7 +11,7 @@ from lead_mailer import LeadMailError, send_lead_email
 
 BRAND_BLACK = "#1F2937"
 BRAND_YELLOW = "#4285F4"
-BRAND_GOLD = "#F4B400"
+BRAND_GOLD = "#007FC5"
 BRAND_DARK_GOLD = "#C58B00"
 BRAND_PALE = "#EAF2FF"
 BRAND_CREAM = "#F8FAFC"
@@ -21,7 +21,7 @@ CHART_COLORS = [
     "#4285F4",
     "#5B8FF9",
     "#34A853",
-    "#F4B400",
+    "#007FC5",
     "#A142F4",
     "#1F2937",
 ]
@@ -253,13 +253,13 @@ def render_recommendations(
 
         [class*="st-key-rec_card_"] .stButton button {
             margin-top: 0.35rem;
-            border-color: #F4C430 !important;
-            background: #FFF8D8 !important;
+            border-color: #007FC5 !important;
+            background: #EAF7FD !important;
             color: #111827 !important;
         }
 
         [class*="st-key-rec_card_"] .stButton button:hover {
-            background: #F4C430 !important;
+            background: #007FC5 !important;
             color: #111827 !important;
         }
 
@@ -284,8 +284,8 @@ def render_recommendations(
         }
 
         .recommendation-priority.important {
-            background: #FFF2D8;
-            color: #A15C00 !important;
+            background: #EAF7FD;
+            color: #006CA8 !important;
         }
 
         .recommendation-priority.recommendation {

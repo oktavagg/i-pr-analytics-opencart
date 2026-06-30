@@ -45,20 +45,20 @@ LEGACY_DEMO_ORDERS_PATH = DEMO_DATA_DIR / "order (24).xml"
 LEGACY_DEMO_PRODUCTS_PATH = DEMO_DATA_DIR / "product (2).xml"
 
 BRAND_BLACK = "#111111"
-BRAND_YELLOW = "#FBF560"
-BRAND_GOLD = "#D8D142"
-BRAND_DARK_GOLD = "#A49E23"
-BRAND_PALE = "#FFFCD0"
-BRAND_CREAM = "#FFFEEE"
-BRAND_BORDER = "#D9D267"
+BRAND_YELLOW = "#007FC5"
+BRAND_GOLD = "#007FC5"
+BRAND_DARK_GOLD = "#005F95"
+BRAND_PALE = "#E5F5FC"
+BRAND_CREAM = "#F4FBFF"
+BRAND_BORDER = "#B8DFF2"
 BRAND_MUTED = "#4B4B4B"
 CHART_COLORS = [
-    "#FBF560",
-    "#D8D142",
+    "#007FC5",
+    "#007FC5",
     "#111111",
-    "#F6F29E",
-    "#A49E23",
-    "#FFF9B5",
+    "#AEE3FF",
+    "#005F95",
+    "#E5F5FC",
 ]
 WEEKDAY_NAMES = {
     0: "Понедельник",
@@ -399,11 +399,11 @@ def apply_theme() -> None:
         :root {
             color-scheme: light;
             --ipr-black: #111111;
-            --ipr-yellow: #FBF560;
-            --ipr-gold: #D8D142;
-            --ipr-pale: #FFFCD0;
-            --ipr-cream: #FFFEEE;
-            --ipr-border: #D9D267;
+            --ipr-yellow: #007FC5;
+            --ipr-gold: #007FC5;
+            --ipr-pale: #E5F5FC;
+            --ipr-cream: #F4FBFF;
+            --ipr-border: #B8DFF2;
         }
 
         html, body, [data-testid="stAppViewContainer"],
@@ -503,7 +503,7 @@ def apply_theme() -> None:
             left: 0;
             width: 100%;
             height: 4px;
-            background: linear-gradient(90deg, #F4C430 0%, #F8E16A 100%);
+            background: linear-gradient(90deg, #007FC5 0%, #3AA7E0 100%);
         }
 
         .sidebar-brand-logo {
@@ -616,7 +616,7 @@ def apply_theme() -> None:
             right: 7px;
             width: 6px;
             height: 6px;
-            background: linear-gradient(90deg, #F4C430 0%, #F8E16A 100%);
+            background: linear-gradient(90deg, #007FC5 0%, #3AA7E0 100%);
             border-radius: 50%;
         }
 
@@ -733,7 +733,7 @@ def apply_theme() -> None:
             top: 50%;
             width: 4px;
             height: 18px;
-            background: linear-gradient(90deg, #F4C430 0%, #F8E16A 100%);
+            background: linear-gradient(90deg, #007FC5 0%, #3AA7E0 100%);
             border-radius: 999px;
             transform: translateY(-50%);
         }
@@ -803,14 +803,14 @@ def apply_theme() -> None:
             padding: 38px;
             background: #FFFFFF;
             border: 1px solid #E7EAF0;
-            border-left: 5px solid #F4C430;
+            border-left: 5px solid #007FC5;
         }
 
         .module-placeholder .module-status {
             display: inline-block;
             margin-bottom: 14px;
             padding: 5px 9px;
-            background: linear-gradient(90deg, #F4C430 0%, #F8E16A 100%);
+            background: linear-gradient(90deg, #007FC5 0%, #3AA7E0 100%);
             border: 1px solid #111111;
             font-size: 0.75rem;
             font-weight: 800;
@@ -835,7 +835,7 @@ def apply_theme() -> None:
             padding: 18px 20px;
             background: #FFFFFF;
             border: 1px solid #E7EAF0;
-            border-left: 4px solid #F4C430;
+            border-left: 4px solid #007FC5;
         }
 
         .period-control-box h3 {
@@ -979,7 +979,7 @@ def apply_theme() -> None:
             border: 1px solid #E7EAF0;
             border-top: 1px solid #E7EAF0;
             border-radius: 20px;
-            background: linear-gradient(135deg, #FFFFFF 0%, #FCFCFD 70%, #FFF8D8 100%);
+            background: linear-gradient(135deg, #FFFFFF 0%, #FCFCFD 70%, #EAF7FD 100%);
             box-shadow: 0 14px 34px rgba(15, 23, 42, 0.06);
             margin-bottom: 22px;
             overflow: hidden;
@@ -1060,7 +1060,7 @@ def apply_theme() -> None:
             top: 0;
             width: 100%;
             height: 3px;
-            background: linear-gradient(90deg, #F4C430 0%, #F8E16A 100%);
+            background: linear-gradient(90deg, #007FC5 0%, #3AA7E0 100%);
         }
 
         [data-testid="stMetricLabel"] {
@@ -1091,7 +1091,7 @@ def apply_theme() -> None:
         .summary-box {
             background: #FFFFFF;
             border: 1px solid #E7EAF0;
-            border-left: 4px solid #F4C430;
+            border-left: 4px solid #007FC5;
             border-radius: 16px;
             padding: 18px 20px;
             margin: 12px 0 18px 0;
@@ -1170,12 +1170,12 @@ def apply_theme() -> None:
 
         .recommendation-card.important {
             border-left-color: #D86A00;
-            background: #FFF8EE;
+            background: #F4FBFF;
         }
 
         .recommendation-card.recommendation {
-            border-left-color: #A49E23;
-            background: #FFFBEB;
+            border-left-color: #005F95;
+            background: #F4FBFF;
         }
 
         .recommendation-card.idea {
@@ -1188,7 +1188,7 @@ def apply_theme() -> None:
             margin: 0 0 10px;
             padding: 4px 8px;
             border: 1px solid #111111;
-            background: linear-gradient(90deg, #F4C430 0%, #F8E16A 100%);
+            background: linear-gradient(90deg, #007FC5 0%, #3AA7E0 100%);
             color: #111111 !important;
             font-size: 0.72rem;
             font-weight: 850;
@@ -1340,9 +1340,9 @@ def apply_theme() -> None:
         }
 
         .stAlert {
-            background: #FFFCD0 !important;
+            background: #E5F5FC !important;
             color: #111111 !important;
-            border: 1px solid #D9D267 !important;
+            border: 1px solid #B8DFF2 !important;
             border-radius: 12px !important;
         }
 
@@ -1352,7 +1352,7 @@ def apply_theme() -> None:
             margin: 8px 0 24px;
             background: #FFFFFF;
             border: 1px solid #E7EAF0;
-            border-left: 4px solid #F4C430;
+            border-left: 4px solid #007FC5;
             border-radius: 18px;
             box-shadow: 0 14px 32px rgba(15, 23, 42, 0.05);
             transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
@@ -1470,7 +1470,7 @@ def apply_theme() -> None:
         [data-testid="stFileUploaderDropzone"]:hover {
             transform: translateY(-1px);
             border-color: #C8D0DB !important;
-            background: #FFFEEE !important;
+            background: #F4FBFF !important;
         }
 
         .import-intro h2 {
@@ -1567,7 +1567,7 @@ def apply_theme() -> None:
             padding: 8px 12px;
             border-radius: 999px;
             background: #FFF2B8;
-            border: 1px solid #F4C430;
+            border: 1px solid #007FC5;
             color: #111827 !important;
             font-size: 0.92rem;
             font-weight: 850;
@@ -1633,15 +1633,15 @@ def apply_theme() -> None:
             width: 40px;
             height: 40px;
             border-radius: 12px;
-            background: #FFF7D6;
-            color: #9A7300 !important;
+            background: #EAF7FD;
+            color: #006CA8 !important;
         }
 
         .period-filter-icon svg {
             width: 21px;
             height: 21px;
             display: block;
-            color: #9A7300 !important;
+            color: #006CA8 !important;
         }
 
         .period-filter-title {
@@ -1683,9 +1683,9 @@ def apply_theme() -> None:
         .st-key-page_period_filter [data-baseweb="button-group"] button[aria-pressed="true"],
         .st-key-page_period_filter [data-testid="stSegmentedControl"] button[data-active="true"],
         .st-key-page_period_filter [data-baseweb="button-group"] button[data-active="true"] {
-            background: #FFF7D6 !important;
+            background: #EAF7FD !important;
             color: #111827 !important;
-            border: 1px solid #F4C430 !important;
+            border: 1px solid #007FC5 !important;
             box-shadow: 0 6px 14px rgba(244, 196, 48, 0.22) !important;
         }
 
@@ -2460,7 +2460,7 @@ def _render_direct_recommendation_form(
 
     st.markdown(
         f"""
-        <div style="margin:0 0 16px;padding:18px 20px;border:1px solid #E7EAF0;border-left:5px solid #F4C430;border-radius:18px;background:#FFFFFF;">
+        <div style="margin:0 0 16px;padding:18px 20px;border:1px solid #E7EAF0;border-left:5px solid #007FC5;border-radius:18px;background:#FFFFFF;">
             <div style="font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:#8A94A6;">Вы выбрали рекомендацию</div>
             <div style="margin-top:5px;font-size:18px;font-weight:850;color:#111827;">{escape(title)}</div>
             <div style="margin-top:6px;color:#667085;line-height:1.5;">{escape(text_value)}</div>
@@ -2574,7 +2574,7 @@ def render_recommendations_page_direct(context: dict[str, object]) -> None:
         [class*="st-key-direct_rec_button_"] button,
         .st-key-direct_general_cta button {
             min-height: 44px !important;
-            background: #F4C430 !important;
+            background: #007FC5 !important;
             color: #111827 !important;
             border: 1px solid #D6A900 !important;
             font-weight: 850 !important;
@@ -2582,8 +2582,8 @@ def render_recommendations_page_direct(context: dict[str, object]) -> None:
         }
         [class*="st-key-direct_rec_button_"] button:hover,
         .st-key-direct_general_cta button:hover {
-            background: #FFD84D !important;
-            border-color: #C99C00 !important;
+            background: #007FC5 !important;
+            border-color: #005F95 !important;
         }
         .direct-rec-badge {
             display:inline-flex;
@@ -2596,7 +2596,7 @@ def render_recommendations_page_direct(context: dict[str, object]) -> None:
             letter-spacing:.04em;
         }
         .direct-rec-badge.critical { background:#FEECEC; color:#B42318 !important; }
-        .direct-rec-badge.important { background:#FFF2D8; color:#A15C00 !important; }
+        .direct-rec-badge.important { background:#EAF7FD; color:#006CA8 !important; }
         .direct-rec-badge.recommendation { background:#EAF2FF; color:#245FA8 !important; }
         .direct-rec-badge.idea { background:#F1ECFF; color:#6842A8 !important; }
         .direct-rec-title { margin:10px 0 7px;font-size:16px;font-weight:850;color:#111827 !important; }
@@ -2611,7 +2611,7 @@ def render_recommendations_page_direct(context: dict[str, object]) -> None:
     with intro_left:
         st.markdown(
             f"""
-            <div style="padding:18px 20px;border:1px solid #E7EAF0;border-left:5px solid #F4C430;border-radius:18px;background:#FFFFFF;">
+            <div style="padding:18px 20px;border:1px solid #E7EAF0;border-left:5px solid #007FC5;border-radius:18px;background:#FFFFFF;">
                 <div style="font-size:18px;font-weight:850;color:#111827;">{len(recommendations)} рекомендаций по доработке сайта</div>
                 <div style="margin-top:5px;color:#667085;">Под каждой рекомендацией есть кнопка «Меня интересует». Выбранный текст полностью попадёт в заявку.</div>
             </div>

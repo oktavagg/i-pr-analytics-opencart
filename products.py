@@ -84,7 +84,7 @@ def render_top_products_page(context: dict[str, object]) -> None:
     left, right = st.columns(2, gap="large")
     with left:
         by_revenue = products.sort_values(["revenue", "orders"], ascending=False).head(10).sort_values("revenue")
-        fig = px.bar(by_revenue, x="revenue", y="product_name", orientation="h", title="ТОП-10 за виручкою", labels={"revenue": "Виручка, грн", "product_name": "Товар"}, color_discrete_sequence=["#D4A91F"])
+        fig = px.bar(by_revenue, x="revenue", y="product_name", orientation="h", title="ТОП-10 за виручкою", labels={"revenue": "Виручка, грн", "product_name": "Товар"}, color_discrete_sequence=["#007FC5"])
         configure_plot(fig, 430)
         st.plotly_chart(fig, width="stretch", config={"displayModeBar": False})
     with right:
