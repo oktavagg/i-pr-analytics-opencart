@@ -31,7 +31,9 @@ from xml_parser import (
 )
 
 
-LOGO_PATH = Path(__file__).with_name("ipr.jpeg")
+UHT_LOGO_PATH = Path(__file__).with_name("UHT-24-Blue.png")
+IPR_LOGO_PATH = Path(__file__).with_name("ipr.jpeg")
+LOGO_PATH = UHT_LOGO_PATH if UHT_LOGO_PATH.exists() else IPR_LOGO_PATH
 DATA_DIR = Path(__file__).with_name("uploaded_data")
 ORDERS_XML_PATH = DATA_DIR / "orders.xml"
 PRODUCTS_XML_PATH = DATA_DIR / "products.xml"
@@ -409,6 +411,20 @@ def apply_theme() -> None:
             background: rgba(246, 247, 251, 0.92) !important; border-bottom: 1px solid #ECEFF5;
         }
 
+        [data-testid="stToolbar"],
+        [data-testid="stToolbarActions"],
+        [data-testid="stToolbarActionButton"],
+        [data-testid="stMainMenu"],
+        #MainMenu,
+        footer,
+        ._terminalButton_rix23_138,
+        button[data-testid="manage-app-button"] {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
         [data-testid="stSidebar"] {
             background: #171B22 !important;
             border-right: 1px solid #232A35;
@@ -441,46 +457,23 @@ def apply_theme() -> None:
             border-radius: 999px;
         }
 
-        [data-testid="stSidebarCollapsedControl"],
-        [data-testid="stSidebarCollapseButton"] {
-            display: flex !important;
-            visibility: visible !important;
-            opacity: 1 !important;
-            pointer-events: auto !important;
-            z-index: 1000000 !important;
+        @media (min-width: 901px) {
+            [data-testid="stSidebarCollapsedControl"],
+            [data-testid="stSidebarCollapseButton"] {
+                display: none !important;
+                visibility: hidden !important;
+                opacity: 0 !important;
+                pointer-events: none !important;
+            }
         }
 
-        [data-testid="stSidebarCollapsedControl"] {
-            position: fixed !important;
-            top: 0.75rem !important;
-            left: 0.75rem !important;
-            width: 2.5rem !important;
-            height: 2.5rem !important;
-            align-items: center !important;
-            justify-content: center !important;
-            background: #FFFFFF !important;
-            border: 1px solid #E7EAF0 !important;
-            border-radius: 11px !important;
-            box-shadow: 0 8px 24px rgba(17, 17, 17, 0.08) !important;
-            transition: background 0.18s ease, border-color 0.18s ease, transform 0.18s ease !important;
-        }
-
-        [data-testid="stSidebarCollapsedControl"]:hover {
-            background: #F4C430 !important;
-            border-color: #F4C430 !important;
-            transform: translateY(-1px);
-        }
-
-        [data-testid="stSidebarCollapsedControl"] button,
-        [data-testid="stSidebarCollapseButton"] button {
-            color: #111111 !important;
-            background: transparent !important;
-        }
-
-        [data-testid="stSidebarCollapsedControl"] svg,
-        [data-testid="stSidebarCollapseButton"] svg {
-            color: #111111 !important;
-            fill: #111111 !important;
+        @media (max-width: 900px) {
+            [data-testid="stSidebarCollapsedControl"],
+            [data-testid="stSidebarCollapseButton"] {
+                display: flex !important;
+                visibility: visible !important;
+                opacity: 1 !important;
+            }
         }
 
         .sidebar-brand {
@@ -1573,15 +1566,47 @@ def apply_theme() -> None:
             box-shadow: 0 6px 14px rgba(244, 196, 48, 0.18);
         }
 
+        .st-key-page_period_filter [data-testid="stDateInput"] {
+            width: 100%;
+        }
+
+        .st-key-page_period_filter [data-testid="stDateInput"] > div,
+        .st-key-page_period_filter [data-testid="stDateInput"] input,
+        .st-key-page_period_filter [data-baseweb="input"],
+        .st-key-page_period_filter [data-baseweb="input"] > div {
+            background: #FFFFFF !important;
+            box-shadow: none !important;
+            border-color: #DCE3EE !important;
+            border-radius: 12px !important;
+        }
+
         .st-key-page_period_filter [data-testid="stDateInput"] input {
             min-height: 2.6rem;
+            padding-left: 0.9rem !important;
+            padding-right: 0.55rem !important;
             font-weight: 700;
             font-size: 0.96rem;
+            letter-spacing: 0;
         }
 
         .st-key-page_period_filter .stButton > button[kind="primary"],
         .st-key-page_period_filter .stButton > button {
             min-height: 2.6rem;
+            min-width: 128px;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+            white-space: nowrap !important;
+            word-break: normal !important;
+            overflow-wrap: normal !important;
+            line-height: 1.1 !important;
+        }
+
+        .st-key-page_period_filter .stButton > button p,
+        .st-key-page_period_filter .stButton > button span,
+        .st-key-page_period_filter .stButton > button div {
+            white-space: nowrap !important;
+            word-break: normal !important;
+            overflow-wrap: normal !important;
         }
 
         .period-filter-header {
@@ -1767,6 +1792,112 @@ def apply_theme() -> None:
                 font-size: 1.7rem;
             }
         }
+
+
+        @media (max-width: 1180px) {
+            [data-testid="stSidebar"] {
+                min-width: 300px !important;
+                max-width: 300px !important;
+            }
+
+            .st-key-page_period_filter .stButton > button[kind="primary"],
+            .st-key-page_period_filter .stButton > button {
+                min-width: 112px;
+                font-size: 0.88rem !important;
+            }
+        }
+
+        @media (max-width: 900px) {
+            [data-testid="stMainBlockContainer"] {
+                padding-left: 0.9rem !important;
+                padding-right: 0.9rem !important;
+                padding-top: 1rem !important;
+            }
+
+            h1, .page-heading h1 {
+                font-size: 1.9rem !important;
+                line-height: 1.15 !important;
+            }
+
+            .st-key-page_period_filter {
+                padding: 14px !important;
+                border-radius: 16px !important;
+            }
+
+            .st-key-page_period_filter [data-testid="stHorizontalBlock"] {
+                flex-wrap: wrap !important;
+                gap: 0.55rem !important;
+            }
+
+            .st-key-page_period_filter [data-testid="column"] {
+                min-width: 145px !important;
+                width: auto !important;
+                flex: 1 1 145px !important;
+            }
+
+            .st-key-page_period_filter [data-testid="column"]:first-child {
+                min-width: 100% !important;
+                flex-basis: 100% !important;
+            }
+
+            .date-filter-label,
+            .date-filter-current {
+                text-align: left !important;
+                justify-content: flex-start !important;
+            }
+
+            .date-filter-current {
+                margin-top: 0.35rem;
+                width: 100%;
+                flex-wrap: wrap;
+                gap: 8px;
+            }
+
+            .date-filter-arrow {
+                display: none !important;
+            }
+
+            [data-testid="stMetric"] {
+                padding: 14px 16px !important;
+                border-radius: 16px !important;
+            }
+
+            div[data-testid="stPlotlyChart"],
+            div[data-testid="stDataFrame"],
+            .summary-box,
+            .monthly-table-wrap,
+            .comparison-table-wrap {
+                border-radius: 16px !important;
+                overflow-x: auto !important;
+            }
+
+            [data-testid="stDataFrame"] {
+                max-width: 100% !important;
+                overflow-x: auto !important;
+            }
+        }
+
+        @media (max-width: 640px) {
+            [data-testid="stMainBlockContainer"] {
+                padding-left: 0.7rem !important;
+                padding-right: 0.7rem !important;
+            }
+
+            .st-key-page_period_filter [data-testid="column"] {
+                min-width: 100% !important;
+                flex-basis: 100% !important;
+            }
+
+            .st-key-page_period_filter .stButton > button,
+            .st-key-page_period_filter [data-testid="stDateInput"] input {
+                width: 100% !important;
+            }
+
+            .date-filter-current strong {
+                width: 100%;
+            }
+        }
+
         </style>
         """
 ,
@@ -2639,7 +2770,7 @@ def render_page_period_filter(
         st.session_state[view_key] = "month"
 
     with st.container(key="page_period_filter"):
-        row = st.columns([0.78, 1.0, 0.12, 1.0, 0.72, 0.6, 4.2], vertical_alignment="center")
+        row = st.columns([0.82, 1.08, 0.08, 1.08, 0.9, 0.78, 3.7], vertical_alignment="center")
         row[0].markdown('<div class="date-filter-label">Діапазон дат:</div>', unsafe_allow_html=True)
         with row[1]:
             st.date_input(
