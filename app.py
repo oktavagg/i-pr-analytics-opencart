@@ -39,8 +39,10 @@ ORDERS_XML_PATH = DATA_DIR / "orders.xml"
 PRODUCTS_XML_PATH = DATA_DIR / "products.xml"
 UPLOAD_META_PATH = DATA_DIR / "metadata.json"
 DEMO_DATA_DIR = Path(__file__).with_name("files_test")
-DEMO_ORDERS_PATH = DEMO_DATA_DIR / "order (24).xml"
-DEMO_PRODUCTS_PATH = DEMO_DATA_DIR / "product (2).xml"
+DEMO_ORDERS_PATH = DEMO_DATA_DIR / "order.xml"
+DEMO_PRODUCTS_PATH = DEMO_DATA_DIR / "product.xml"
+LEGACY_DEMO_ORDERS_PATH = DEMO_DATA_DIR / "order (24).xml"
+LEGACY_DEMO_PRODUCTS_PATH = DEMO_DATA_DIR / "product (2).xml"
 
 BRAND_BLACK = "#111111"
 BRAND_YELLOW = "#FBF560"
@@ -217,23 +219,14 @@ def save_uploaded_files(orders_file, products_file) -> None:
 
 
 def load_demo_files() -> None:
-    missing = [
-        path.name
-        for path in (DEMO_ORDERS_PATH, DEMO_PRODUCTS_PATH)
-        if not path.is_file()
-    ]
-    if missing:
-        raise RuntimeError(
-            "В папке files_test отсутствуют демо-файлы: "
-            + ", ".join(missing)
-        )
-
+    orders_bytes, products_bytes, orders_path, products_path = read_demo_files()
     save_xml_bytes(
-        orders_bytes=DEMO_ORDERS_PATH.read_bytes(),
-        products_bytes=DEMO_PRODUCTS_PATH.read_bytes(),
-        orders_name=DEMO_ORDERS_PATH.name,
-        products_name=DEMO_PRODUCTS_PATH.name,
+        orders_bytes=orders_bytes,
+        products_bytes=products_bytes,
+        orders_name=orders_path.name,
+        products_name=products_path.name,
     )
+
 
 def delete_uploaded_files() -> None:
     for path in (ORDERS_XML_PATH, PRODUCTS_XML_PATH, UPLOAD_META_PATH):
@@ -261,6 +254,24 @@ def format_file_size(size: int) -> str:
     if size >= 1024 * 1024:
         return f"{size / (1024 * 1024):.1f} МБ"
     return f"{size / 1024:.0f} КБ"
+
+
+def get_demo_file_paths() -> tuple[Path, Path]:
+    orders_path = DEMO_ORDERS_PATH if DEMO_ORDERS_PATH.exists() else LEGACY_DEMO_ORDERS_PATH
+    products_path = DEMO_PRODUCTS_PATH if DEMO_PRODUCTS_PATH.exists() else LEGACY_DEMO_PRODUCTS_PATH
+    return orders_path, products_path
+
+
+def read_demo_files() -> tuple[bytes, bytes, Path, Path]:
+    orders_path, products_path = get_demo_file_paths()
+    missing = [
+        str(path.relative_to(Path(__file__).parent))
+        for path in (orders_path, products_path)
+        if not path.exists()
+    ]
+    if missing:
+        raise FileNotFoundError("У папці files_test відсутні файли: " + ", ".join(missing))
+    return orders_path.read_bytes(), products_path.read_bytes(), orders_path, products_path
 
 
 def render_import_screen() -> None:
@@ -365,18 +376,16 @@ def render_import_screen() -> None:
         st.rerun()
 
 def render_loaded_files_sidebar() -> None:
-    metadata = load_upload_metadata()
-    orders_name = str(metadata.get("orders_name", "orders.xml"))
-    products_name = str(metadata.get("products_name", "products.xml"))
-    orders_size = int(metadata.get("orders_size", ORDERS_XML_PATH.stat().st_size))
-    products_size = int(metadata.get("products_size", PRODUCTS_XML_PATH.stat().st_size))
+    try:
+        _, _, orders_path, products_path = read_demo_files()
+    except FileNotFoundError as exc:
+        st.error(str(exc))
+        return
 
-    st.header("Завантажені дані")
-    st.caption(f"Замовлення: {orders_name}, {format_file_size(orders_size)}")
-    st.caption(f"Товари: {products_name}, {format_file_size(products_size)}")
-    if st.button("Видалити завантажені файли", width="stretch"):
-        delete_uploaded_files()
-        st.rerun()
+    st.header("Дані презентації")
+    st.caption(f"Замовлення: {orders_path.name}, {format_file_size(orders_path.stat().st_size)}")
+    st.caption(f"Товари: {products_path.name}, {format_file_size(products_path.stat().st_size)}")
+    st.caption("Дані автоматично завантажуються з папки files_test.")
 
 
 
@@ -3041,21 +3050,12 @@ def main() -> None:
 
     apply_theme()
 
-    if not stored_import_exists():
-        render_import_screen()
-        st.stop()
-
     try:
-        stored_orders_bytes = ORDERS_XML_PATH.read_bytes()
-        stored_products_bytes = PRODUCTS_XML_PATH.read_bytes()
+        stored_orders_bytes, stored_products_bytes, _, _ = read_demo_files()
         validate_order_xml_cached(stored_orders_bytes)
         validate_product_xml_cached(stored_products_bytes)
-    except (OSError, ValueError) as exc:
-        render_header()
-        st.error(f"Збережені дані пошкоджені: {exc}")
-        if st.button("Видалити пошкоджені файли і завантажити знову"):
-            delete_uploaded_files()
-            st.rerun()
+    except (OSError, ValueError, FileNotFoundError) as exc:
+        st.error(f"Не вдалося завантажити дані з папки files_test: {exc}")
         st.stop()
 
     try:
